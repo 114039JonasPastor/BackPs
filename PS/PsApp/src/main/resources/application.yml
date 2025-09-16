@@ -1,0 +1,18 @@
+#spring.application.name=PsApp
+spring:
+  application:
+    name: PsApp
+  datasource:
+    url: jdbc:postgresql://localhost:5433/ps
+    username: jonas24
+    password: PracticaSupervisada123
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dll-auto: update
+
+server:
+  port: 8081
