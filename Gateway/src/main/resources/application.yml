@@ -1,0 +1,19 @@
+#spring.application.name=Gateway
+
+spring:
+  application:
+    name: Gateway-service
+  cloud:
+    Gateway:
+      mvc:
+        routes:
+          - id: App
+            uri: http://localhost:8081
+            predicates:
+              - Path=/api/usuarios/** #Revisar el nombre del endpoint
+            filters:
+              - StripPrefix=0
+
+
+server:
+  port: 8080
