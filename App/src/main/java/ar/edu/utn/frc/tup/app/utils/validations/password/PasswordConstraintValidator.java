@@ -13,6 +13,14 @@ public class PasswordConstraintValidator implements ConstraintValidator<ValidPas
 
     }
 
+    /*
+    * Tener entre 8 y 30 caracteres.
+    * Incluir al menos una mayúscula.
+    * Incluir al menos un dígito.
+    * Incluir al menos un carácter especial.
+    * No tener secuencias numéricas, alfabéticas o de teclado de 3 o más caracteres.
+    * No tener espacios en blanco.*/
+
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
         PasswordValidator validator = new PasswordValidator(Arrays.asList(
