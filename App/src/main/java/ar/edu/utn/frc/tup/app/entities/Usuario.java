@@ -1,6 +1,8 @@
 package ar.edu.utn.frc.tup.app.entities;
 
+import ar.edu.utn.frc.tup.app.utils.validations.password.ValidPassword;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -35,11 +37,13 @@ public class Usuario implements UserDetails {
     @Size(max = 255)
     @NotNull
     @Column(name = "password", nullable = false)
+    @ValidPassword
     private String password;
 
     @Size(max = 150)
     @NotNull
     @Column(name = "mail", nullable = false, length = 150)
+    @Email
     private String mail;
 
     @NotNull
