@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.tup.app.controllers;
 
+import ar.edu.utn.frc.tup.app.dtos.UsuarioDto;
 import ar.edu.utn.frc.tup.app.entities.Usuario;
 import ar.edu.utn.frc.tup.app.services.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class UsuarioController {
     private UsuarioService usuarioService;
 
     @GetMapping(value = "usuarios")
-    public ResponseEntity<List<Usuario>> getUsuarios() {
+    public ResponseEntity<List<UsuarioDto>> getUsuarios() {
         return ResponseEntity.ok(usuarioService.getUsuarios());
     }
 

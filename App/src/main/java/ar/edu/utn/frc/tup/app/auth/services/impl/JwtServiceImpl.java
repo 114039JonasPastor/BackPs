@@ -2,6 +2,7 @@ package ar.edu.utn.frc.tup.app.auth.services.impl;
 
 import ar.edu.utn.frc.tup.app.auth.services.JwtService;
 import ar.edu.utn.frc.tup.app.entities.Usuario;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -13,6 +14,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 @Service
 public class JwtServiceImpl implements JwtService {
@@ -21,6 +23,39 @@ public class JwtServiceImpl implements JwtService {
 
     public String getToken(UserDetails user) {
         return getToken(new HashMap<>(), user);
+    }
+
+    @Override
+    public String getUsernameFromToken(String token) {
+        return getClaim(token, Claims::getSubject);
+    }
+
+    private Claims getAllClaims(String token){
+        return Jwts.parserBuilder()
+                .setSigningKey(getkey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public <T> T getClaim(String token, Function<Claims,T> claimResolver){
+        final Claims claims = getAllClaims(token);
+        return claimResolver.apply(claims);
+    }
+
+    @Override
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String username = getUsernameFromToken(token);
+
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    private Date getExpiration(String token){
+        return getClaim(token, Claims::getExpiration);
+    }
+
+    private boolean isTokenExpired(String token){
+        return getExpiration(token).before(new Date());
     }
 
     private String getToken(Map<String,Object> extraClaims, UserDetails user){
