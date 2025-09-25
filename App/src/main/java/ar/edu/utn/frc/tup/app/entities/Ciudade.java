@@ -1,9 +1,6 @@
 package ar.edu.utn.frc.tup.app.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -24,5 +21,10 @@ public class Ciudade {
     @NotNull
     @Column(name = "ciudad", nullable = false, length = 100)
     private String ciudad;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "iddepartamento", nullable = false)
+    private Departamento iddepartamento;
 
 }

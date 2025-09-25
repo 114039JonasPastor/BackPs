@@ -41,6 +41,10 @@ public class Direccione {
     @Column(name = "piso", length = 10)
     private String piso;
 
+    @Size(max = 10)
+    @Column(name = "depto", length = 10)
+    private String depto;
+
     @Size(max = 200)
     @Column(name = "observaciones", length = 200)
     private String observaciones;

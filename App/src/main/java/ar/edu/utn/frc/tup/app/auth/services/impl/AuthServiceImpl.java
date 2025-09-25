@@ -5,14 +5,12 @@ import ar.edu.utn.frc.tup.app.auth.LoginRequest;
 import ar.edu.utn.frc.tup.app.auth.RegisterRequest;
 import ar.edu.utn.frc.tup.app.auth.services.AuthService;
 import ar.edu.utn.frc.tup.app.auth.services.JwtService;
-import ar.edu.utn.frc.tup.app.entities.Role;
 import ar.edu.utn.frc.tup.app.entities.Usuario;
 import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -36,14 +34,14 @@ public class AuthServiceImpl implements AuthService {
     }
     @Override
     public AuthResponse register(RegisterRequest request) {
-        Role rol = Role.builder().id(2).descripcion("Cliente").build(); // Cliente
+//        Role rol = Role.builder().id(2).descripcion("Cliente").build(); // Cliente
         Usuario usuario = Usuario.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .mail(request.getEmail())
                 .name(request.getName())
                 .lastname(request.getLastname())
-                .idrol(rol) // Asignar rol por defecto (2 = Cliente)
+//                .idrol(rol) // Asignar rol por defecto (2 = Cliente)
                 .build();
 
         usuarioRepository.save(usuario);

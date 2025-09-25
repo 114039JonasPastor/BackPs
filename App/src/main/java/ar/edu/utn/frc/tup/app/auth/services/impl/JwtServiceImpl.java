@@ -1,7 +1,6 @@
 package ar.edu.utn.frc.tup.app.auth.services.impl;
 
 import ar.edu.utn.frc.tup.app.auth.services.JwtService;
-import ar.edu.utn.frc.tup.app.entities.Usuario;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

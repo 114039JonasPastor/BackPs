@@ -13,16 +13,16 @@ import org.hibernate.annotations.ColumnDefault;
 @Getter
 @Setter
 @Entity
-@Table(name = "provincias")
-public class Provincia {
+@Table(name = "tipos_documento")
+public class TiposDocumento {
     @Id
-    @ColumnDefault("nextval('provincias_idprovincia_seq')")
-    @Column(name = "idprovincia", nullable = false)
+    @ColumnDefault("nextval('tipos_documento_idtipodoc_seq')")
+    @Column(name = "idtipodoc", nullable = false)
     private Integer id;
 
-    @Size(max = 50)
+    @Size(max = 255)
     @NotNull
-    @Column(name = "provincia", nullable = false, length = 50)
-    private String provincia;
+    @Column(name = "tipo", nullable = false)
+    private String tipo;
 
 }

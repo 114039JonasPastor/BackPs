@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.time.LocalTime;
+
 @Getter
 @Setter
 @Entity
@@ -17,37 +19,26 @@ public class Cliente {
     @Column(name = "idcliente", nullable = false)
     private Integer id;
 
-    @Size(max = 100)
     @NotNull
-    @Column(name = "nombre", nullable = false, length = 100)
-    private String nombre;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "idtipodoc", nullable = false)
+    private TiposDocumento idtipodoc;
 
-    @Size(max = 100)
-    @NotNull
-    @Column(name = "apellido", nullable = false, length = 100)
-    private String apellido;
+    @Size(max = 20)
+    @Column(name = "documento", length = 20)
+    private String documento;
 
     @Size(max = 20)
     @Column(name = "telefono", length = 20)
     private String telefono;
 
-    @Size(max = 200)
-    @Column(name = "direccion", length = 200)
-    private String direccion;
-
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idprovincia", nullable = false)
-    private Provincia idprovincia;
+    @Column(name = "nacimiento", nullable = false)
+    private LocalTime nacimiento;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "idusuario", nullable = false)
     private Usuario idusuario;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idbarrio", nullable = false)
-    private Barrio idbarrio;
 
 }

@@ -19,23 +19,18 @@ public class Profesionale {
     @Column(name = "idprofesional", nullable = false)
     private Integer id;
 
-    @Size(max = 100)
     @NotNull
-    @Column(name = "nombre", nullable = false, length = 100)
-    private String nombre;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "idtipodoc", nullable = false)
+    private TiposDocumento idtipodoc;
 
-    @Size(max = 100)
-    @NotNull
-    @Column(name = "apellido", nullable = false, length = 100)
-    private String apellido;
+    @Size(max = 20)
+    @Column(name = "documento", length = 20)
+    private String documento;
 
     @Size(max = 20)
     @Column(name = "telefono", length = 20)
     private String telefono;
-
-    @Size(max = 200)
-    @Column(name = "direccion", length = 200)
-    private String direccion;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -44,13 +39,12 @@ public class Profesionale {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idbarrio", nullable = false)
-    private Barrio idbarrio;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "idoficio", nullable = false)
     private Oficio idoficio;
+
+    @NotNull
+    @Column(name = "nacimiento", nullable = false)
+    private LocalTime nacimiento;
 
     @NotNull
     @Column(name = "fechadesde", nullable = false)

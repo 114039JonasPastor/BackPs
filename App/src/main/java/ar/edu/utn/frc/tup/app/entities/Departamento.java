@@ -12,15 +12,15 @@ import org.hibernate.annotations.ColumnDefault;
 @Getter
 @Setter
 @Entity
-@Table(name = "localidades")
-public class Localidade {
+@Table(name = "departamentos")
+public class Departamento {
     @Id
-    @ColumnDefault("nextval('localidades_idlocalidad_seq')")
-    @Column(name = "idlocalidad", nullable = false)
+    @ColumnDefault("nextval('departamentos_iddepartamento_seq')")
+    @Column(name = "iddepartamento", nullable = false)
     private Integer id;
 
     @Size(max = 255)
-    @Column(name = "localidad")
-    private String localidad;
+    @Column(name = "departamento")
+    private String departamento;
 
 }
