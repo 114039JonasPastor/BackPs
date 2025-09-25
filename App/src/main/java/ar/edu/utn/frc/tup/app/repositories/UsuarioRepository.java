@@ -12,4 +12,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     @EntityGraph(attributePaths = "idrol")
     Optional<Usuario> findByUsername(String username);
+
+    Optional<Usuario> findByMail(String mail);
 }

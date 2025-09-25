@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -19,30 +20,9 @@ public class PasswordResetToken {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Size(max = 10)
-    @NotNull
-    @Column(name = "token", nullable = false, length = 10)
     private String token;
-
-    @Size(max = 150)
-    @NotNull
-    @Column(name = "email", nullable = false, length = 150)
     private String email;
-
-    @NotNull
-    @Column(name = "expiry_date", nullable = false)
-    private Instant expiryDate;
-
-    @ColumnDefault("false")
-    @Column(name = "used")
-    private Boolean used;
-
-    @ColumnDefault("now()")
-    @Column(name = "created_at")
-    private Instant createdAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario")
-    private Usuario idUsuario;
+    private LocalDateTime expiryDate;
+    private boolean used;
 
 }
