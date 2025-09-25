@@ -137,3 +137,17 @@ CREATE TABLE Facturas (
                           fecha TIMESTAMP DEFAULT NOW(),
                           estadoPago VARCHAR(20) NOT NULL -- pendiente, pagado, cancelado
 );
+
+CREATE TABLE password_reset_tokens (
+    id SERIAL PRIMARY KEY,
+    token VARCHAR(10) NOT NULL, -- Para el código de 6 dígitos
+    email VARCHAR(150) NOT NULL,
+    expiry_date TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    id_usuario INT REFERENCES Usuarios(idUsuario) -- Opcional pero útil
+);
+
+-- Índices para performance
+CREATE INDEX idx_reset_token_email ON password_reset_tokens(email);
+CREATE INDEX idx_reset_token_expiry ON password_reset_tokens(expiry_date);

@@ -15,7 +15,19 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         dll-auto: update
 
+  # CONFIGURACIÓN DE MAIL (indentación correcta)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: tu_email@gmail.com
+    password: tu_app_password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 server:
   port: 8081
-
 
