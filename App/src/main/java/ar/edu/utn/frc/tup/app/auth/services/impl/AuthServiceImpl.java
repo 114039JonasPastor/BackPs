@@ -34,14 +34,12 @@ public class AuthServiceImpl implements AuthService {
     }
     @Override
     public AuthResponse register(RegisterRequest request) {
-//        Role rol = Role.builder().id(2).descripcion("Cliente").build(); // Cliente
-        Usuario usuario = Usuario.builder()
-                .username(request.getUsername())
+        Usuario usuario = Usuario.builder() //error
+//                .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .mail(request.getEmail())
                 .name(request.getName())
                 .lastname(request.getLastname())
-//                .idrol(rol) // Asignar rol por defecto (2 = Cliente)
                 .build();
 
         usuarioRepository.save(usuario);

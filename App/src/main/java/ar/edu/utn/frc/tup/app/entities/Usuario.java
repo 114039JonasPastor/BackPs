@@ -1,11 +1,9 @@
 package ar.edu.utn.frc.tup.app.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
@@ -14,15 +12,19 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@Builder
 @Getter
 @Setter
 @Entity
 @Table(name = "usuarios")
 public class Usuario implements UserDetails {
     @Id
-    @ColumnDefault("nextval('usuarios_idusuario_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idusuario", nullable = false)
     private Integer id;
 
@@ -50,14 +52,25 @@ public class Usuario implements UserDetails {
     @Column(name = "active", nullable = false)
     private Boolean active = false;
 
+    // AQUÍ ESTÁ LA SOLUCIÓN: Mapear la relación muchos a muchos
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "rolxusuario",
+            joinColumns = @JoinColumn(name = "idusuario"),
+            inverseJoinColumns = @JoinColumn(name = "idrol")
+    )
+    private Set<Role> roles = new HashSet<>();
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority((role.name()))); //FIXME
+        return roles.stream()
+                .map(rol -> new SimpleGrantedAuthority("ROLE_" + rol.getDescripcion().toUpperCase()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public String getUsername() {
-        return "";
+        return mail; // Usando el email como username
     }
 
     @Override
@@ -77,6 +90,6 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return active;
     }
 }
