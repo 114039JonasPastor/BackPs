@@ -15,6 +15,7 @@ import java.time.LocalTime;
 @Table(name = "profesionales")
 public class Profesionale {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @ColumnDefault("nextval('profesionales_idprofesional_seq')")
     @Column(name = "idprofesional", nullable = false)
     private Integer id;
@@ -56,6 +57,6 @@ public class Profesionale {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "iddireccion", nullable = false)
-    private Usuario iddireccion;
+    private Direccione iddireccion;
 
 }
