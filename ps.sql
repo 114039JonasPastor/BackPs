@@ -44,11 +44,12 @@ CREATE TABLE Barrios (
 
 CREATE TABLE Clientes (
                           idCliente SERIAL PRIMARY KEY,
-			  idTipoDoc INT NOT NULL REFERENCES Tipos_Documento(idTipoDoc),
-			  documento VARCHAR(20),
-                          telefono VARCHAR(20),
-			  nacimiento TIME NOT NULL,
-                          idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario)
+			            idTipoDoc INT NOT NULL REFERENCES Tipos_Documento(idTipoDoc),
+			            documento VARCHAR(20),
+                        telefono VARCHAR(20),
+			            nacimiento TIME NOT NULL,
+                        idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),
+                        idDireccion INT NOT NULL REFERENCES Direcciones(idDireccion)
 );
 
 CREATE TABLE Oficios (
@@ -65,7 +66,8 @@ CREATE TABLE Profesionales (
                                idOficio INT NOT NULL REFERENCES Oficios(idOficio),
 			       nacimiento TIME NOT NULL,
                                fechaDesde TIME NOT NULL,
-                               fechaHasta TIME
+                               fechaHasta TIME,
+                               idDireccion INT NOT NULL REFERENCES Direcciones(idDireccion)
 );
 
 CREATE TABLE Disponibilidad (

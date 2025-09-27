@@ -41,4 +41,9 @@ public class Cliente {
     @JoinColumn(name = "idusuario", nullable = false)
     private Usuario idusuario;
 
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "iddireccion", nullable = false)
+    private Usuario iddireccion;
+
 }

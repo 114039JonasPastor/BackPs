@@ -53,4 +53,9 @@ public class Profesionale {
     @Column(name = "fechahasta")
     private LocalTime fechahasta;
 
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "iddireccion", nullable = false)
+    private Usuario iddireccion;
+
 }
