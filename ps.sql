@@ -153,3 +153,42 @@ CREATE TABLE password_reset_tokens (
 -- Índices para performance
 CREATE INDEX idx_reset_token_email ON password_reset_tokens(email);
 CREATE INDEX idx_reset_token_expiry ON password_reset_tokens(expiry_date);
+
+
+-- Datos iniciales
+INSERT INTO Departamentos (departamento) VALUES
+                                             ('CAPITAL'),
+                                             ('CALAMUCHITA'),
+                                             ('COLON'),
+                                             ('CRUZ DEL EJE'),
+                                             ('GENERAL ROCA'),
+                                             ('GENERAL SAN MARTIN'),
+                                             ('ISCHILIN'),
+                                             ('JUAREZ CELMAN'),
+                                             ('MARCOS JUAREZ'),
+                                             ('MINAS'),
+                                             ('POCHO'),
+                                             ('PTE. ROQUE SAENZ PEÑA'),
+                                             ('PUNILLA'),
+                                             ('RIO CUARTO'),
+                                             ('RIO PRIMERO'),
+                                             ('RIO SECO'),
+                                             ('RIO SEGUNDO'),
+                                             ('SAN ALBERTO'),
+                                             ('SAN JAVIER'),
+                                             ('SAN JUSTO'),
+                                             ('SANTA MARIA'),
+                                             ('SOBREMONTE'),
+                                             ('TERCERO ARRIBA'),
+                                             ('TOTORAL'),
+                                             ('TULUMBA'),
+                                             ('UNION');
+
+INSERT INTO Oficios (oficio) VALUES
+                                 ('GASISTA'),
+                                 ('ELECTRICISTA'),
+                                 ('PLOMERO'),
+                                 ('CARPINTERO'),
+                                 ('PINTOR'),
+                                 ('EMPLEADA DOMESTICA'),
+                                 ('INSTALADOR DE AIRES ACONDICIONADOS');
