@@ -13,6 +13,17 @@ CREATE TABLE Usuarios (
 			  active BOOLEAN NOT NULL
 );
 
+CREATE TABLE Direcciones (
+                             idDireccion SERIAL PRIMARY KEY,
+                             idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),
+                             idBarrio INT NOT NULL REFERENCES Barrios(idBarrio),
+                             calle VARCHAR(100) NOT NULL,
+                             numero VARCHAR(10) NOT NULL,
+                             piso VARCHAR(10),
+                             depto VARCHAR(10),
+                             observaciones VARCHAR(200)
+);
+
 CREATE TABLE Tipos_Documento (
                           idTipoDoc SERIAL PRIMARY KEY,
                           tipo VARCHAR(255) NOT NULL
@@ -113,17 +124,6 @@ CREATE TABLE Montos (
                         idOficio INT NOT NULL REFERENCES Oficios(idOficio),
                         precioMin NUMERIC(10,2) NOT NULL,
                         precioMax NUMERIC(10,2) NOT NULL
-);
-
-CREATE TABLE Direcciones (
-                             idDireccion SERIAL PRIMARY KEY,
-                             idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),
-                             idBarrio INT NOT NULL REFERENCES Barrios(idBarrio),
-                             calle VARCHAR(100) NOT NULL,
-                             numero VARCHAR(10) NOT NULL,
-                             piso VARCHAR(10),
-                             depto VARCHAR(10),
-                             observaciones VARCHAR(200)
 );
 
 CREATE TABLE MediosDePago (
