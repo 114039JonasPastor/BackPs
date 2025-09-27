@@ -44,4 +44,23 @@ public class PasswordResetController {
                     ));
         }
     }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> cambiarPassword(@RequestBody ResetPasswordRequest request) {
+        try {
+            passwordResetService.cambiarPassword(
+                    request.getEmail(),
+                    request.getCodigo(),
+                    request.getNuevaPassword()
+            );
+            return ResponseEntity.ok(Map.of("mensaje", "Contraseña cambiada exitosamente"));
+        } catch (Exception e) {
+            logger.error("Error en endpoint reset-password: ", e);
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "error", "Error al cambiar contraseña",
+                            "detalle", e.getMessage()
+                    ));
+        }
+    }
 }

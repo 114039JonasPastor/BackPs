@@ -20,13 +20,15 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: tuoficiopracticasupervisada@gmail.com
-    password: PracticaSupervisada2025
+    password: twzf lugx xoyd aswk
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+
+#contraseña de aplicacion twzf lugx xoyd aswk
 
 server:
   port: 8081
