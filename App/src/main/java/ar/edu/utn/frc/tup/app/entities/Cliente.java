@@ -15,6 +15,7 @@ import java.time.LocalTime;
 @Table(name = "clientes")
 public class Cliente {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @ColumnDefault("nextval('clientes_idcliente_seq')")
     @Column(name = "idcliente", nullable = false)
     private Integer id;
@@ -44,6 +45,6 @@ public class Cliente {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "iddireccion", nullable = false)
-    private Usuario iddireccion;
+    private Direccione iddireccion;
 
 }
