@@ -9,6 +9,9 @@ import java.util.Optional;
 
 @Repository
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Long> {
+
     Optional<PasswordResetToken> findByEmailAndTokenAndUsedFalseAndExpiryDateAfter(
             String email, String token, LocalDateTime now);
+    // Opcional: Para limpiar tokens expirados
+    void deleteByExpiryDateBefore(LocalDateTime date);
 }

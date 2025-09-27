@@ -3,9 +3,7 @@ package ar.edu.utn.frc.tup.app.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,6 +19,8 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "usuarios")
 public class Usuario implements UserDetails {
     @Id
@@ -50,7 +50,7 @@ public class Usuario implements UserDetails {
 
     @NotNull
     @Column(name = "active", nullable = false)
-    private Boolean active = false;
+    private Boolean active = true;
 
     // AQUÍ ESTÁ LA SOLUCIÓN: Mapear la relación muchos a muchos
     @ManyToMany(fetch = FetchType.EAGER)

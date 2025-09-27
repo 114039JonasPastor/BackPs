@@ -25,8 +25,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-        UserDetails user = usuarioRepository.findByUsername(request.getUsername()).orElseThrow();
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        UserDetails user = usuarioRepository.findByMail(request.getEmail()).orElseThrow();
         String token = jwtService.getToken(user);
         return AuthResponse.builder()
                 .token(token)
@@ -40,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
                 .mail(request.getEmail())
                 .name(request.getName())
                 .lastname(request.getLastname())
+                .active(true) //Todo revisar
                 .build();
 
         usuarioRepository.save(usuario);
