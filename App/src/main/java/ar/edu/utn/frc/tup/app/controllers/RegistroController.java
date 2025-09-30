@@ -1,8 +1,6 @@
 package ar.edu.utn.frc.tup.app.controllers;
 
-import ar.edu.utn.frc.tup.app.dtos.request.registro.NuevoCliente;
 import ar.edu.utn.frc.tup.app.dtos.request.registro.NuevoProfesional;
-import ar.edu.utn.frc.tup.app.entities.Cliente;
 import ar.edu.utn.frc.tup.app.entities.Profesionale;
 import ar.edu.utn.frc.tup.app.services.RegistroService;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +19,13 @@ public class RegistroController {
     @Autowired
     RegistroService registroService;
 
-    @PostMapping("/registro/cliente")
-    public ResponseEntity<Cliente> registrarCliente(@RequestBody NuevoCliente nuevoCliente) {
-        return ResponseEntity.ok(registroService.registrarCliente(nuevoCliente));
-    }
+//    @PostMapping("/registro/cliente")
+//    public ResponseEntity<Cliente> registrarCliente(@RequestBody NuevoCliente nuevoCliente) {
+//        return ResponseEntity.ok(registroService.registrarCliente(nuevoCliente));
+//    }
 
-    @PostMapping("/registro/profesional")
-    public ResponseEntity<Profesionale> registrarProfesional(@RequestBody NuevoProfesional nuevoProfesional) {
-        return ResponseEntity.ok(registroService.registrarProfesional(nuevoProfesional));
-    }
+//    @PostMapping("/registro/profesional")
+//    public ResponseEntity<Profesionale> registrarProfesional(@RequestBody NuevoProfesional nuevoProfesional) {
+//        return ResponseEntity.ok(registroService.registrarProfesional(nuevoProfesional));
+//    }
 }

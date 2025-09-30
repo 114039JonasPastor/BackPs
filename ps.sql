@@ -38,7 +38,6 @@ CREATE TABLE Barrios (
 
 CREATE TABLE Direcciones (
                              idDireccion SERIAL PRIMARY KEY,
-                             idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),
                              idBarrio INT NOT NULL REFERENCES Barrios(idBarrio),
                              calle VARCHAR(100) NOT NULL,
                              numero VARCHAR(10) NOT NULL,
@@ -148,7 +147,7 @@ CREATE TABLE password_reset_tokens (
     expiry_date TIMESTAMP NOT NULL,
     used BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW(),
-    id_usuario INT REFERENCES Usuarios(idUsuario) -- Opcional pero útil
+    id_auth INT REFERENCES Usuarios(idUsuario) -- Opcional pero útil
 );
 
 -- Insert 

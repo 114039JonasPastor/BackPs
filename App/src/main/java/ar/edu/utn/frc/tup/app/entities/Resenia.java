@@ -21,8 +21,8 @@ public class Resenia {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idcliente", nullable = false)
-    private Cliente idcliente;
+    @JoinColumn(name = "idusuario", nullable = false)
+    private Usuario idusuario;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

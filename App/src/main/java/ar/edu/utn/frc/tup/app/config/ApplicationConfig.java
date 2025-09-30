@@ -1,6 +1,6 @@
 package ar.edu.utn.frc.tup.app.config;
 
-import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
+import ar.edu.utn.frc.tup.app.repositories.AuthRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    private final UsuarioRepository usuarioRepository;
+    private final AuthRepository authRepository;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -39,7 +39,7 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailService() {
-        return mail -> usuarioRepository.findByMail(mail)
+        return mail -> authRepository.findByMail(mail)
                 .orElseThrow(()-> new UsernameNotFoundException("User not found"));
     }
 

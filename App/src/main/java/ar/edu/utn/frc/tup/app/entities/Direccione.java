@@ -19,11 +19,6 @@ public class Direccione {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idusuario", nullable = false)
-    private Usuario idusuario;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "idbarrio", nullable = false)
     private Barrio idbarrio;
 

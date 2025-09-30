@@ -23,7 +23,7 @@ public class Rolxusuario {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idusuario", nullable = false)
-    private Usuario idusuario;
+    @JoinColumn(name = "idauth", nullable = false)
+    private Usuario idauth;
 
 }

@@ -5,8 +5,8 @@ import ar.edu.utn.frc.tup.app.auth.LoginRequest;
 import ar.edu.utn.frc.tup.app.auth.RegisterRequest;
 import ar.edu.utn.frc.tup.app.auth.services.AuthService;
 import ar.edu.utn.frc.tup.app.auth.services.JwtService;
-import ar.edu.utn.frc.tup.app.entities.Usuario;
-import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
+import ar.edu.utn.frc.tup.app.entities.Auth;
+import ar.edu.utn.frc.tup.app.repositories.AuthRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final UsuarioRepository usuarioRepository;
+    private final AuthRepository authRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -26,7 +26,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        UserDetails user = usuarioRepository.findByMail(request.getEmail()).orElseThrow();
+        UserDetails user = authRepository.findByMail(request.getEmail()).orElseThrow();
         String token = jwtService.getToken(user);
         return AuthResponse.builder()
                 .token(token)
@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
     }
     @Override
     public AuthResponse register(RegisterRequest request) {
-        Usuario usuario = Usuario.builder() //error
+        Auth usuario = Auth.builder() //error
 //                .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .mail(request.getEmail())
@@ -43,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
                 .active(true) //Todo revisar
                 .build();
 
-        usuarioRepository.save(usuario);
+        authRepository.save(usuario);
 
         return AuthResponse.builder()
                 .token(jwtService.getToken(usuario))

@@ -14,8 +14,6 @@ public class RegistroServiceImpl implements RegistroService {
     @Autowired
     UsuarioRepository usuarioRepository;
 
-    @Autowired
-    ClienteRepository clienteRepository;
 
     @Autowired
     ProfesionalRepository profesionalRepository;
@@ -29,42 +27,42 @@ public class RegistroServiceImpl implements RegistroService {
     @Autowired
     OficioRepository oficioRepository;
 
-    @Override
-    public Profesionale registrarProfesional(NuevoProfesional nuevo) {
-        Direccione direccion = direccionRepository.findById(nuevo.getIdDireccion()).orElse(null);
-        Usuario usuario = usuarioRepository.findById(nuevo.getIdUsuario()).orElse(null);
-        TiposDocumento tipo = tipoDocumentoRepository.findById(nuevo.getIdTipoDoc()).orElse(null);
-        Oficio oficio = oficioRepository.findById(nuevo.getIdoficio()).orElse(null);
-
-        Profesionale profesionale = new Profesionale();
-
-        profesionale.setIdtipodoc(tipo);
-        profesionale.setIdusuario(usuario);
-        profesionale.setIddireccion(direccion);
-        profesionale.setNacimiento(nuevo.getFechaNacimiento());
-        profesionale.setFechadesde(nuevo.getFechaDesde());
-        profesionale.setFechahasta(nuevo.getFechaHasta());
-        profesionale.setDocumento(nuevo.getDocumento());
-        profesionale.setTelefono(nuevo.getTelefono());
-        profesionale.setIdoficio(oficio);
-
-        return profesionalRepository.save(profesionale);
-    }
-
-    @Override
-    public Cliente registrarCliente(NuevoCliente nuevo) {
-        Direccione direccion = direccionRepository.findById(nuevo.getIdDireccion()).orElse(null);
-        Usuario usuario = usuarioRepository.findById(nuevo.getIdUsuario()).orElse(null);
-        TiposDocumento tipo = tipoDocumentoRepository.findById(nuevo.getIdTipoDoc()).orElse(null);
-
-        Cliente cliente = new Cliente();
-        cliente.setIdtipodoc(tipo);
-        cliente.setIdusuario(usuario);
-        cliente.setIddireccion(direccion);
-        cliente.setNacimiento(nuevo.getFechaNacimiento());
-        cliente.setDocumento(nuevo.getDocumento());
-        cliente.setTelefono(nuevo.getTelefono());
-
-        return clienteRepository.save(cliente);
-    }
+//    @Override
+//    public Profesionale registrarProfesional(NuevoProfesional nuevo) {
+//        Direccione direccion = direccionRepository.findById(nuevo.getIdDireccion()).orElse(null);
+//        Usuario usuario = usuarioRepository.findById(nuevo.getIdUsuario()).orElse(null);
+//        TiposDocumento tipo = tipoDocumentoRepository.findById(nuevo.getIdTipoDoc()).orElse(null);
+//        Oficio oficio = oficioRepository.findById(nuevo.getIdoficio()).orElse(null);
+//
+//        Profesionale profesionale = new Profesionale();
+//
+//        profesionale.setIdtipodoc(tipo);
+//        profesionale.setIdusuario(usuario);
+//        profesionale.setIddireccion(direccion);
+//        profesionale.setNacimiento(nuevo.getFechaNacimiento());
+//        profesionale.setFechadesde(nuevo.getFechaDesde());
+//        profesionale.setFechahasta(nuevo.getFechaHasta());
+//        profesionale.setDocumento(nuevo.getDocumento());
+//        profesionale.setTelefono(nuevo.getTelefono());
+//        profesionale.setIdoficio(oficio);
+//
+//        return profesionalRepository.save(profesionale);
+//    }
+//
+//    @Override
+//    public Cliente registrarCliente(NuevoCliente nuevo) {
+//        Direccione direccion = direccionRepository.findById(nuevo.getIdDireccion()).orElse(null);
+//        Usuario usuario = usuarioRepository.findById(nuevo.getIdUsuario()).orElse(null);
+//        TiposDocumento tipo = tipoDocumentoRepository.findById(nuevo.getIdTipoDoc()).orElse(null);
+//
+//        Cliente cliente = new Cliente();
+//        cliente.setIdtipodoc(tipo);
+//        cliente.setIdusuario(usuario);
+//        cliente.setIddireccion(direccion);
+//        cliente.setNacimiento(nuevo.getFechaNacimiento());
+//        cliente.setDocumento(nuevo.getDocumento());
+//        cliente.setTelefono(nuevo.getTelefono());
+//
+//        return clienteRepository.save(cliente);
+//    }
 }
