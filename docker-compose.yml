@@ -2,7 +2,7 @@ services:
   product-db:
     image: postgres:16
     environment:
-      POSTGRES_DB: ps
+      POSTGRES_DB: Ps
       POSTGRES_USER: jonas24
       POSTGRES_PASSWORD: PracticaSupervisada123
     ports: [ "5433:5432" ]

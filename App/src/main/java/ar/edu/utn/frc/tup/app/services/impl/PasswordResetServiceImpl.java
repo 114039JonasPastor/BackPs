@@ -1,9 +1,9 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
+import ar.edu.utn.frc.tup.app.entities.Auth;
 import ar.edu.utn.frc.tup.app.entities.PasswordResetToken;
-import ar.edu.utn.frc.tup.app.entities.Usuario;
+import ar.edu.utn.frc.tup.app.repositories.AuthRepository;
 import ar.edu.utn.frc.tup.app.repositories.PasswordResetTokenRepository;
-import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
 import ar.edu.utn.frc.tup.app.services.EmailService;
 import ar.edu.utn.frc.tup.app.services.PasswordResetService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Random;
 
 @Service
@@ -22,7 +22,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private PasswordResetTokenRepository tokenRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private AuthRepository authRepository;
 
     @Autowired
     private EmailService emailService;
@@ -36,7 +36,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             log.info("Iniciando recuperación para email: {}", email);
 
             // Verificar que el usuario existe
-            Usuario usuario = usuarioRepository.findByMail(email)
+            Auth usuario = authRepository.findByMail(email)
                     .orElseThrow(() -> {
                         log.error("Usuario no encontrado: {}", email);
                         return new RuntimeException("Email no encontrado");
@@ -52,8 +52,12 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             PasswordResetToken token = new PasswordResetToken();
             token.setToken(codigo);
             token.setEmail(email);
-//            token.setUsuario(usuario); // ✅ AGREGAR ESTA LÍNEA
-            token.setExpiryDate(LocalDateTime.now().plusMinutes(15));
+//            token.setUsuario(usuario);
+//            token.setExpiryDate(LocalDateTime.now().plusMinutes(15));
+            tokenRepository.findByEmailAndTokenAndUsedFalseAndExpiryDateAfter(
+                    email, codigo, Instant.now());
+
+
             token.setUsed(false);
 
             PasswordResetToken savedToken = tokenRepository.save(token);
@@ -76,18 +80,18 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
             PasswordResetToken token = tokenRepository
                     .findByEmailAndTokenAndUsedFalseAndExpiryDateAfter(
-                            email, codigo, LocalDateTime.now())
+                            email, codigo, Instant.now())
                     .orElseThrow(() -> {
                         log.error("Token inválido o expirado para: {}", email);
                         return new RuntimeException("Código inválido o expirado");
                     });
 
             // Cambiar contraseña
-            Usuario usuario = usuarioRepository.findByMail(email)
+            Auth usuario = authRepository.findByMail(email)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
             usuario.setPassword(passwordEncoder.encode(nuevaPassword));
-            usuarioRepository.save(usuario);
+            authRepository.save(usuario);
 
             // Marcar token como usado
             token.setUsed(true);

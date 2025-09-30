@@ -24,6 +24,6 @@ public class Rolxusuario {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "idauth", nullable = false)
-    private Usuario idauth;
+    private Auth idauth;
 
 }

@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Table(name = "auth")
 public class Auth implements UserDetails {
     @Id
-    @ColumnDefault("nextval('auth_idauth_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idauth", nullable = false)
     private Integer id;
 
@@ -48,16 +48,21 @@ public class Auth implements UserDetails {
 
     @NotNull
     @Column(name = "active", nullable = false)
-    private Boolean active = false;
+    private Boolean active = true;
 
-    @OneToMany(mappedBy = "idauth", fetch = FetchType.LAZY)
-    private List<Rolxusuario> rolxusuarioList;
+//    @OneToMany(mappedBy = "auth")
+//    private List<Rolxusuario> roles;
 
+//    @Override
+//    public Collection<? extends GrantedAuthority> getAuthorities() {
+//        return roles.stream()
+//                .map(ru -> new SimpleGrantedAuthority("ROLE_" + ru.getIdrol().getDescripcion().toUpperCase()))
+//                .collect(Collectors.toList());
+//    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return rolxusuarioList.stream()
-                .map(ru -> new SimpleGrantedAuthority("ROLE_" + ru.getIdrol().getDescripcion().toUpperCase()))
-                .collect(Collectors.toList());
+        // Retorna una lista vacía o implementa tu lógica personalizada
+        return List.of();
     }
 
     @Override
