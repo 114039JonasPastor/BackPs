@@ -24,7 +24,6 @@ public class DepartamentoController {
     public ResponseEntity<List<Departamento>> getAllOficios() {
         return ResponseEntity.ok(departamentoService.getAllDepartamentos());
     }
-
     @GetMapping("/ciudades/all")
     public ResponseEntity<List<Ciudade>> getAllCiudades() {
         return ResponseEntity.ok(departamentoService.getAllCiudades());
@@ -48,5 +47,15 @@ public class DepartamentoController {
     @GetMapping(value = "/barrio/{id}")
     public ResponseEntity<Barrio> getBarrioById(@PathVariable int id) {
         return ResponseEntity.of(departamentoService.getBarrioById(id));
+    }
+
+    @GetMapping("/barrio/ciudad/{ciudadId}")
+    public ResponseEntity<List<Barrio>> getBarriosByCiudadId(@PathVariable int ciudadId) {
+        return ResponseEntity.ok(departamentoService.getBarriosByCiudadId(ciudadId));
+    }
+
+    @GetMapping("/ciudad/departamento/{departamentoId}")
+    public ResponseEntity<List<Ciudade>> getCiudadesByDepartamentoId(@PathVariable int departamentoId) {
+        return ResponseEntity.ok(departamentoService.getCiudadesByDepartamentoId(departamentoId));
     }
 }

@@ -16,4 +16,6 @@ public interface DepartamentoService {
     Optional<Ciudade> getCiudadById(int id);
     List<Barrio> getAllBarrios();
     Optional<Barrio> getBarrioById(int id);
+    List<Barrio> getBarriosByCiudadId(int ciudadId);
+    List<Ciudade> getCiudadesByDepartamentoId(int departamentoId);
 }

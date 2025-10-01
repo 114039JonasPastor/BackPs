@@ -52,4 +52,16 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     public Optional<Barrio> getBarrioById(int id) {
         return barrioRepository.findById(id);
     }
+
+    @Override
+    public List<Barrio> getBarriosByCiudadId(int ciudadId) {
+        Ciudade ciudad = ciudadRepository.findById(ciudadId).orElse(null);
+        return barrioRepository.findByIdciudad_Ciudad(ciudad.getCiudad());
+    }
+
+    @Override
+    public List<Ciudade> getCiudadesByDepartamentoId(int departamentoId) {
+        Departamento departamento = departamentoRepository.findById(departamentoId).orElse(null);
+        return ciudadRepository.findByIddepartamento_Departamento(departamento.getDepartamento());
+    }
 }
