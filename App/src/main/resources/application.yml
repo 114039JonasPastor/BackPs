@@ -5,8 +5,8 @@ spring:
     name: App
   datasource:
     url: jdbc:postgresql://localhost:5432/Ps
-    username: postgres
-    password: postgres
+    username: jonas24
+    password: PracticaSupervisada123
   jpa:
     hibernate:
       ddl-auto: update

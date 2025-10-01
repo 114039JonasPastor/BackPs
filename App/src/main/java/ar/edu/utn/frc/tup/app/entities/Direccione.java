@@ -13,7 +13,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Table(name = "direcciones")
 public class Direccione {
     @Id
-    @ColumnDefault("nextval('direcciones_iddireccion_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "iddireccion", nullable = false)
     private Integer id;
 
