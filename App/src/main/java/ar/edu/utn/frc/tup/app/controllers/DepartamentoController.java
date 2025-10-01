@@ -21,4 +21,42 @@ public class DepartamentoController {
     public ResponseEntity<List<Departamento>> getAllOficios() {
         return ResponseEntity.ok(departamentoService.getAllDepartamentos());
     }
+<<<<<<< Updated upstream
+=======
+
+    @GetMapping("/ciudades/all")
+    public ResponseEntity<List<Ciudade>> getAllCiudades() {
+        return ResponseEntity.ok(departamentoService.getAllCiudades());
+    }
+
+    @GetMapping("/barrios/all")
+    public ResponseEntity<List<Barrio>> getAllBarrios() {
+        return ResponseEntity.ok(departamentoService.getAllBarrios());
+    }
+
+    @GetMapping(value = "/departamento/{id}")
+    public ResponseEntity<Departamento> getDepartamentoById(@PathVariable int id) {
+        return ResponseEntity.of(departamentoService.getDepartamentoById(id));
+    }
+
+    @GetMapping(value = "/ciudad/{id}")
+    public ResponseEntity<Ciudade> getCiudadById(@PathVariable int id) {
+        return ResponseEntity.of(departamentoService.getCiudadById(id));
+    }
+
+    @GetMapping(value = "/barrio/{id}")
+    public ResponseEntity<Barrio> getBarrioById(@PathVariable int id) {
+        return ResponseEntity.of(departamentoService.getBarrioById(id));
+    }
+
+    @GetMapping("/barrio/ciudad/{ciudadId}")
+    public ResponseEntity<List<Barrio>> getBarriosByCiudadId(@PathVariable int ciudadId) {
+        return ResponseEntity.ok(departamentoService.getBarriosByCiudadId(ciudadId));
+    }
+
+    @GetMapping("/ciudad/departamento/{departamentoId}")
+    public ResponseEntity<List<Ciudade>> getCiudadesByDepartamentoId(@PathVariable int departamentoId) {
+        return ResponseEntity.ok(departamentoService.getCiudadesByDepartamentoId(departamentoId));
+    }
+>>>>>>> Stashed changes
 }
