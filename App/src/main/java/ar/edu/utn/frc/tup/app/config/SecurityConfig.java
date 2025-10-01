@@ -37,7 +37,15 @@ public class SecurityConfig {
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
-                                        "/api/v1/registro/**"
+                                        "/api/v1/registro/**",
+                                        "/api/v1/domicilios/departamentos/all",
+                                        "/api/v1/domicilios/ciudades/all",
+                                        "/api/v1/domicilios/barrios/all",
+                                        "/api/v1/domicilios/departamento/*",
+                                        "/api/v1/domicilios/ciudad/*",
+                                        "/api/v1/domicilios/barrio/*",
+                                        "/api/v1/domicilios/barrio/ciudad/*",
+                                        "/api/v1/domicilios/ciudad/departamento/*"
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 )
