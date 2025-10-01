@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -15,6 +16,11 @@ public class UsuarioRequest {
     private String documento;
     private String telefono;
     private LocalDate nacimiento;
-    private Integer idDireccion;
+    private Integer idBarrio;
     private Integer idTipoDoc;
+    private String calle;
+    private String numero;
+    private Optional<String>  depto;
+    private Optional<String>  piso;
+    private Optional<String> observaciones;
 }

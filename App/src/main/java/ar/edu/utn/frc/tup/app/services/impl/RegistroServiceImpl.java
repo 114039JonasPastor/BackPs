@@ -3,14 +3,8 @@ package ar.edu.utn.frc.tup.app.services.impl;
 import ar.edu.utn.frc.tup.app.auth.AuthResponse;
 import ar.edu.utn.frc.tup.app.auth.services.JwtService;
 import ar.edu.utn.frc.tup.app.dtos.request.registro.UsuarioRequest;
-import ar.edu.utn.frc.tup.app.entities.Auth;
-import ar.edu.utn.frc.tup.app.entities.Direccione;
-import ar.edu.utn.frc.tup.app.entities.TiposDocumento;
-import ar.edu.utn.frc.tup.app.entities.Usuario;
-import ar.edu.utn.frc.tup.app.repositories.AuthRepository;
-import ar.edu.utn.frc.tup.app.repositories.DireccionRepository;
-import ar.edu.utn.frc.tup.app.repositories.TipoDocumentoRepository;
-import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
+import ar.edu.utn.frc.tup.app.entities.*;
+import ar.edu.utn.frc.tup.app.repositories.*;
 import ar.edu.utn.frc.tup.app.services.RegistroService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +26,9 @@ public class RegistroServiceImpl implements RegistroService {
     DireccionRepository direccioneRepository;
 
     @Autowired
+    BarrioRepository barrioRepository;
+
+    @Autowired
     PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -49,12 +46,22 @@ public class RegistroServiceImpl implements RegistroService {
         authRepository.save(auth);
 
         TiposDocumento tipo = tipoDocumentoRepository.findById(usuario.getIdTipoDoc()).orElse(null);
-        Direccione direccion = direccioneRepository.findById(usuario.getIdDireccion()).orElse(null);
+        Barrio barrio = barrioRepository.findById(usuario.getIdBarrio()).orElse(null);
+
+        Direccione direccion = new Direccione();
+        direccion.setIdbarrio(barrio);
+        direccion.setCalle(usuario.getCalle());
+        direccion.setNumero(usuario.getNumero());
+        direccion.setDepto(usuario.getDepto().isPresent() ? usuario.getDepto().get() : null);
+        direccion.setPiso(usuario.getPiso().isPresent() ? usuario.getPiso().get() : null);
+        direccion.setObservaciones(usuario.getObservaciones().isPresent() ? usuario.getObservaciones().get() : null);
+
+        Direccione direccionSaved = direccioneRepository.save(direccion);
 
         Usuario nuevo = new Usuario();
         nuevo.setIdauth(auth);
         nuevo.setIdtipodoc(tipo);
-        nuevo.setIddireccion(direccion);
+        nuevo.setIddireccion(direccionSaved);
         nuevo.setNacimiento(usuario.getNacimiento());
         nuevo.setDocumento(usuario.getDocumento());
         nuevo.setTelefono(usuario.getTelefono());

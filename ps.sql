@@ -188,6 +188,92 @@ INSERT INTO Oficios (oficio) VALUES
 ('EMPLEADA DOMESTICA'),
 ('INSTALADOR DE AIRES ACONDICIONADOS');
 
+
+INSERT INTO Ciudades (ciudad, idDepartamento) VALUES
+('Córdoba', 1),          -- CAPITAL
+('Villa María', 6),      -- GENERAL SAN MARTIN
+('Villa Carlos Paz', 13),-- PUNILLA
+('San Francisco', 20),   -- SAN JUSTO
+('Alta Gracia', 21),     -- SANTA MARIA
+('Río Tercero', 23),     -- TERCERO ARRIBA
+('Río Cuarto', 14),      -- RIO CUARTO
+('La Calera', 3),        -- COLON
+('Villa Allende', 3),    -- COLON
+('Jesús María', 3),      -- COLON
+('Bell Ville', 26),      -- UNION
+('Cruz del Eje', 4),     -- CRUZ DEL EJE
+('Villa Dolores', 19);   -- SAN JAVIER
+
+INSERT INTO Barrios (barrio, idCiudad) VALUES
+                                           ('Nueva Córdoba', 1),
+                                           ('Alta Córdoba', 1),
+                                           ('General Paz', 1),
+                                           ('Cerro de las Rosas', 1),
+                                           ('Alberdi', 1),
+                                           ('San Vicente', 1),
+                                           ('Villa El Libertador', 1),
+                                           ('Jardín', 1),
+                                           ('Centro', 2),
+                                           ('San Martín', 2),
+                                           ('Malvinas Argentinas', 2),
+                                           ('Bello Horizonte', 2),
+                                           ('Las Acacias', 2),
+                                           ('Centro', 3),
+                                           ('La Cuesta', 3),
+                                           ('Santa Rita', 3),
+                                           ('Villa del Lago', 3),
+                                           ('José Muñoz', 3),
+                                           ('Centro', 4),
+                                           ('Parque', 4),
+                                           ('La Florida', 4),
+                                           ('San Cayetano', 4),
+                                           ('Hospital', 4),
+                                           ('Centro', 5),
+                                           ('Residencial El Golf', 5),
+                                           ('Paravachasca', 5),
+                                           ('Sabattini', 5),
+                                           ('Pellegrini', 5),
+                                           ('Centro', 6),
+                                           ('Cabero', 6),
+                                           ('Monte Grande', 6),
+                                           ('Magnasco', 6),
+                                           ('Media Luna', 6),
+                                           ('Centro', 7),
+                                           ('Banda Norte', 7),
+                                           ('Alberdi', 7),
+                                           ('Fénix', 7),
+                                           ('Las Ferias', 7),
+                                           ('Centro', 8),
+                                           ('Stoecklin', 8),
+                                           ('Industrial', 8),
+                                           ('Dumandzic', 8),
+                                           ('La Campana', 8),
+                                           ('Centro', 9),
+                                           ('Chacras de la Villa', 9),
+                                           ('Las Polonias', 9),
+                                           ('Cerro', 9),
+                                           ('El Golf', 9),
+                                           ('Centro', 10),
+                                           ('Malabrigo', 10),
+                                           ('Barrio Norte', 10),
+                                           ('La Florida', 10),
+                                           ('Sierras y Parques', 10),
+                                           ('Centro', 11),
+                                           ('Los Lirios', 11),
+                                           ('Progreso', 11),
+                                           ('Martín Fierro', 11),
+                                           ('Tiro Federal', 11),
+                                           ('Centro', 12),
+                                           ('San Martín', 12),
+                                           ('Las Playas', 12),
+                                           ('Los Altos', 12),
+                                           ('Villa Elaine', 12),
+                                           ('Centro', 13),
+                                           ('Aeroclub', 13),
+                                           ('Parque', 13),
+                                           ('San Pablo', 13),
+                                           ('Los Olivos', 13);
+
 -- Índices para performance
 CREATE INDEX idx_reset_token_email ON password_reset_tokens(email);
 CREATE INDEX idx_reset_token_expiry ON password_reset_tokens(expiry_date);
