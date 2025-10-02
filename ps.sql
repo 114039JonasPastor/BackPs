@@ -150,7 +150,7 @@ CREATE TABLE password_reset_tokens (
     id_auth INT REFERENCES Usuarios(idUsuario) -- Opcional pero útil
 );
 
--- Insert 
+-- INSERTS
 INSERT INTO Departamentos (departamento) VALUES 
 ('CAPITAL'),
 ('CALAMUCHITA'),
@@ -273,6 +273,11 @@ INSERT INTO Barrios (barrio, idCiudad) VALUES
                                            ('Parque', 13),
                                            ('San Pablo', 13),
                                            ('Los Olivos', 13);
+
+insert into tipos_documento (tipo) values
+                                       ('DNI'),
+                                       ('CUIL'),
+                                       ('PASAPORTE');
 
 -- Índices para performance
 CREATE INDEX idx_reset_token_email ON password_reset_tokens(email);

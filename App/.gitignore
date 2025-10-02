@@ -32,4 +32,19 @@ build/
 ### VS Code ###
 .vscode/
 
+### Database Configuration ###
 application.yml
+application.properties
+application-*.yml
+application-*.properties
+.env
+*.env
+.env.*
+!.env.example
+
+### Database Files ###
+*.sql
+*.dump
+*.db
+*.sqlite
+*.sqlite3
