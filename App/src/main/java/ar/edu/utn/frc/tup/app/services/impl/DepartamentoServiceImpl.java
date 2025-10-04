@@ -7,23 +7,21 @@ import ar.edu.utn.frc.tup.app.repositories.BarrioRepository;
 import ar.edu.utn.frc.tup.app.repositories.CiudadRepository;
 import ar.edu.utn.frc.tup.app.repositories.DepartamentoRepository;
 import ar.edu.utn.frc.tup.app.services.DepartamentoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class DepartamentoServiceImpl implements DepartamentoService {
 
-    @Autowired
-    DepartamentoRepository departamentoRepository;
+    private final DepartamentoRepository departamentoRepository;
 
-    @Autowired
-    CiudadRepository ciudadRepository;
+    private final CiudadRepository ciudadRepository;
 
-    @Autowired
-    BarrioRepository barrioRepository;
+    private final BarrioRepository barrioRepository;
 
     @Override
     public List<Departamento> getAllDepartamentos() {

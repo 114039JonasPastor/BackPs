@@ -3,6 +3,7 @@ package ar.edu.utn.frc.tup.app.controllers;
 import ar.edu.utn.frc.tup.app.dtos.request.ForgotPasswordRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.ResetPasswordRequest;
 import ar.edu.utn.frc.tup.app.services.PasswordResetService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +17,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class PasswordResetController {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordResetController.class);
 
-    @Autowired
-    private PasswordResetService passwordResetService;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> solicitarRecuperacion(@RequestBody ForgotPasswordRequest request) {

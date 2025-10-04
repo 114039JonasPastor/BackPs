@@ -6,34 +6,29 @@ import ar.edu.utn.frc.tup.app.dtos.request.registro.UsuarioRequest;
 import ar.edu.utn.frc.tup.app.entities.*;
 import ar.edu.utn.frc.tup.app.repositories.*;
 import ar.edu.utn.frc.tup.app.services.RegistroService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class RegistroServiceImpl implements RegistroService {
 
-    @Autowired
-    AuthRepository authRepository;
+    private final AuthRepository authRepository;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    TipoDocumentoRepository tipoDocumentoRepository;
+    private final TipoDocumentoRepository tipoDocumentoRepository;
 
-    @Autowired
-    DireccionRepository direccioneRepository;
+    private final DireccionRepository direccioneRepository;
 
-    @Autowired
-    BarrioRepository barrioRepository;
+    private final BarrioRepository barrioRepository;
 
-    @Autowired
-    PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    JwtService jwtService;
+    private final JwtService jwtService;
 
     @Override
     @Transactional

@@ -6,6 +6,7 @@ import ar.edu.utn.frc.tup.app.repositories.AuthRepository;
 import ar.edu.utn.frc.tup.app.repositories.PasswordResetTokenRepository;
 import ar.edu.utn.frc.tup.app.services.EmailService;
 import ar.edu.utn.frc.tup.app.services.PasswordResetService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,19 +17,16 @@ import java.util.Random;
 
 @Service
 @Slf4j // Para logs
+@RequiredArgsConstructor
 public class PasswordResetServiceImpl implements PasswordResetService {
 
-    @Autowired
-    private PasswordResetTokenRepository tokenRepository;
+    private final PasswordResetTokenRepository tokenRepository;
 
-    @Autowired
-    private AuthRepository authRepository;
+    private final AuthRepository authRepository;
 
-    @Autowired
-    private EmailService emailService;
+    private final EmailService emailService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void solicitarRecuperacion(String email) {

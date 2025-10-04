@@ -4,6 +4,7 @@ import ar.edu.utn.frc.tup.app.entities.Barrio;
 import ar.edu.utn.frc.tup.app.entities.Ciudade;
 import ar.edu.utn.frc.tup.app.entities.Departamento;
 import ar.edu.utn.frc.tup.app.services.DepartamentoService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,10 +16,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/domicilios")
+@RequiredArgsConstructor
 public class DepartamentoController {
 
-    @Autowired
-    DepartamentoService departamentoService;
+    private final DepartamentoService departamentoService;
 
     @GetMapping("/departamentos/all")
     public ResponseEntity<List<Departamento>> getAllOficios() {

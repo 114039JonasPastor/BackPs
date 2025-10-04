@@ -5,6 +5,7 @@ import ar.edu.utn.frc.tup.app.auth.RegisterRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.registro.UsuarioRequest;
 import ar.edu.utn.frc.tup.app.services.RegistroService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,10 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/registro")
 @Tag(name="Registro")
+@RequiredArgsConstructor
 public class RegistroController {
 
-    @Autowired
-    RegistroService registroService;
+    private final RegistroService registroService;
 
     @PostMapping("/usuario")
     public ResponseEntity<AuthResponse> registrarUsuario(@RequestBody UsuarioRequest usuario) {
