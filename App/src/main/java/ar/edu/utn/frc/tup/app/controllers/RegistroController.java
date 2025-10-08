@@ -2,7 +2,9 @@ package ar.edu.utn.frc.tup.app.controllers;
 
 import ar.edu.utn.frc.tup.app.auth.AuthResponse;
 import ar.edu.utn.frc.tup.app.auth.RegisterRequest;
+import ar.edu.utn.frc.tup.app.dtos.request.registro.ProfesionalRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.registro.UsuarioRequest;
+import ar.edu.utn.frc.tup.app.entities.Profesionale;
 import ar.edu.utn.frc.tup.app.services.RegistroService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,5 +26,10 @@ public class RegistroController {
     @PostMapping("/usuario")
     public ResponseEntity<AuthResponse> registrarUsuario(@RequestBody UsuarioRequest usuario) {
         return ResponseEntity.ok(registroService.registrarUsuario(usuario));
+    }
+
+    @PostMapping("/profesional")
+    public ResponseEntity<Profesionale> registrarProfesional(@RequestBody ProfesionalRequest profesionalRequest){
+        return ResponseEntity.ok(registroService.registrarProfesional(profesionalRequest));
     }
 }

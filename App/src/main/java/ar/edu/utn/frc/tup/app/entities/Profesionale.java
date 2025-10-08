@@ -2,8 +2,7 @@ package ar.edu.utn.frc.tup.app.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
@@ -11,10 +10,13 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "profesionales")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Profesionale {
     @Id
-    @ColumnDefault("nextval('profesionales_idprofesional_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idprofesional", nullable = false)
     private Integer id;
 
