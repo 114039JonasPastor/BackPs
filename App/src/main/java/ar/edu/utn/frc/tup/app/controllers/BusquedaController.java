@@ -27,6 +27,18 @@ public class BusquedaController {
         }
     }
 
+    @GetMapping("/direccion-ciudad")
+    public ResponseEntity<Map<String, Object>> buscarPorDireccionYCiudad(
+            @RequestParam String direccion,
+            @RequestParam String ciudad) {
+        try {
+            Map<String, Object> resultado = openStreetMapService.obtenerCoordenadasPorCiudadEspecifica(direccion, ciudad);
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @GetMapping("/barrio")
     public ResponseEntity<String> buscarPorBarrio(
             @RequestParam String barrio,
