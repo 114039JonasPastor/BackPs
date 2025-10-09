@@ -87,6 +87,7 @@ public class RegistroServiceImpl implements RegistroService {
         }
     }
 
+    //Fixme Posible error en el que el usuario se puede registrar como profesional muchas veces
     @Override
     public Profesionale registrarProfesional(ProfesionalRequest profesionalRequest) {
         try {

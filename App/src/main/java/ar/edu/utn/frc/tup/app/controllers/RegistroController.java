@@ -28,6 +28,7 @@ public class RegistroController {
         return ResponseEntity.ok(registroService.registrarUsuario(usuario));
     }
 
+    //Fixme Posible error en el que el usuario se puede registrar como profesional muchas veces
     @PostMapping("/profesional")
     public ResponseEntity<Profesionale> registrarProfesional(@RequestBody ProfesionalRequest profesionalRequest){
         return ResponseEntity.ok(registroService.registrarProfesional(profesionalRequest));
