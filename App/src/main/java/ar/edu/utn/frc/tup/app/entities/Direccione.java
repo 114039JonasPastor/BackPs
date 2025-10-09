@@ -13,14 +13,9 @@ import org.hibernate.annotations.ColumnDefault;
 @Table(name = "direcciones")
 public class Direccione {
     @Id
-    @ColumnDefault("nextval('direcciones_iddireccion_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "iddireccion", nullable = false)
     private Integer id;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idusuario", nullable = false)
-    private Usuario idusuario;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -40,6 +35,10 @@ public class Direccione {
     @Size(max = 10)
     @Column(name = "piso", length = 10)
     private String piso;
+
+    @Size(max = 10)
+    @Column(name = "depto", length = 10)
+    private String depto;
 
     @Size(max = 200)
     @Column(name = "observaciones", length = 200)

@@ -2,40 +2,30 @@ package ar.edu.utn.frc.tup.app.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.time.LocalTime;
+import java.time.LocalDate;
 
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "profesionales")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Profesionale {
     @Id
-    @ColumnDefault("nextval('profesionales_idprofesional_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idprofesional", nullable = false)
     private Integer id;
 
-    @Size(max = 100)
     @NotNull
-    @Column(name = "nombre", nullable = false, length = 100)
-    private String nombre;
+    @Column(name = "fechadesde", nullable = false)
+    private LocalDate fechadesde;
 
-    @Size(max = 100)
-    @NotNull
-    @Column(name = "apellido", nullable = false, length = 100)
-    private String apellido;
-
-    @Size(max = 20)
-    @Column(name = "telefono", length = 20)
-    private String telefono;
-
-    @Size(max = 200)
-    @Column(name = "direccion", length = 200)
-    private String direccion;
+    @Column(name = "fechahasta")
+    private LocalDate fechahasta;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -44,19 +34,7 @@ public class Profesionale {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idbarrio", nullable = false)
-    private Barrio idbarrio;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "idoficio", nullable = false)
     private Oficio idoficio;
-
-    @NotNull
-    @Column(name = "fechadesde", nullable = false)
-    private LocalTime fechadesde;
-
-    @Column(name = "fechahasta")
-    private LocalTime fechahasta;
 
 }

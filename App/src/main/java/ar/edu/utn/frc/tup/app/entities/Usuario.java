@@ -7,34 +7,43 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @Entity
 @Table(name = "usuarios")
 public class Usuario {
     @Id
-    @ColumnDefault("nextval('usuarios_idusuario_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idusuario", nullable = false)
     private Integer id;
 
-    @Size(max = 100)
-    @NotNull
-    @Column(name = "username", nullable = false, length = 100)
-    private String username;
+    @Size(max = 20)
+    @Column(name = "documento", length = 20)
+    private String documento;
 
-    @Size(max = 255)
-    @NotNull
-    @Column(name = "password", nullable = false)
-    private String password;
+    @Size(max = 20)
+    @Column(name = "telefono", length = 20)
+    private String telefono;
 
-    @Size(max = 150)
     @NotNull
-    @Column(name = "mail", nullable = false, length = 150)
-    private String mail;
+    @Column(name = "nacimiento", nullable = false)
+    private LocalDate nacimiento;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idrol", nullable = false)
-    private Role idrol;
+    @JoinColumn(name = "iddireccion", nullable = false)
+    private Direccione iddireccion;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "idtipodoc", nullable = false)
+    private TiposDocumento idtipodoc;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "idauth", nullable = false)
+    private Auth idauth;
 
 }
