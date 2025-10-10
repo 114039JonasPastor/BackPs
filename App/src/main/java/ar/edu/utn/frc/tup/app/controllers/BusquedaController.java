@@ -64,14 +64,17 @@ public class BusquedaController {
     }
 
     @GetMapping("/profesionales")
-    public ResponseEntity<List<Map<String, Object>>> buscarProfesionales(
+    public ResponseEntity<?> buscarProfesionales(
             @RequestParam(required = false) String oficio,
             @RequestParam(required = false) String zona) {
         try {
             List<Map<String, Object>> profesionales = busquedaService.buscarProfesionalesConUbicacion(oficio, zona);
+            if (profesionales.isEmpty()) {
+                return ResponseEntity.ok(Map.of("mensaje", "No se encontraron profesionales"));
+            }
             return ResponseEntity.ok(profesionales);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
