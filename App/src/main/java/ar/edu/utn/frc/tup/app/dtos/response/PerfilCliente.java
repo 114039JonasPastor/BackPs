@@ -1,8 +1,11 @@
 package ar.edu.utn.frc.tup.app.dtos.response;
 
+import ar.edu.utn.frc.tup.app.dtos.DomicilioDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -11,4 +14,9 @@ public class PerfilCliente {
     private String name;
     private String lastName;
     private String email;
+    private String telefono;
+    private String documento;
+    private String tipoDocumento;
+    private LocalDate nacimiento;
+    private DomicilioDto domicilio;
 }
