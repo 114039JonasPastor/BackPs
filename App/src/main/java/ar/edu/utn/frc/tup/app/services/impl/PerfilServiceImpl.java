@@ -114,8 +114,8 @@ public class PerfilServiceImpl implements PerfilService {
         if(profesional == null){
             throw new RuntimeException("Profesional no encontrado");
         }
-        Disponibilidad disponibilidad = disponibilidadRepository.findByIdprofesional(profesional.getId()).orElse(null);
-        Monto monto = montoRepository.findByIdprofesional(profesional.getId()).orElse(null);
+        Disponibilidad disponibilidad = disponibilidadRepository.findByIdprofesional_Id(profesional.getId()).orElse(null);
+        Monto monto = montoRepository.findByIdprofesional_Id(profesional.getId()).orElse(null);
 
         String rangoPrecio = monto.getPreciomin().toString() + " - " + monto.getPreciomax().toString();
 
@@ -167,7 +167,7 @@ public class PerfilServiceImpl implements PerfilService {
 
         usuarioRepository.save(usuario);
 
-        Profesionale pro = professionelleRepository.findByIdusuario(usuario.getId()).orElse(null);
+        Profesionale pro = professionelleRepository.findByIdusuario_Id(usuario.getId()).orElse(null);
 
         if(pro == null) {
             throw new RuntimeException("Profesional no encontrado");

@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface MontoRepository extends JpaRepository<Monto, Integer> {
-    Optional<Monto> findByIdprofesional(Integer idProfesional);
+    Optional<Monto> findByIdprofesional_Id(Integer idProfesional);
 }

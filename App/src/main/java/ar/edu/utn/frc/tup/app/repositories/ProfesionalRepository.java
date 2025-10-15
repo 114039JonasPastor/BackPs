@@ -44,5 +44,5 @@ public interface ProfesionalRepository extends JpaRepository<Profesionale, Integ
             "WHERE p.fechahasta IS NULL OR p.fechahasta >= CURRENT_DATE")
     List<Profesionale> findProfesionalesActivos();
 
-    Optional<Profesionale> findByIdusuario(Integer idUsuario);
+    Optional<Profesionale> findByIdusuario_Id(Integer idUsuario);
 }
