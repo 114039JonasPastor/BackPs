@@ -3,9 +3,7 @@ package ar.edu.utn.frc.tup.app.controllers;
 import ar.edu.utn.frc.tup.app.entities.Factura;
 import ar.edu.utn.frc.tup.app.services.FacturaService;
 import ar.edu.utn.frc.tup.app.services.MercadoPagoMarketPlaceService;
-import com.mercadopago.resources.preference.Preference;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,11 +26,22 @@ public class PagoController {
             Factura factura = facturaService.findById(facturaId);
             String profesionalMPUserId = "ID_DEL_PROFESIONAL_EN_MP";
 
-            Preference preference = mercadoPagoService.crearPreferenciaMarketPlace(factura, profesionalMPUserId);
+            Object preference = mercadoPagoService.crearPreferenciaMarketPlace(factura, profesionalMPUserId);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("preference_id", preference.getId());
-            response.put("init_point", preference.getInitPoint());
+
+            // Manejar tanto preferencias reales como mock
+            if (preference.getClass().getSimpleName().contains("Mock")) {
+                // Respuesta para mock
+                response.put("preference_id", getPropertyValue(preference, "getId"));
+                response.put("init_point", getPropertyValue(preference, "getInitPoint"));
+                response.put("mode", "MOCK - Solo para desarrollo");
+            } else {
+                // Respuesta para MercadoPago real
+                response.put("preference_id", getPropertyValue(preference, "getId"));
+                response.put("init_point", getPropertyValue(preference, "getInitPoint"));
+                response.put("mode", "PRODUCTION");
+            }
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -40,6 +49,12 @@ public class PagoController {
                     .body(Map.of("error", "Error al crear preferencia: " + e.getMessage()));
         }
     }
+
+    private Object getPropertyValue(Object object, String methodName) {
+        try {
+            return object.getClass().getMethod(methodName).invoke(object);
+        } catch (Exception e) {
+            return "N/A";
+        }
+    }
 }
-
-

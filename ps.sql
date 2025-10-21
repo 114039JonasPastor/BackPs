@@ -1,5 +1,3 @@
-CREATE DATABASE Ps
-
 CREATE TABLE Roles (
                        idRol SERIAL PRIMARY KEY,
                        descripcion VARCHAR(100) NOT NULL
@@ -62,7 +60,7 @@ create table Usuarios (
 CREATE TABLE RolXUsuario(
                             idRolXUsuario SERIAL PRIMARY KEY,
                             idRol INT NOT NULL REFERENCES Roles(idRol),
-                            idAuth INT NOT NULL REFERENCES Usuarios(idUsuario)
+                            idAuth INT NOT NULL REFERENCES Auth(idAuth)  -- Cambiar Usuarios(idUsuario) → Auth(idAuth)
 );
 
 
@@ -89,22 +87,22 @@ CREATE TABLE Disponibilidad (
 
 CREATE TABLE Solicitudes (
                              idSolicitud SERIAL PRIMARY KEY,
-                             idUsuario INT NOT NULL REFERENCES Usuario(idUsuario),
+                             idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),  -- Cambiar Usuario → Usuarios
                              idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
                              idOficio INT NOT NULL REFERENCES Oficios(idOficio),
                              fechaSolicitud TIMESTAMP NOT NULL DEFAULT NOW(),
                              fechaServicio TIMESTAMP NOT NULL,
-                             estado VARCHAR(20) NOT NULL, -- pendiente, aceptada, rechazada, finalizada
+                             estado VARCHAR(20) NOT NULL,
                              observacion VARCHAR(500)
 );
 
 CREATE TABLE Resenias (
-                         idResenia SERIAL PRIMARY KEY,
-                         idUsuario INT NOT NULL REFERENCES Usuario(idUsuario),
-                         idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
-                         puntuacion INT CHECK (puntuacion BETWEEN 1 AND 5),
-                         comentario VARCHAR(500),
-                         fecha TIMESTAMP DEFAULT NOW()
+                          idResenia SERIAL PRIMARY KEY,
+                          idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),  -- Cambiar Usuario → Usuarios
+                          idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
+                          puntuacion INT CHECK (puntuacion BETWEEN 1 AND 5),
+                          comentario VARCHAR(500),
+                          fecha TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE Mensajes (
@@ -133,11 +131,12 @@ CREATE TABLE MediosDePago (
 
 CREATE TABLE Facturas (
                           NroFactura SERIAL PRIMARY KEY,
-                          idUsuario INT NOT NULL REFERENCES Usuario(idUsuario),
+                          idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),  -- Cambiar Usuario → Usuarios
                           idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
                           idMedioPago INT NOT NULL REFERENCES MediosDePago(idMedioPago),
                           fecha TIMESTAMP DEFAULT NOW(),
-                          estadoPago VARCHAR(20) NOT NULL -- pendiente, pagado, cancelado
+                          estadoPago VARCHAR(20) NOT NULL,
+                          importe NUMERIC(10,2) NOT NULL
 );
 
 CREATE TABLE password_reset_tokens (

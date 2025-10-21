@@ -50,15 +50,6 @@ public class Auth implements UserDetails {
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
-//    @OneToMany(mappedBy = "auth")
-//    private List<Rolxusuario> roles;
-
-//    @Override
-//    public Collection<? extends GrantedAuthority> getAuthorities() {
-//        return roles.stream()
-//                .map(ru -> new SimpleGrantedAuthority("ROLE_" + ru.getIdrol().getDescripcion().toUpperCase()))
-//                .collect(Collectors.toList());
-//    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Retorna una lista vacía o implementa tu lógica personalizada
