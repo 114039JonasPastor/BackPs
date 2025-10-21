@@ -15,8 +15,10 @@ import java.time.Instant;
 @Entity
 @Table(name = "facturas")
 public class Factura {
+
     @Id
-    @ColumnDefault("nextval('facturas_nrofactura_seq')")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "facturas_seq")
+    @SequenceGenerator(name = "facturas_seq", sequenceName = "facturas_nrofactura_seq", allocationSize = 1)
     @Column(name = "nrofactura", nullable = false)
     private Integer id;
 
