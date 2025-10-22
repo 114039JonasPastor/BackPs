@@ -179,14 +179,17 @@ INSERT INTO Departamentos (departamento) VALUES
 ('TULUMBA'),
 ('UNION');
 
-INSERT INTO Oficios (oficio) VALUES 
-('GASISTA'),
-('ELECTRICISTA'),
-('PLOMERO'),
-('CARPINTERO'),
-('PINTOR'),
-('EMPLEADA DOMESTICA'),
-('INSTALADOR DE AIRES ACONDICIONADOS');
+alter table oficios
+    add column descripcion varchar(255);
+
+INSERT INTO Oficios (oficio) VALUES
+('GASISTA', 'Reparación e instalación de artefactos, instalaciones de natural y/o envasado'),
+('ELECTRICISTA', 'Instalaciones eléctricas, reparaciones y mantenimiento'),
+('PLOMERO', 'Reparación de cañerías, instalaciones sanitarias y destapaciones'),
+('CARPINTERO', 'Muebles a medida, reparaciones y restauración'),
+('PINTOR', 'Pintura interior y exterior, empapelado y decoración'),
+('EMPLEADA DOMESTICA', 'Limpieza doméstica profunda y mantenimiento'),
+('INSTALADOR DE AIRES ACONDICIONADOS', 'Service Matriculado, instalación, mantenimiento y desinstalación de aire acondicionado');
 
 
 INSERT INTO Ciudades (ciudad, idDepartamento) VALUES
