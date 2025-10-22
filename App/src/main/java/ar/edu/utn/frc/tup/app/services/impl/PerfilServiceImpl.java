@@ -183,4 +183,14 @@ public class PerfilServiceImpl implements PerfilService {
                 .telefono(usuario.getTelefono())
                 .build();
     }
+
+    @Override
+    public void updateAvatar(Integer idAuth, String avatarUrl) {
+        Auth auth = authRepository.findById(idAuth).orElse(null);
+        Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null);
+
+        usuario.setAvatar(avatarUrl);
+
+        usuarioRepository.save(usuario);
+    }
 }

@@ -35,4 +35,10 @@ public class PerfilController {
     public ResponseEntity<PerfilProfesional> updatePerfilProfesional(@RequestBody ModificarProfesional profesional) {
         return ResponseEntity.ok(perfilService.updatePerfilProfesional(profesional));
     }
+
+    @PutMapping("/avatar/{idAuth}")
+    public ResponseEntity<String> updateAvatar(@PathVariable Integer idAuth, @RequestBody String avatarUrl) {
+        perfilService.updateAvatar(idAuth, avatarUrl);
+        return ResponseEntity.ok("Avatar updated successfully");
+    }
 }

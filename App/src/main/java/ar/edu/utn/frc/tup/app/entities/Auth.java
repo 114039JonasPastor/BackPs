@@ -1,6 +1,9 @@
 package ar.edu.utn.frc.tup.app.entities;
 
+import ar.edu.utn.frc.tup.app.utils.validations.password.ValidPassword;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -8,6 +11,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,6 +33,8 @@ public class Auth implements UserDetails {
     @Size(max = 255)
     @NotNull
     @Column(name = "password", nullable = false)
+    @ValidPassword
+    @JsonIgnore
     private String password;
 
     @Size(max = 255)
@@ -44,6 +50,7 @@ public class Auth implements UserDetails {
     @Size(max = 150)
     @NotNull
     @Column(name = "mail", nullable = false, length = 150)
+    @Email
     private String mail;
 
     @NotNull
@@ -52,13 +59,17 @@ public class Auth implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Retorna una lista vacía o implementa tu lógica personalizada
         return List.of();
     }
 
     @Override
     public String getUsername() {
-        return mail; // Usando el email como username
+        return mail;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
     }
 
     @Override

@@ -281,3 +281,5 @@ insert into tipos_documento (tipo) values
 -- Índices para performance
 CREATE INDEX idx_reset_token_email ON password_reset_tokens(email);
 CREATE INDEX idx_reset_token_expiry ON password_reset_tokens(expiry_date);
+
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS avatar VARCHAR(255);
