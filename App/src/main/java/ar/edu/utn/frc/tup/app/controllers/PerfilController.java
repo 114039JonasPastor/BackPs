@@ -41,4 +41,9 @@ public class PerfilController {
         perfilService.updateAvatar(idAuth, avatarUrl);
         return ResponseEntity.ok("Avatar updated successfully");
     }
+
+    @GetMapping("/avatar/{idAuth}")
+    public ResponseEntity<String> getAvatar(@PathVariable Integer idAuth) {
+        return ResponseEntity.ok(perfilService.getAvatar(idAuth));
+    }
 }

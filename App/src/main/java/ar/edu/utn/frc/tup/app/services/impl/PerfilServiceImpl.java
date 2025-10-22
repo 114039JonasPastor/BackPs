@@ -193,4 +193,12 @@ public class PerfilServiceImpl implements PerfilService {
 
         usuarioRepository.save(usuario);
     }
+
+    @Override
+    public String getAvatar(Integer idAuth) {
+        Auth auth = authRepository.findById(idAuth).orElse(null);
+        Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null);
+
+        return usuario.getAvatar();
+    }
 }
