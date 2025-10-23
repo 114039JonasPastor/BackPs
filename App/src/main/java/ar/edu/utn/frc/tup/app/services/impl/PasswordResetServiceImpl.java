@@ -50,8 +50,6 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             PasswordResetToken token = new PasswordResetToken();
             token.setToken(codigo);
             token.setEmail(email);
-//            token.setUsuario(usuario);
-//            token.setExpiryDate(LocalDateTime.now().plusMinutes(15));
             token.setExpiryDate(Instant.now().plusSeconds(15 * 60));
             tokenRepository.findByEmailAndTokenAndUsedFalseAndExpiryDateAfter(
                     email, codigo, Instant.now());
