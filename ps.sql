@@ -283,3 +283,24 @@ CREATE INDEX idx_reset_token_email ON password_reset_tokens(email);
 CREATE INDEX idx_reset_token_expiry ON password_reset_tokens(expiry_date);
 
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS avatar VARCHAR(255);
+
+CREATE TABLE confirmation_token (
+                                    id BIGSERIAL PRIMARY KEY,
+                                    token VARCHAR(255) NOT NULL UNIQUE,
+                                    created_at TIMESTAMP NOT NULL,
+                                    expires_at TIMESTAMP NOT NULL,
+                                    confirmed_at TIMESTAMP,
+                                    idAuth BIGINT,
+                                    CONSTRAINT fk_confirmation_token_auth FOREIGN KEY (idAuth) REFERENCES auth(idAuth)
+);
+
+ALTER TABLE confirmation_token DROP CONSTRAINT IF EXISTS fk_confirmation_token_auth;
+
+ALTER TABLE confirmation_token ALTER COLUMN idauth TYPE integer USING idauth::integer;
+
+ALTER TABLE confirmation_token ADD CONSTRAINT fk_confirmation_token_auth FOREIGN KEY (idauth) REFERENCES auth(idauth);
+
+ALTER TABLE password_reset_tokens DROP CONSTRAINT IF EXISTS password_reset_tokens_id_auth_fkey;
+ALTER TABLE password_reset_tokens ALTER COLUMN id_auth TYPE integer USING id_auth::integer;
+ALTER TABLE password_reset_tokens ADD CONSTRAINT fk_password_reset_tokens_auth FOREIGN KEY (id_auth) REFERENCES auth(idauth);
+

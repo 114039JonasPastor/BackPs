@@ -34,4 +34,13 @@ public class EmailServiceImpl implements EmailService {
             throw new RuntimeException("Error enviando email: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public void send(String to, String subject, String body) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(body);
+        mailSender.send(message);
+    }
 }

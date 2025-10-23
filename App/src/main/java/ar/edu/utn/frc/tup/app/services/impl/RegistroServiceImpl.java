@@ -6,6 +6,8 @@ import ar.edu.utn.frc.tup.app.dtos.request.registro.ProfesionalRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.registro.UsuarioRequest;
 import ar.edu.utn.frc.tup.app.entities.*;
 import ar.edu.utn.frc.tup.app.repositories.*;
+import ar.edu.utn.frc.tup.app.services.ConfirmationTokenService;
+import ar.edu.utn.frc.tup.app.services.EmailService;
 import ar.edu.utn.frc.tup.app.services.RegistroService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,23 +37,27 @@ public class RegistroServiceImpl implements RegistroService {
 
     private final JwtService jwtService;
 
+    private final EmailService emailService;
+
+    private final ConfirmationTokenService confirmationTokenService;
+
+    // java
     @Override
     @Transactional
-    public AuthResponse registrarUsuario(UsuarioRequest usuario) { //TODO revisar
+    public AuthResponse registrarUsuario(UsuarioRequest usuario) {
         try {
-            // Validar que los datos requeridos existan
             TiposDocumento tipo = tipoDocumentoRepository.findById(usuario.getIdTipoDoc())
                     .orElseThrow(() -> new RuntimeException("Tipo de documento no encontrado"));
             Barrio barrio = barrioRepository.findById(usuario.getIdBarrio())
                     .orElseThrow(() -> new RuntimeException("Barrio no encontrado"));
 
-            // Crear y guardar la autenticación
+            // Crear y guardar la autenticación pero inactiva hasta confirmar
             Auth auth = Auth.builder()
                     .password(passwordEncoder.encode(usuario.getPassword()))
                     .mail(usuario.getMail())
                     .name(usuario.getName())
                     .lastname(usuario.getLastName())
-                    .active(true) //Todo revisar
+                    .active(false) // inactivo hasta confirmar
                     .build();
             authRepository.save(auth);
 
@@ -77,15 +83,20 @@ public class RegistroServiceImpl implements RegistroService {
 
             usuarioRepository.save(nuevo);
 
-            return AuthResponse.builder()
-                    .token(jwtService.getToken(auth))
-                    .build();
-                    
+            // Generar token de confirmación y enviar mail
+            String token = confirmationTokenService.createTokenForAuth(auth.getId());
+            String link = "http://localhost:8081/api/v1/registro/confirm?token=" + token;
+            String body = "Confirme su cuenta haciendo clic en el siguiente enlace:\n" + link;
+            emailService.send(auth.getMail(), "Confirme su cuenta", body);
+
+            // No devolver JWT hasta confirmación
+            return AuthResponse.builder().token(null).build();
+
         } catch (Exception e) {
-            // El rollback se maneja automáticamente por @Transactional
             throw new RuntimeException("Error durante el registro del usuario: " + e.getMessage(), e);
         }
     }
+
 
     //Fixme Posible error en el que el usuario se puede registrar como profesional muchas veces
     @Override

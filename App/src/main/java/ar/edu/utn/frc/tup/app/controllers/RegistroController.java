@@ -1,19 +1,15 @@
 package ar.edu.utn.frc.tup.app.controllers;
 
 import ar.edu.utn.frc.tup.app.auth.AuthResponse;
-import ar.edu.utn.frc.tup.app.auth.RegisterRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.registro.ProfesionalRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.registro.UsuarioRequest;
 import ar.edu.utn.frc.tup.app.entities.Profesionale;
+import ar.edu.utn.frc.tup.app.services.ConfirmationTokenService;
 import ar.edu.utn.frc.tup.app.services.RegistroService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/registro")
@@ -22,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RegistroController {
 
     private final RegistroService registroService;
+    private final ConfirmationTokenService confirmationTokenService;
 
     @PostMapping("/usuario")
     public ResponseEntity<AuthResponse> registrarUsuario(@RequestBody UsuarioRequest usuario) {
@@ -32,5 +29,16 @@ public class RegistroController {
     @PostMapping("/profesional")
     public ResponseEntity<Profesionale> registrarProfesional(@RequestBody ProfesionalRequest profesionalRequest){
         return ResponseEntity.ok(registroService.registrarProfesional(profesionalRequest));
+    }
+
+    @GetMapping("/confirm")
+    public ResponseEntity<String> confirmarCuenta(@RequestParam("token") String token) {
+        try {
+            // Llamar al servicio para confirmar el token
+            confirmationTokenService.confirmToken(token);
+            return ResponseEntity.ok("Cuenta confirmada exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Token inválido o expirado: " + e.getMessage());
+        }
     }
 }

@@ -33,7 +33,7 @@ public class Auth implements UserDetails {
     @Size(max = 255)
     @NotNull
     @Column(name = "password", nullable = false)
-    @ValidPassword
+//    @ValidPassword
     @JsonIgnore
     private String password;
 
