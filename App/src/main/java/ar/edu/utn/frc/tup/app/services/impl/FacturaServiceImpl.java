@@ -57,4 +57,12 @@ public class FacturaServiceImpl implements FacturaService {
             throw new RuntimeException("Error al generar factura: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    @Transactional
+    public Factura actualizarEstado(Integer facturaId, String nuevoEstado) {
+        Factura factura = findById(facturaId);
+        factura.setEstadopago(nuevoEstado);
+        return facturaRepository.save(factura);
+    }
 }

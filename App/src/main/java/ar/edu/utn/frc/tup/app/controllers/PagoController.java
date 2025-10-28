@@ -98,7 +98,39 @@ public class PagoController {
         }
     }
 
+    @PostMapping("/webhook/mock/exito/{facturaId}")
+    public ResponseEntity<Map<String, String>> simulateSuccessPayment(@PathVariable Integer facturaId) {
+        try {
+            facturaService.actualizarEstado(facturaId, "PAGADA");
 
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Pago simulado exitosamente - Factura actualizada");
+            response.put("facturaId", facturaId.toString());
+            response.put("nuevoEstado", "PAGADA");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Error al simular pago: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/webhook/mock/fallo/{facturaId}")
+    public ResponseEntity<Map<String, String>> simulateFailurePayment(@PathVariable Integer facturaId) {
+        try {
+            facturaService.actualizarEstado(facturaId, "CANCELADA");
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Pago fallido simulado - Factura cancelada");
+            response.put("facturaId", facturaId.toString());
+            response.put("nuevoEstado", "CANCELADA");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Error al simular pago fallido: " + e.getMessage()));
+        }
+    }
 
     private Object getPropertyValue(Object object, String methodName) {
         try {
