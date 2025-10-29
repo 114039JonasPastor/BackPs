@@ -4,7 +4,6 @@ import ar.edu.utn.frc.tup.app.auth.AuthResponse;
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.registro.ProfesionalRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.registro.UsuarioRequest;
-import ar.edu.utn.frc.tup.app.entities.Profesionale;
 import ar.edu.utn.frc.tup.app.services.ConfirmationTokenService;
 import ar.edu.utn.frc.tup.app.services.RegistroService;
 import io.swagger.v3.oas.annotations.tags.Tag;
