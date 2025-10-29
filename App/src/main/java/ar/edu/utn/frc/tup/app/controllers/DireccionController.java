@@ -23,11 +23,6 @@ import java.util.List;
 public class DireccionController {
     private final DomicilioService domicilioService;
 
-//    @GetMapping("/usuario/{idUsuario}")
-//    public ResponseEntity<DomicilioDto> getDireccion(@PathVariable int idUsuario) {
-//        return ResponseEntity.ok(domicilioService.getDomicilioUsuario(idUsuario));
-//    }
-
     @GetMapping("/usuario/{idUsuario}")
     public ResponseEntity<?> getDireccion(@PathVariable int idUsuario) {
         DomicilioDto domicilio = domicilioService.getDomicilioUsuario(idUsuario);
