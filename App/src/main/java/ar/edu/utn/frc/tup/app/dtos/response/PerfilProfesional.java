@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -14,4 +16,5 @@ public class PerfilProfesional {
     private String telefono;
     private String rangoPrecio;
     private String disponibilidad;
+    private List<String> especialidades;
 }

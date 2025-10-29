@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -117,13 +118,35 @@ public class PerfilServiceImpl implements PerfilService {
         Disponibilidad disponibilidad = disponibilidadRepository.findByIdprofesional_Id(profesional.getId()).orElse(null);
         Monto monto = montoRepository.findByIdprofesional_Id(profesional.getId()).orElse(null);
 
-        String rangoPrecio = monto.getPreciomin().toString() + " - " + monto.getPreciomax().toString();
+        // Handle rangoPrecio with null check for monto
+        String rangoPrecio;
+        if(monto != null && monto.getPreciomin() != null && monto.getPreciomax() != null) {
+            rangoPrecio = monto.getPreciomin().toString() + " - " + monto.getPreciomax().toString();
+        } else if(profesional.getPrecioMin() != null && profesional.getPrecioMax() != null) {
+            rangoPrecio = profesional.getPrecioMin().toString() + " - " + profesional.getPrecioMax().toString();
+        } else {
+            rangoPrecio = "No especificado";
+        }
 
-        //Fixme mejorar el manejo de horario(puede que haya que cambiarlo desde la base de datos)
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        String diaDisponible = disponibilidad.getDiasemana() + " de " +
-                disponibilidad.getHorainicio().format(formatter) + " a " +
-                disponibilidad.getHorafin().format(formatter);
+        // Handle disponibilidad with null check
+        String diaDisponible;
+        if(disponibilidad != null && disponibilidad.getDiasemana() != null &&
+           disponibilidad.getHorainicio() != null && disponibilidad.getHorafin() != null) {
+            //Fixme mejorar el manejo de horario(puede que haya que cambiarlo desde la base de datos)
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            diaDisponible = disponibilidad.getDiasemana() + " de " +
+                    disponibilidad.getHorainicio().format(formatter) + " a " +
+                    disponibilidad.getHorafin().format(formatter);
+        } else {
+            diaDisponible = "No especificada";
+        }
+
+        // Extract especialidades
+        List<String> especialidadesList = profesional.getEspecialidades() != null
+                ? profesional.getEspecialidades().stream()
+                    .map(Especialidad::getEspecialidad)
+                    .toList()
+                : List.of();
 
         return PerfilProfesional.builder()
                 .nombre(profesional.getIdusuario().getIdauth().getName())
@@ -132,6 +155,7 @@ public class PerfilServiceImpl implements PerfilService {
                 .telefono(profesional.getIdusuario().getTelefono())
                 .rangoPrecio(rangoPrecio)
                 .disponibilidad(diaDisponible)
+                .especialidades(especialidadesList)
                 .build();
     }
 

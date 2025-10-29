@@ -11,7 +11,8 @@ import java.util.Optional;
 
 @Repository
 public interface ProfesionalRepository extends JpaRepository<Profesionale, Integer> {
-    @Query("SELECT p FROM Profesionale p " +
+    @Query("SELECT DISTINCT p FROM Profesionale p " +
+            "LEFT JOIN FETCH p.especialidades " +
             "JOIN p.idoficio o " +
             "JOIN p.idusuario u " +
             "JOIN u.iddireccion d " +
@@ -22,12 +23,14 @@ public interface ProfesionalRepository extends JpaRepository<Profesionale, Integ
             "    OR LOWER(c.ciudad) LIKE LOWER(CONCAT('%', :zona, '%')))")
     List<Profesionale> findByOficioAndZona(@Param("oficio") String oficio, @Param("zona") String zona);
 
-    @Query("SELECT p FROM Profesionale p " +
+    @Query("SELECT DISTINCT p FROM Profesionale p " +
+            "LEFT JOIN FETCH p.especialidades " +
             "JOIN p.idoficio o " +
             "WHERE LOWER(o.oficio) LIKE LOWER(CONCAT('%', :oficio, '%'))")
     List<Profesionale> findByOficio(@Param("oficio") String oficio);
 
-    @Query("SELECT p FROM Profesionale p " +
+    @Query("SELECT DISTINCT p FROM Profesionale p " +
+            "LEFT JOIN FETCH p.especialidades " +
             "JOIN p.idusuario u " +
             "JOIN u.iddireccion d " +
             "JOIN d.idbarrio b " +
@@ -36,7 +39,8 @@ public interface ProfesionalRepository extends JpaRepository<Profesionale, Integ
             "   OR LOWER(c.ciudad) LIKE LOWER(CONCAT('%', :zona, '%'))")
     List<Profesionale> findByZona(@Param("zona") String zona);
 
-    @Query("SELECT p FROM Profesionale p " +
+    @Query("SELECT DISTINCT p FROM Profesionale p " +
+            "LEFT JOIN FETCH p.especialidades " +
             "JOIN p.idusuario u " +
             "JOIN u.iddireccion d " +
             "JOIN d.idbarrio b " +
@@ -44,5 +48,8 @@ public interface ProfesionalRepository extends JpaRepository<Profesionale, Integ
             "WHERE p.fechahasta IS NULL OR p.fechahasta >= CURRENT_DATE")
     List<Profesionale> findProfesionalesActivos();
 
-    Optional<Profesionale> findByIdusuario_Id(Integer idUsuario);
+    @Query("SELECT p FROM Profesionale p " +
+            "LEFT JOIN FETCH p.especialidades " +
+            "WHERE p.idusuario.id = :idUsuario")
+    Optional<Profesionale> findByIdusuario_Id(@Param("idUsuario") Integer idUsuario);
 }
