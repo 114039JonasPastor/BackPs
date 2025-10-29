@@ -10,7 +10,6 @@ import ar.edu.utn.frc.tup.app.services.ConfirmationTokenService;
 import ar.edu.utn.frc.tup.app.services.EmailService;
 import ar.edu.utn.frc.tup.app.services.RegistroService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -91,10 +90,20 @@ public class RegistroServiceImpl implements RegistroService {
 
             // Cargar y procesar template HTML
             String htmlBody = loadAndProcessEmailTemplate(auth.getName(), auth.getLastname(), confirmationLink);
-            emailService.sendHtml(auth.getMail(), "Confirma tu cuenta - Servicios Pro", htmlBody);
+            emailService.sendHtml(auth.getMail(), "Confirma tu cuenta - Tu Oficio", htmlBody);
 
             // No devolver JWT hasta confirmación
-            return AuthResponse.builder().token(null).build();
+            return AuthResponse.builder()
+                    .token(null)
+                    .nombre(auth.getName())
+                    .apellido(auth.getLastname())
+                    .email(auth.getMail())
+                    .idUsuario(nuevo != null ? nuevo.getId() : null)
+                    .documento(nuevo != null ? nuevo.getDocumento() : null)
+                    .telefono(nuevo != null ? nuevo.getTelefono() : null)
+                    .nacimiento(nuevo != null && nuevo.getNacimiento() != null ? nuevo.getNacimiento().toString() : null)
+                    .idDireccion(nuevo != null ? nuevo.getIddireccion().getId() : null)
+                    .build();
 
         } catch (Exception e) {
             throw new RuntimeException("Error durante el registro del usuario: " + e.getMessage(), e);
@@ -118,7 +127,12 @@ public class RegistroServiceImpl implements RegistroService {
                     .fechahasta(null)
                     .build();
 
-            return profesionalRepository.save(profesional);
+            if(profesionalRepository.findByIdusuario_Id(usuario.getId()).isEmpty()){
+                profesionalRepository.save(profesional);
+                return profesional;
+            } else{
+                throw new RuntimeException("Este usuario ya es un profesional registrado");
+            }
 
         } catch (Exception e){
             throw new RuntimeException("Error durante el registro del profesional: " + e.getMessage(), e);

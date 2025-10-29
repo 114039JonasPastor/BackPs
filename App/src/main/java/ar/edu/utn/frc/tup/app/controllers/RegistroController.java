@@ -1,6 +1,7 @@
 package ar.edu.utn.frc.tup.app.controllers;
 
 import ar.edu.utn.frc.tup.app.auth.AuthResponse;
+import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.registro.ProfesionalRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.registro.UsuarioRequest;
 import ar.edu.utn.frc.tup.app.entities.Profesionale;
@@ -9,6 +10,7 @@ import ar.edu.utn.frc.tup.app.services.RegistroService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,10 +31,19 @@ public class RegistroController {
         return ResponseEntity.ok(registroService.registrarUsuario(usuario));
     }
 
-    //Fixme Posible error en el que el usuario se puede registrar como profesional muchas veces
     @PostMapping("/profesional")
-    public ResponseEntity<Profesionale> registrarProfesional(@RequestBody ProfesionalRequest profesionalRequest){
-        return ResponseEntity.ok(registroService.registrarProfesional(profesionalRequest));
+    public ResponseEntity<?> registrarProfesional(@RequestBody ProfesionalRequest profesionalRequest){
+        try{
+            return ResponseEntity.status(HttpStatus.CREATED).body(registroService.registrarProfesional(profesionalRequest));
+        } catch (RuntimeException e){
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 
     @GetMapping("/confirm")
