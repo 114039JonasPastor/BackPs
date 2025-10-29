@@ -285,3 +285,15 @@ insert into tipos_documento (tipo) values
 -- Índices para performance
 CREATE INDEX idx_reset_token_email ON password_reset_tokens(email);
 CREATE INDEX idx_reset_token_expiry ON password_reset_tokens(expiry_date);
+
+-- Modificaciones para especialidades y rangos de precios
+ALTER TABLE profesionales
+ADD COLUMN precio_min int,
+ADD COLUMN precio_max int;
+
+-- Crear tabla Especialidades
+create table Especialidades (
+            idEspecialidad SERIAL PRIMARY KEY,
+            especialidad VARCHAR(100) NOT NULL,
+            idprofesional INT REFERENCES profesionales (idprofesional);
+);
