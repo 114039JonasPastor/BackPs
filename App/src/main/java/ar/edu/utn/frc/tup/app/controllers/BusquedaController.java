@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/busqueda")
+@RequestMapping("/api/v1/busqueda")
 @RequiredArgsConstructor
 public class BusquedaController {
 
