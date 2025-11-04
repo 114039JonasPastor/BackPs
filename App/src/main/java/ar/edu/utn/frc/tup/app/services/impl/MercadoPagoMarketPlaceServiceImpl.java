@@ -19,24 +19,105 @@ import java.util.List;
 @ConditionalOnClass(name = "com.mercadopago.MercadoPagoConfig")
 public class MercadoPagoMarketPlaceServiceImpl implements MercadoPagoMarketPlaceService {
 
-    @Value("${mercadopago.access.token:mock_token}")
+    @Value("${mercadopago.access.token:TEST-126586428349320-110318-0380962aaaf2f8b76bc913c0fb8aa744-419753663}")
     private String accessToken;
 
     @PostConstruct
     public void init() {
         try {
-            // Solo intentar configurar MercadoPago si las clases están disponibles
+            log.info("=== INICIALIZANDO MERCADOPAGO ===");
+
+            // Validar tipo de token
+            if (accessToken.equals("MOCK_TOKEN")) {
+                log.warn("⚠️ MODO MOCK ACTIVADO - No se conectará a MercadoPago real");
+                log.warn("Para usar MercadoPago Sandbox necesitas:");
+                log.warn("1. Ir a https://www.mercadopago.com.ar/developers/panel/app");
+                log.warn("2. Crear una aplicación");
+                log.warn("3. Ir a 'Credenciales' → 'Credenciales de prueba'");
+                log.warn("4. Copiar el Access Token que empieza con TEST-");
+                return;
+            }
+
+            if (accessToken.startsWith("APP_USR-")) {
+                log.error("❌ ERROR: Token de PRODUCCIÓN detectado");
+                log.error("Las credenciales APP_USR- son para PRODUCCIÓN, no para desarrollo");
+                log.error("Necesitas credenciales de SANDBOX que empiecen con TEST-");
+                log.warn("Funcionando en MODO MOCK hasta configurar credenciales correctas");
+                accessToken = "MOCK_TOKEN"; // Forzar modo mock
+                return;
+            }
+
+            if (!accessToken.startsWith("TEST-")) {
+                log.error("❌ ERROR: Token debe ser de SANDBOX (empezar con TEST-)");
+                log.error("Token actual: {}...", accessToken.substring(0, 12));
+                log.warn("Funcionando en MODO MOCK");
+                accessToken = "MOCK_TOKEN";
+                return;
+            }
+
+            log.info("Token de SANDBOX configurado: {}...", accessToken.substring(0, 12));
+
             Class<?> configClass = Class.forName("com.mercadopago.MercadoPagoConfig");
+
+            // Verificar estado actual
+            java.lang.reflect.Method getTokenMethod = configClass.getMethod("getAccessToken");
+            String tokenActual = (String) getTokenMethod.invoke(null);
+            log.info("Token anterior en SDK: {}", tokenActual != null ? tokenActual.substring(0, 12) + "..." : "NULL");
+
+            // Configurar token de sandbox
             java.lang.reflect.Method setTokenMethod = configClass.getMethod("setAccessToken", String.class);
             setTokenMethod.invoke(null, accessToken);
-            log.info("MercadoPago configurado correctamente");
+
+            // Validar configuración
+            String configuredToken = (String) getTokenMethod.invoke(null);
+            log.info("Token verificado en SDK: {}",
+                    configuredToken != null ? configuredToken.substring(0, 12) + "..." : "NULL");
+
+            if (configuredToken != null && configuredToken.equals(accessToken)) {
+                log.info("✅ MercadoPago SANDBOX configurado correctamente");
+            } else {
+                log.error("❌ Token no coincide después de configurar");
+            }
+
         } catch (Exception e) {
-            log.warn("No se pudo configurar MercadoPago: {}", e.getMessage());
+            log.error("❌ Error configurando MercadoPago: {}", e.getMessage());
+            log.error("Stack trace:", e);
+        }
+    }
+
+
+    private void asegurarConfiguracion() {
+        // Si está en modo mock, no hacer nada
+        if (accessToken.equals("MOCK_TOKEN") || accessToken.startsWith("APP_USR-")) {
+            return;
+        }
+
+        try {
+            Class<?> configClass = Class.forName("com.mercadopago.MercadoPagoConfig");
+            java.lang.reflect.Method getTokenMethod = configClass.getMethod("getAccessToken");
+            String tokenActual = (String) getTokenMethod.invoke(null);
+
+            if (tokenActual == null || !tokenActual.equals(accessToken)) {
+                log.warn("Reconfigurando token MP - Actual: {}, Esperado: {}",
+                        tokenActual != null ? tokenActual.substring(0, 12) + "..." : "NULL",
+                        accessToken.substring(0, 12) + "...");
+
+                java.lang.reflect.Method setTokenMethod = configClass.getMethod("setAccessToken", String.class);
+                setTokenMethod.invoke(null, accessToken);
+            }
+        } catch (Exception e) {
+            log.error("Error al asegurar configuración MP: {}", e.getMessage());
         }
     }
 
     @Override
     public Object crearPreferenciaMarketPlace(Factura factura, String profesionalMPUserId) {
+        // Si el token no es de sandbox, usar modo mock
+        if (accessToken.equals("MOCK_TOKEN") || accessToken.startsWith("APP_USR-")) {
+            log.warn("Usando modo MOCK - Token no es de sandbox");
+            return crearPreferenciaMock(factura, profesionalMPUserId);
+        }
+
         try {
             // Primero verificar si es un profesionalMPUserId válido
             if (profesionalMPUserId == null || profesionalMPUserId.equals("ID_DEL_PROFESIONAL_EN_MP")) {
@@ -57,6 +138,9 @@ public class MercadoPagoMarketPlaceServiceImpl implements MercadoPagoMarketPlace
     }
 
     private Object crearPreferenciaReal(Factura factura, String profesionalMPUserId) throws Exception {
+        // Asegurar que el token está configurado correctamente
+        asegurarConfiguracion();
+
         // Usar reflection para crear la preferencia sin imports directos
         BigDecimal comision = factura.getImporte().multiply(new BigDecimal("0.05"));
 
@@ -110,9 +194,9 @@ public class MercadoPagoMarketPlaceServiceImpl implements MercadoPagoMarketPlace
 
         // Crear objeto mock que simule una preferencia de MercadoPago
         return new MockPreference(
-            "mock_preference_" + factura.getId(),
-            "https://mock-mercadopago.com/init_point?preference_id=mock_" + factura.getId(),
-            factura.getId().toString()
+                "mock_preference_" + factura.getId(),
+                "https://mock-mercadopago.com/init_point?preference_id=mock_" + factura.getId(),
+                factura.getId().toString()
         );
     }
 
