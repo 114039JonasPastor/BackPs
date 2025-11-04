@@ -10,4 +10,5 @@ public interface FacturaService {
     Factura findById(Integer id);
     Factura generarFactura(BigDecimal importe, Integer profesionalId, Integer clienteId);
     Factura actualizarEstado(Integer facturaId, String nuevoEstado);
+    void processPaymentNotification(String payload);
 }

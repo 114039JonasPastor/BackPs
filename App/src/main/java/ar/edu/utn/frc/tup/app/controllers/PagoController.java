@@ -43,35 +43,16 @@ public class PagoController {
             System.out.println("Payload: " + payload);
             System.out.println("Query params: " + request.getQueryString());
 
-            // Validar firma del webhook (opcional pero recomendado)
-            String signature = headers.get("x-signature");
-            if (signature != null && webhookSecret != null) {
-                // Aquí puedes implementar validación de firma si lo necesitas
-                System.out.println("Signature recibida: " + signature);
-            }
+            // Procesar la notificación
+            facturaService.processPaymentNotification(payload);
 
-            // Procesar eventos específicos
-            if (payload.contains("\"type\":\"payment\"")) {
-                System.out.println("✅ Evento de pago recibido");
-                // Extraer payment_id y procesar
-                processPaymentEvent(payload);
-            } else if (payload.contains("\"type\":\"merchant_order\"")) {
-                System.out.println("✅ Merchant order actualizada");
-                // Procesar orden
-            }
-
-            return ResponseEntity.ok("OK");
+            return ResponseEntity.ok("Notificación procesada con éxito");
 
         } catch (Exception e) {
             System.err.println("❌ Error procesando webhook: " + e.getMessage());
-            return ResponseEntity.status(500).body("ERROR");
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error al procesar la notificación");
         }
-    }
-
-    private void processPaymentEvent(String payload) {
-        // Aquí procesarías el pago específico
-        // Por ejemplo, actualizar el estado de la factura en tu BD
-        System.out.println("Procesando actualización de pago...");
     }
 
     @PostMapping("/comprar-testing")

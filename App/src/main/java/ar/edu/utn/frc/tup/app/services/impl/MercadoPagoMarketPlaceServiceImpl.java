@@ -138,17 +138,14 @@ public class MercadoPagoMarketPlaceServiceImpl implements MercadoPagoMarketPlace
     }
 
     private Object crearPreferenciaReal(Factura factura, String profesionalMPUserId) throws Exception {
-        // Asegurar que el token está configurado correctamente
         asegurarConfiguracion();
 
-        // Usar reflection para crear la preferencia sin imports directos
         BigDecimal comision = factura.getImporte().multiply(new BigDecimal("0.05"));
 
-        // Crear item usando reflection
+        // Crear item
         Class<?> itemRequestClass = Class.forName("com.mercadopago.client.preference.PreferenceItemRequest");
         Object itemBuilder = itemRequestClass.getMethod("builder").invoke(null);
 
-        // Configurar el item
         itemBuilder = itemBuilder.getClass().getMethod("id", String.class).invoke(itemBuilder, factura.getId().toString());
         itemBuilder = itemBuilder.getClass().getMethod("title", String.class).invoke(itemBuilder, "Servicio profesional - BackPs");
         itemBuilder = itemBuilder.getClass().getMethod("description", String.class).invoke(itemBuilder, "Pago por servicios profesionales");
@@ -161,24 +158,26 @@ public class MercadoPagoMarketPlaceServiceImpl implements MercadoPagoMarketPlace
         List<Object> items = new ArrayList<>();
         items.add(item);
 
-        // Crear back URLs usando reflection
+        // Crear back URLs
         Class<?> backUrlsClass = Class.forName("com.mercadopago.client.preference.PreferenceBackUrlsRequest");
         Object backUrlsBuilder = backUrlsClass.getMethod("builder").invoke(null);
 
-        backUrlsBuilder = backUrlsBuilder.getClass().getMethod("success", String.class).invoke(backUrlsBuilder, "http://localhost:8081/pago/exitoso");
-        backUrlsBuilder = backUrlsBuilder.getClass().getMethod("failure", String.class).invoke(backUrlsBuilder, "http://localhost:8081/pago/fallido");
-        backUrlsBuilder = backUrlsBuilder.getClass().getMethod("pending", String.class).invoke(backUrlsBuilder, "http://localhost:8081/pago/pendiente");
+        backUrlsBuilder = backUrlsBuilder.getClass().getMethod("success", String.class).invoke(backUrlsBuilder, "http://localhost:8081/api/v1/pagos/success");
+        backUrlsBuilder = backUrlsBuilder.getClass().getMethod("failure", String.class).invoke(backUrlsBuilder, "http://localhost:8081/api/v1/pagos/failure");
+        backUrlsBuilder = backUrlsBuilder.getClass().getMethod("pending", String.class).invoke(backUrlsBuilder, "http://localhost:8081/api/v1/pagos/pending");
 
         Object backUrls = backUrlsBuilder.getClass().getMethod("build").invoke(backUrlsBuilder);
 
-        // Crear preference request usando reflection
+        // Crear preference request
         Class<?> preferenceRequestClass = Class.forName("com.mercadopago.client.preference.PreferenceRequest");
         Object preferenceBuilder = preferenceRequestClass.getMethod("builder").invoke(null);
 
         preferenceBuilder = preferenceBuilder.getClass().getMethod("items", List.class).invoke(preferenceBuilder, items);
-        preferenceBuilder = preferenceBuilder.getClass().getMethod("externalReference", String.class).invoke(preferenceBuilder, factura.getId().toString());
+        preferenceBuilder = preferenceBuilder.getClass().getMethod("externalReference", String.class).invoke(preferenceBuilder, "FACTURA_" + factura.getId());
         preferenceBuilder = preferenceBuilder.getClass().getMethod("backUrls", backUrls.getClass()).invoke(preferenceBuilder, backUrls);
-        preferenceBuilder = preferenceBuilder.getClass().getMethod("autoReturn", String.class).invoke(preferenceBuilder, "approved");
+
+        // ✅ AGREGAR: Configurar para que acepte pagos sin login
+        preferenceBuilder = preferenceBuilder.getClass().getMethod("binaryMode", Boolean.class).invoke(preferenceBuilder, true);
 
         Object preferenceRequest = preferenceBuilder.getClass().getMethod("build").invoke(preferenceBuilder);
 
