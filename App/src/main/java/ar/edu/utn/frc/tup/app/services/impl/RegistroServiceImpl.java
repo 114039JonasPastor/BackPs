@@ -9,7 +9,9 @@ import ar.edu.utn.frc.tup.app.repositories.*;
 import ar.edu.utn.frc.tup.app.services.ConfirmationTokenService;
 import ar.edu.utn.frc.tup.app.services.EmailService;
 import ar.edu.utn.frc.tup.app.services.RegistroService;
+import ar.edu.utn.frc.tup.app.services.StreamChatService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,29 +21,23 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RegistroServiceImpl implements RegistroService {
 
     private final AuthRepository authRepository;
-
     private final UsuarioRepository usuarioRepository;
-
     private final ProfesionalRepository profesionalRepository;
-
     private final OficioRepository oficioRepository;
-
     private final TipoDocumentoRepository tipoDocumentoRepository;
-
     private final DireccionRepository direccioneRepository;
-
     private final BarrioRepository barrioRepository;
-
     private final PasswordEncoder passwordEncoder;
-
     private final JwtService jwtService;
-
     private final EmailService emailService;
-
     private final ConfirmationTokenService confirmationTokenService;
+
+    // ✅ Agregar dependencia de StreamChatService
+    private final StreamChatService streamChatService;
 
     @Override
     @Transactional
@@ -58,7 +54,7 @@ public class RegistroServiceImpl implements RegistroService {
                     .mail(usuario.getMail())
                     .name(usuario.getName())
                     .lastname(usuario.getLastName())
-                    .active(false) // inactivo hasta confirmar
+                    .active(false)
                     .build();
             authRepository.save(auth);
 
@@ -84,15 +80,26 @@ public class RegistroServiceImpl implements RegistroService {
 
             usuarioRepository.save(nuevo);
 
+            // ✅ REGISTRAR USUARIO EN STREAM CHAT
+            try {
+                String userId = String.valueOf(nuevo.getId());
+                String nombre = auth.getName() + " " + auth.getLastname();
+                String email = auth.getMail();
+
+                streamChatService.createOrUpdateUser(userId, nombre, email, null);
+                log.info("✅ Usuario registrado en Stream Chat: {}", userId);
+            } catch (Exception e) {
+                log.error("⚠️ Error al registrar usuario en Stream Chat (continuando): {}", e.getMessage());
+                // No lanzar excepción para no interrumpir el registro
+            }
+
             // Generar token de confirmación y enviar mail
             String token = confirmationTokenService.createTokenForAuth(auth.getId());
             String confirmationLink = "http://localhost:8081/api/v1/registro/confirm?token=" + token;
 
-            // Cargar y procesar template HTML
             String htmlBody = loadAndProcessEmailTemplate(auth.getName(), auth.getLastname(), confirmationLink);
             emailService.sendHtml(auth.getMail(), "Confirma tu cuenta - Tu Oficio", htmlBody);
 
-            // No devolver JWT hasta confirmación
             return AuthResponse.builder()
                     .token(null)
                     .nombre(auth.getName())
@@ -110,8 +117,6 @@ public class RegistroServiceImpl implements RegistroService {
         }
     }
 
-
-    //Fixme Posible error en el que el usuario se puede registrar como profesional muchas veces
     @Override
     public Profesionale registrarProfesional(ProfesionalRequest profesionalRequest) {
         try {
@@ -129,6 +134,19 @@ public class RegistroServiceImpl implements RegistroService {
 
             if(profesionalRepository.findByIdusuario_Id(usuario.getId()).isEmpty()){
                 profesionalRepository.save(profesional);
+
+                // ✅ ACTUALIZAR USUARIO EN STREAM CHAT COMO PROFESIONAL
+                try {
+                    String userId = String.valueOf(usuario.getId());
+                    String nombre = usuario.getIdauth().getName() + " " + usuario.getIdauth().getLastname() + " (Profesional)";
+                    String email = usuario.getIdauth().getMail();
+
+                    streamChatService.createOrUpdateUser(userId, nombre, email, null);
+                    log.info("✅ Profesional actualizado en Stream Chat: {}", userId);
+                } catch (Exception e) {
+                    log.error("⚠️ Error al actualizar profesional en Stream Chat (continuando): {}", e.getMessage());
+                }
+
                 return profesional;
             } else{
                 throw new RuntimeException("Este usuario ya es un profesional registrado");
@@ -141,18 +159,15 @@ public class RegistroServiceImpl implements RegistroService {
 
     private String loadAndProcessEmailTemplate(String nombre, String apellido, String confirmationLink) {
         try {
-            // Cargar el template HTML desde resources
             ClassPathResource resource = new ClassPathResource("templates/email-confirmation.html");
             String htmlTemplate = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 
-            // Reemplazar los placeholders con los datos reales
             return htmlTemplate
                     .replace("{{nombre}}", nombre != null ? nombre : "")
                     .replace("{{apellido}}", apellido != null ? apellido : "")
                     .replace("{{confirmationLink}}", confirmationLink);
 
         } catch (IOException e) {
-            // Fallback a template simple en caso de error
             return createFallbackTemplate(nombre, apellido, confirmationLink);
         }
     }
@@ -173,9 +188,10 @@ public class RegistroServiceImpl implements RegistroService {
                 </body>
                 </html>
                 """.formatted(
-                    nombre != null ? nombre : "",
-                    apellido != null ? apellido : "",
-                    confirmationLink
-                );
+                nombre != null ? nombre : "",
+                apellido != null ? apellido : "",
+                confirmationLink
+        );
     }
 }
+

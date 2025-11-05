@@ -1,18 +1,17 @@
 package ar.edu.utn.frc.tup.app.dtos.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Data
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class FacturaRequest {
-    private BigDecimal importe;
+    private Integer idSolicitud;
+    private String titulo;
     private String descripcion;
-    private Integer profesionalId;
-    private Integer clienteId;
+    private BigDecimal monto;
+    private Integer cantidad;
 }

@@ -17,7 +17,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final TipoDocumentoRepository tipoDocumentoRepository;
 
     @Override
-    public List<TiposDocumento> GetTiposDocumento() {
+    public List<TiposDocumento> getTiposDocumento() {
         return tipoDocumentoRepository.findAll();
     }
 }

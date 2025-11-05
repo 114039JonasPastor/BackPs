@@ -176,6 +176,13 @@
             <version>2.1.29</version>
         </dependency>
 
+<!--        StreamChat-->
+        <dependency>
+            <groupId>io.getstream</groupId>
+            <artifactId>stream-chat-java</artifactId>
+            <version>1.33.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>

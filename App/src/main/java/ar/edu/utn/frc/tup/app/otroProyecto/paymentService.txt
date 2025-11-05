@@ -1,0 +1,370 @@
+package app.vuelta_a_la_sierrita.services.payment;
+
+import app.vuelta_a_la_sierrita.DTOs.Competitor.CompetitorDTO;
+import app.vuelta_a_la_sierrita.controllers.MercadoPagoController;
+import app.vuelta_a_la_sierrita.entities.Inscription;
+import app.vuelta_a_la_sierrita.entities.Payment;
+import app.vuelta_a_la_sierrita.entities.Race;
+import app.vuelta_a_la_sierrita.repositories.PaymentRepository;
+import app.vuelta_a_la_sierrita.services.Competitor.CompetitorService;
+import app.vuelta_a_la_sierrita.services.Inscription.InscriptionService;
+import app.vuelta_a_la_sierrita.services.Race.RaceService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mercadopago.MercadoPagoConfig;
+import com.mercadopago.client.payment.PaymentClient;
+import com.mercadopago.client.preference.*;
+import com.mercadopago.exceptions.MPApiException;
+import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.preference.Preference;
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.util.Collections;
+
+@Service
+public class PaymentService {
+
+    private static final Logger logger = LoggerFactory.getLogger(MercadoPagoController.class);
+
+    @Value("${mercadopago.access.token}")
+    private String accessToken;
+
+    @Value("${access.token.test}")
+    private String accessTokenTest;
+
+    @Value("${mercadopago.client.token}")
+    private String MPClientToken;
+
+    @Value("${mercadopago.notification.url}")
+    private String notificationUrl;
+
+    @Autowired
+    private RaceService raceService;
+
+    @Autowired
+    private CompetitorService competitorService;
+
+    @Autowired
+    private InscriptionService inscriptionService;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    private String preferenceId;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+
+    @PostConstruct
+    public void initialize() {
+        MercadoPagoConfig.setAccessToken(MPClientToken);
+    }
+
+    private Payment getPaymentByInscription(Inscription inscription) {
+        return paymentRepository.findByInscription(inscription);
+    }
+    @Transactional
+    public String createPreference(Long raceId, Long competitorId) {
+        try {
+            Race race = raceService.getRaceById(raceId);
+            CompetitorDTO competitor = competitorService.getCompetitorById(competitorId);
+            Inscription inscription = inscriptionService.getInscriptionByCompetitorAndRace(competitorId, raceId);
+
+            // Buscar y eliminar pago previo si existe
+            Payment existingPayment = getPaymentByInscription(inscription);
+            if (existingPayment != null) {
+                paymentRepository.delete(existingPayment);
+                paymentRepository.flush();
+                logger.info("Pago eliminado para inscripción {}", inscription.getInscriptionId());
+            }
+
+            PreferenceItemRequest item = PreferenceItemRequest.builder()
+                    .title("Inscripción: " + race.getName())
+                    .description("Categoría: " + race.getCategory().getName())
+                    .quantity(1)
+                    .unitPrice(race.getRegistrationFee())
+                    .currencyId("ARS")
+                    .build();
+
+            PreferenceBackUrlsRequest preferenceBackUrls = PreferenceBackUrlsRequest.builder()
+                    .success("https://vuelta-a-la-sierrita-front.vercel.app/eventos")
+                    .failure("https://vuelta-a-la-sierrita-front.vercel.app/eventos")
+                    .build();
+
+            PreferencePayerRequest preferencePayer = PreferencePayerRequest.builder()
+                    .name(competitor.getUser().getName())
+                    .surname(competitor.getUser().getLastName())
+                    .email(competitor.getUser().getEmail())
+                    .build();
+
+            // CALCULAR EL 3% DE COMISIÓN
+            BigDecimal applicationFee = race.getRegistrationFee()
+                    .multiply(new BigDecimal("0.03"))
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            PreferenceRequest preferenceRequest = PreferenceRequest.builder()
+                    .items(Collections.singletonList(item))
+                    .payer(preferencePayer)
+                    .backUrls(preferenceBackUrls)
+                    .autoReturn("approved")
+                    .notificationUrl(notificationUrl)
+                    .externalReference(inscription.getInscriptionId().toString())
+                  //  .marketplaceFee(applicationFee) // ← AQUÍ AGREGAS TU COMISIÓN
+                    .build();
+
+            // IMPORTANTE: Usar el access token del organizador de la carrera, no el tuyo
+            MercadoPagoConfig.setAccessToken(MPClientToken);
+
+            PreferenceClient client = new PreferenceClient();
+            Preference preference = client.create(preferenceRequest);
+
+            Payment newPayment = new Payment();
+            newPayment.setPaymentId(preference.getId());
+            newPayment.setPaymentDate(LocalDateTime.now());
+            newPayment.setAmount(item.getUnitPrice());
+            newPayment.setPreferenceId(preference.getId());
+            Inscription managedInscription = inscriptionService.getInscriptionById(inscription.getInscriptionId());
+            newPayment.setInscription(managedInscription);
+            newPayment.setStatus("PENDING");
+
+            paymentRepository.save(newPayment);
+
+            return preference.getInitPoint();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al crear preferencia de pago: " + e.getMessage(), e);
+        }
+    }
+
+    public void processPaymentNotification(String payload) {
+        try {
+            logger.info("Recibida notificación de pago: {}", payload);
+
+            // Parsear el payload para determinar el tipo de notificación
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(payload);
+
+            // Determinar si es una notificación de tipo merchant_order o payment
+            if (jsonNode.has("resource")) {
+                // Es una notificación con URL de recurso
+                String resourceUrl = jsonNode.get("resource").asText();
+                String topic = jsonNode.has("topic") ? jsonNode.get("topic").asText() : "";
+
+                logger.info("Tipo de notificación: {}, URL del recurso: {}", topic, resourceUrl);
+
+                if ("payment".equals(topic) || resourceUrl.contains("payments")) {
+                    // Procesar notificación de pago
+                    processPaymentResource(resourceUrl);
+                } else if ("merchant_order".equals(topic) || resourceUrl.contains("merchant_orders")) {
+                    // Procesar notificación de orden de comerciante
+                    processMerchantOrderResource(resourceUrl);
+                } else {
+                    logger.warn("Tipo de notificación desconocido: {}", topic);
+                }
+            } else if (jsonNode.has("data") && jsonNode.get("data").has("id")) {
+                // Es una notificación directa con el ID del pago
+                Long paymentId = jsonNode.get("data").get("id").asLong();
+                boolean isProduction = jsonNode.has("live_mode") ? jsonNode.get("live_mode").asBoolean() : false;
+
+                logger.info("Notificación directa de pago ID: {}, Producción: {}", paymentId, isProduction);
+
+                processDirectPaymentNotification(paymentId, isProduction);
+            } else {
+                logger.warn("Formato de notificación no reconocido: {}", payload);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error al procesar notificación de pago", e);
+            throw new RuntimeException("Error al procesar notificación de pago: " + e.getMessage(), e);
+        }
+    }
+
+    private void processPaymentResource(String resourceUrl) {
+        try {
+            // Agregar el token de acceso como parámetro de consulta o encabezado
+            String accessTokenToUse = MercadoPagoConfig.getAccessToken();
+
+            if (!resourceUrl.contains("access_token")) {
+                if (resourceUrl.contains("?")) {
+                    resourceUrl += "&access_token=" + accessTokenToUse;
+                } else {
+                    resourceUrl += "?access_token=" + accessTokenToUse;
+                }
+            }
+
+            logger.info("Consultando recurso de pago: {}", resourceUrl);
+
+            // Realizar la solicitud HTTP para obtener los detalles del pago
+            ResponseEntity<String> response = restTemplate.getForEntity(resourceUrl, String.class);
+            String responseBody = response.getBody();
+
+            logger.info("Respuesta del recurso de pago: {}", responseBody);
+
+            // Parsear la respuesta
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode paymentData = objectMapper.readTree(responseBody);
+
+            // Verificar el estado del pago
+            String status = paymentData.has("status") ? paymentData.get("status").asText() : "";
+            String externalReference = paymentData.has("external_reference") ?
+                    paymentData.get("external_reference").asText() : "";
+
+            logger.info("Estado del pago: {}, Referencia externa: {}", status, externalReference);
+
+            updatePaymentStatus(externalReference, status);
+
+        } catch (Exception e) {
+            logger.error("Error al procesar recurso de pago", e);
+            throw new RuntimeException("Error al procesar recurso de pago: " + e.getMessage(), e);
+        }
+    }
+
+    private void processMerchantOrderResource(String resourceUrl) {
+        try {
+            // Agregar el token de acceso como parámetro de consulta o encabezado
+            String accessTokenToUse = MercadoPagoConfig.getAccessToken();
+
+            if (!resourceUrl.contains("access_token")) {
+                if (resourceUrl.contains("?")) {
+                    resourceUrl += "&access_token=" + accessTokenToUse;
+                } else {
+                    resourceUrl += "?access_token=" + accessTokenToUse;
+                }
+            }
+
+            logger.info("Consultando recurso de orden de comerciante: {}", resourceUrl);
+
+            // Realizar la solicitud HTTP para obtener los detalles de la orden
+            ResponseEntity<String> response = restTemplate.getForEntity(resourceUrl, String.class);
+            String responseBody = response.getBody();
+
+            logger.info("Respuesta del recurso de orden: {}", responseBody);
+
+            // Parsear la respuesta
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode orderData = objectMapper.readTree(responseBody);
+
+            // Extraer información importante
+            String externalReference = orderData.has("external_reference") ?
+                    orderData.get("external_reference").asText() : "";
+
+            // Verificar el estado de los pagos asociados a la orden
+            JsonNode payments = orderData.has("payments") ? orderData.get("payments") : null;
+
+            if (payments != null && payments.isArray() && payments.size() > 0) {
+                boolean allApproved = true;
+
+                for (JsonNode payment : payments) {
+                    String status = payment.has("status") ? payment.get("status").asText() : "";
+
+                    logger.info("Pago en orden - ID: {}, Estado: {}",
+                            payment.has("id") ? payment.get("id").asText() : "", status);
+
+                    if (!"approved".equalsIgnoreCase(status)) {
+                        allApproved = false;
+                    }
+                }
+
+                if (allApproved && payments.size() > 0) {
+                    logger.info("Todos los pagos aprobados para la orden con referencia: {}", externalReference);
+                    updatePaymentStatus(externalReference, "approved");
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Error al procesar recurso de orden de comerciante", e);
+            throw new RuntimeException("Error al procesar recurso de orden de comerciante: " + e.getMessage(), e);
+        }
+    }
+
+    private void processDirectPaymentNotification(Long paymentId, boolean isProduction) {
+        try {
+            if (paymentId < 1000000 || !isProduction) {
+                logger.info("Sandbox Payment Detected: Simulando pago aprobado para ID: {}", paymentId);
+
+                // Buscar Payment usando el preferenceId (este es el flujo de prueba/sandbox)
+                if (preferenceId != null) {
+                    Payment paymentEntity = paymentRepository.findByPreferenceId(preferenceId);
+
+                    if (paymentEntity != null) {
+                        // Actualizar el estado del pago a "APPROVED"
+                        paymentEntity.setStatus("APPROVED");
+                        inscriptionService.markAsPaid(paymentEntity.getInscription().getInscriptionId());
+                        paymentRepository.save(paymentEntity);
+                        logger.info("Pago sandbox marcado como aprobado para preferenceId: {}", preferenceId);
+                    } else {
+                        logger.warn("No se encontró el Payment con preferenceId: {}", preferenceId);
+                    }
+                } else {
+                    logger.warn("No hay preferenceId disponible para el pago sandbox");
+                }
+                return; // Salimos sin consultar MercadoPago real
+            }
+
+            // Consultar el pago a MercadoPago usando la API oficial
+            PaymentClient paymentClient = new PaymentClient();
+            com.mercadopago.resources.payment.Payment payment = paymentClient.get(paymentId);
+
+            // Verificar el estado del pago
+            String status = payment.getStatus(); // Puede ser "approved", "rejected", "pending", etc.
+            String externalReference = payment.getExternalReference();
+
+            logger.info("Estado del pago directo: {}, referencia externa: {}", status, externalReference);
+
+            // Actualizar estado en la base de datos
+            updatePaymentStatus(externalReference, status);
+
+        } catch (MPApiException | MPException e) {
+            logger.error("Error al procesar notificación directa de pago", e);
+            throw new RuntimeException("Error al procesar notificación directa de pago: " + e.getMessage(), e);
+        }
+    }
+
+    private void updatePaymentStatus(String externalReference, String status) {
+        logger.info("Actualizando estado de pago. Ref: {}, Estado: {}", externalReference, status);
+
+        if ("approved".equalsIgnoreCase(status)) {
+            try {
+                // El externalReference debería ser el ID de inscripción
+                Long inscriptionId = Long.parseLong(externalReference);
+
+                // Buscar el pago asociado a esta inscripción
+                Inscription inscription = inscriptionService.getInscriptionById(inscriptionId);
+                if (inscription != null) {
+                    // Buscar el pago asociado a esta inscripción
+                    Payment paymentEntity = paymentRepository.findByInscription(inscription);
+
+                    if (paymentEntity != null) {
+                        paymentEntity.setStatus("APPROVED");
+                        paymentRepository.save(paymentEntity);
+
+                        // Marcar la inscripción como pagada
+                        inscriptionService.markAsPaid(inscriptionId);
+
+                        logger.info("Pago aprobado y guardado correctamente para inscripción: {}", inscriptionId);
+                    } else {
+                        logger.warn("No se encontró pago para la inscripción: {}", inscriptionId);
+                    }
+                } else {
+                    logger.warn("No se encontró inscripción con ID: {}", inscriptionId);
+                }
+            } catch (NumberFormatException e) {
+                logger.error("Error al convertir referencia externa a ID de inscripción: {}", externalReference, e);
+            }
+        } else {
+            logger.info("Pago no aprobado. Estado: {}", status);
+        }
+    }
+}

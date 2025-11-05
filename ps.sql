@@ -304,3 +304,7 @@ ALTER TABLE password_reset_tokens DROP CONSTRAINT IF EXISTS password_reset_token
 ALTER TABLE password_reset_tokens ALTER COLUMN id_auth TYPE integer USING id_auth::integer;
 ALTER TABLE password_reset_tokens ADD CONSTRAINT fk_password_reset_tokens_auth FOREIGN KEY (id_auth) REFERENCES auth(idauth);
 
+INSERT INTO MediosDePago (descripcion) VALUES
+                                           ('MercadoPago'),
+                                           ('Efectivo'),
+                                           ('Transferencia');
