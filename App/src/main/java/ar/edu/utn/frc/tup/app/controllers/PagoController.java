@@ -78,7 +78,11 @@ public class PagoController {
                     Map<String, Object> data = (Map<String, Object>) dataObj;
                     String paymentId = (String) data.get("id");
                     log.info("💰 Payment ID recibido: {}", paymentId);
-                    // TODO: Consultar el pago y actualizar la factura
+
+                    // Procesar el pago aprobado usando la factura
+                    if ("payment.updated".equals(action)) {
+                        facturaService.procesarPagoAprobado(data);
+                    }
                 }
             }
 
@@ -88,5 +92,6 @@ public class PagoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 }
 

@@ -4,8 +4,10 @@ import ar.edu.utn.frc.tup.app.dtos.request.FacturaRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.PreferenceResponse;
 import ar.edu.utn.frc.tup.app.entities.Factura;
 import ar.edu.utn.frc.tup.app.entities.Mediosdepago;
+import ar.edu.utn.frc.tup.app.entities.Solicitude;
 import ar.edu.utn.frc.tup.app.repositories.FacturaRepository;
 import ar.edu.utn.frc.tup.app.repositories.MediosdepagoRepository;
+import ar.edu.utn.frc.tup.app.repositories.SolicitudeRepository;
 import ar.edu.utn.frc.tup.app.services.FacturaService;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.preference.*;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +33,7 @@ public class FacturaServiceImpl implements FacturaService {
 
     private final FacturaRepository facturaRepository;
     private final MediosdepagoRepository mediosdepagoRepository;
+    private final SolicitudeRepository solicitudeRepository;
 
     @Value("${mercadopago.webhook.url}")
     private String webhookUrl;
@@ -49,12 +53,21 @@ public class FacturaServiceImpl implements FacturaService {
 
             log.info("========== CREAR PREFERENCIA ==========");
             log.info("ID Solicitud: {}", request.getIdSolicitud());
+
+            // Obtener la solicitud
+            Solicitude solicitud = solicitudeRepository.findById(request.getIdSolicitud())
+                    .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+            // Crear factura pendiente
+            Factura factura = crearFacturaPendiente(solicitud, request.getMonto());
+
+            log.info("Factura creada con ID: {}", factura.getId());
             log.info("Título: {}", request.getTitulo());
             log.info("Monto: {}", request.getMonto());
 
             // Crear item
             PreferenceItemRequest item = PreferenceItemRequest.builder()
-                    .id(String.valueOf(request.getIdSolicitud()))
+                    .id(String.valueOf(factura.getId())) // Usar ID de factura
                     .title(request.getTitulo())
                     .description(request.getDescripcion())
                     .quantity(request.getCantidad() != null ? request.getCantidad() : 1)
@@ -74,7 +87,7 @@ public class FacturaServiceImpl implements FacturaService {
 
             // Configurar métodos de pago
             PreferencePaymentMethodsRequest paymentMethods = PreferencePaymentMethodsRequest.builder()
-                    .installments(12) // Permitir cuotas
+                    .installments(12)
                     .defaultInstallments(1)
                     .build();
 
@@ -84,10 +97,10 @@ public class FacturaServiceImpl implements FacturaService {
                     .backUrls(backUrls)
                     .paymentMethods(paymentMethods)
                     .notificationUrl(webhookUrl)
-                    .externalReference(String.valueOf(request.getIdSolicitud()))
+                    .externalReference(String.valueOf(factura.getId())) // Usar ID de factura
                     .statementDescriptor("Tu Oficio - Servicio")
                     .autoReturn("approved")
-                    .binaryMode(true) // Solo aprobado o rechazado
+                    .binaryMode(true)
                     .build();
 
             // Crear preferencia con el cliente de MercadoPago
@@ -119,6 +132,34 @@ public class FacturaServiceImpl implements FacturaService {
         }
     }
 
+    @Transactional
+    protected Factura crearFacturaPendiente(Solicitude solicitud, BigDecimal monto) {
+        try {
+            log.info("Creando factura pendiente para solicitud: {}", solicitud.getId());
+
+            // Obtener medio de pago de MercadoPago (asumiendo ID 1)
+            Mediosdepago medioPago = mediosdepagoRepository.findById(1)
+                    .orElseThrow(() -> new RuntimeException("Medio de pago no encontrado"));
+
+            Factura factura = new Factura();
+            factura.setIdusuario(solicitud.getIdusuario());
+            factura.setIdprofesional(solicitud.getIdprofesional());
+            factura.setIdmediopago(medioPago);
+            factura.setImporte(monto);
+            factura.setEstadopago("PENDIENTE");
+            factura.setFecha(Instant.now());
+
+            Factura facturaSaved = facturaRepository.save(factura);
+            log.info("✅ Factura pendiente creada con ID: {}", facturaSaved.getId());
+
+            return facturaSaved;
+
+        } catch (Exception e) {
+            log.error("❌ Error al crear factura pendiente", e);
+            throw new RuntimeException("Error al crear factura: " + e.getMessage(), e);
+        }
+    }
+
     @Override
     @Transactional
     public Factura procesarPagoAprobado(Map<String, Object> paymentData) {
@@ -126,23 +167,24 @@ public class FacturaServiceImpl implements FacturaService {
             log.info("========== PROCESAR PAGO APROBADO ==========");
             log.info("Payment Data: {}", paymentData);
 
-            Factura factura = new Factura();
+            // Obtener external_reference que debería ser el ID de la factura
+            String externalReference = paymentData.get("external_reference").toString();
+            Integer facturaId = Integer.valueOf(externalReference);
 
-            Mediosdepago medioPago = mediosdepagoRepository.findById(1)
-                    .orElseThrow(() -> new RuntimeException("Medio de pago no encontrado"));
+            Factura factura = facturaRepository.findById(facturaId)
+                    .orElseThrow(() -> new RuntimeException("Factura no encontrada con ID: " + facturaId));
 
-            factura.setIdmediopago(medioPago);
+            // Actualizar estado a aprobado
             factura.setEstadopago("APROBADO");
-            factura.setImporte(new BigDecimal(paymentData.get("transaction_amount").toString()));
 
             Factura facturaSaved = facturaRepository.save(factura);
-            log.info("✅ Factura guardada con ID: {}", facturaSaved.getId());
+            log.info("✅ Factura actualizada a APROBADO con ID: {}", facturaSaved.getId());
 
             return facturaSaved;
 
         } catch (Exception e) {
             log.error("❌ Error al procesar pago aprobado", e);
-            throw new RuntimeException("Error al guardar factura: " + e.getMessage(), e);
+            throw new RuntimeException("Error al actualizar factura: " + e.getMessage(), e);
         }
     }
 
@@ -168,4 +210,5 @@ public class FacturaServiceImpl implements FacturaService {
         }
     }
 }
+
 
