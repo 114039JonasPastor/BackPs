@@ -79,13 +79,13 @@ public class PagoController {
                     String paymentId = (String) data.get("id");
                     log.info("💰 Payment ID recibido: {}", paymentId);
 
-                    // Procesar el pago aprobado usando la factura
-                    if ("payment.updated".equals(action)) {
+                    // Procesar CUALQUIER acción relacionada con payment
+                    if (action != null && action.startsWith("payment")) {
                         facturaService.procesarPagoAprobado(data);
+                        log.info("🔄 Procesando acción: {}", action);
                     }
                 }
             }
-
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("❌ Error procesando webhook", e);

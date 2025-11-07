@@ -189,20 +189,35 @@ public class FacturaServiceImpl implements FacturaService {
             log.info("========== PROCESAR PAGO APROBADO ==========");
             log.info("Payment Data: {}", paymentData);
 
-            // Obtener external_reference que debería ser el ID de la factura
-            String externalReference = paymentData.get("external_reference").toString();
-            Integer facturaId = Integer.valueOf(externalReference);
+            // Intentar obtener external_reference de diferentes maneras
+            String externalReference = null;
 
-            Factura factura = facturaRepository.findById(facturaId)
-                    .orElseThrow(() -> new RuntimeException("Factura no encontrada con ID: " + facturaId));
+            if (paymentData.get("external_reference") != null) {
+                externalReference = paymentData.get("external_reference").toString();
+            }
 
-            // Actualizar estado a aprobado
-            factura.setEstadopago("APROBADO");
+            if (externalReference != null) {
+                Integer facturaId = Integer.valueOf(externalReference);
+                Factura factura = facturaRepository.findById(facturaId)
+                        .orElseThrow(() -> new RuntimeException("Factura no encontrada con ID: " + facturaId));
 
-            Factura facturaSaved = facturaRepository.save(factura);
-            log.info("✅ Factura actualizada a APROBADO con ID: {}", facturaSaved.getId());
+                factura.setEstadopago("APROBADO");
+                Factura facturaSaved = facturaRepository.save(factura);
+                log.info("✅ Factura actualizada a APROBADO con ID: {}", facturaSaved.getId());
+                return facturaSaved;
+            } else {
+                // Si no hay external_reference, buscar factura pendiente más reciente
+                List<Factura> facturasPendientes = facturaRepository.findByEstadopagoOrderByFechaDesc("PENDIENTE");
+                if (!facturasPendientes.isEmpty()) {
+                    Factura factura = facturasPendientes.get(0);
+                    factura.setEstadopago("APROBADO");
+                    Factura facturaSaved = facturaRepository.save(factura);
+                    log.info("✅ Factura actualizada a APROBADO (por fecha) con ID: {}", facturaSaved.getId());
+                    return facturaSaved;
+                }
+            }
 
-            return facturaSaved;
+            throw new RuntimeException("No se pudo procesar el pago - no hay facturas pendientes");
 
         } catch (Exception e) {
             log.error("❌ Error al procesar pago aprobado", e);
