@@ -52,6 +52,8 @@ public class FacturaServiceImpl implements FacturaService {
             MercadoPagoConfig.setAccessToken(accessToken);
 
             log.info("========== CREAR PREFERENCIA ==========");
+            log.info("Access Token configurado: {}...", accessToken.substring(0, 20));
+            log.info("Frontend URL base: {}", frontendUrl);
             log.info("ID Solicitud: {}", request.getIdSolicitud());
 
             // Obtener la solicitud
@@ -67,7 +69,7 @@ public class FacturaServiceImpl implements FacturaService {
 
             // Crear item
             PreferenceItemRequest item = PreferenceItemRequest.builder()
-                    .id(String.valueOf(factura.getId())) // Usar ID de factura
+                    .id(String.valueOf(factura.getId()))
                     .title(request.getTitulo())
                     .description(request.getDescripcion())
                     .quantity(request.getCantidad() != null ? request.getCantidad() : 1)
@@ -78,12 +80,19 @@ public class FacturaServiceImpl implements FacturaService {
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(item);
 
-            // URLs de retorno
+            // URLs de retorno - Asegurar que NO tengan doble barra
+            String baseUrl = frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
+
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success(frontendUrl + "/pago-exitoso")
-                    .failure(frontendUrl + "/pago-fallido")
-                    .pending(frontendUrl + "/pago-pendiente")
+                    .success(baseUrl + "/pago-exitoso")
+                    .failure(baseUrl + "/pago-fallido")
+                    .pending(baseUrl + "/pago-pendiente")
                     .build();
+
+            log.info("🔗 URLs de retorno configuradas:");
+            log.info("Success: {}", backUrls.getSuccess());
+            log.info("Failure: {}", backUrls.getFailure());
+            log.info("Pending: {}", backUrls.getPending());
 
             // Configurar métodos de pago
             PreferencePaymentMethodsRequest paymentMethods = PreferencePaymentMethodsRequest.builder()
@@ -91,17 +100,20 @@ public class FacturaServiceImpl implements FacturaService {
                     .defaultInstallments(1)
                     .build();
 
-            // Crear la preferencia
+            // Crear la preferencia SIN autoReturn primero
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(items)
                     .backUrls(backUrls)
                     .paymentMethods(paymentMethods)
                     .notificationUrl(webhookUrl)
-                    .externalReference(String.valueOf(factura.getId())) // Usar ID de factura
-                    .statementDescriptor("Tu Oficio - Servicio")
-                    .autoReturn("approved")
-                    .binaryMode(true)
-                    .build();
+                    .externalReference(String.valueOf(factura.getId()))
+                    .statementDescriptor("Tu Oficio")
+                    .build();  // ELIMINAR .autoReturn("approved") temporalmente
+
+            log.info("🔍 PreferenceRequest configurado:");
+            log.info("Items: {}", items.size());
+            log.info("Notification URL: {}", webhookUrl);
+            log.info("External Reference: {}", factura.getId());
 
             // Crear preferencia con el cliente de MercadoPago
             PreferenceClient client = new PreferenceClient();
@@ -110,7 +122,6 @@ public class FacturaServiceImpl implements FacturaService {
             log.info("✅ Preferencia creada exitosamente");
             log.info("Preference ID: {}", preference.getId());
 
-            // Determinar si estamos en modo sandbox
             boolean isSandbox = accessToken != null && accessToken.startsWith("TEST-");
             String initUrl = isSandbox ? preference.getSandboxInitPoint() : preference.getInitPoint();
 
@@ -123,8 +134,19 @@ public class FacturaServiceImpl implements FacturaService {
                     .sandboxInitPoint(preference.getSandboxInitPoint())
                     .build();
 
-        } catch (MPException | MPApiException e) {
-            log.error("❌ Error al crear preferencia de MercadoPago", e);
+        } catch (MPApiException e) {
+            log.error("❌ Error MPApiException");
+            log.error("Status Code: {}", e.getStatusCode());
+            log.error("Message: {}", e.getMessage());
+
+            if (e.getApiResponse() != null) {
+                log.error("API Response Content: {}", e.getApiResponse().getContent());
+                log.error("API Response Status Code: {}", e.getApiResponse().getStatusCode());
+            }
+
+            throw new RuntimeException("Error MercadoPago API: " + e.getMessage(), e);
+        } catch (MPException e) {
+            log.error("❌ Error MPException: {}", e.getMessage(), e);
             throw new RuntimeException("Error MercadoPago: " + e.getMessage(), e);
         } catch (Exception e) {
             log.error("❌ Error inesperado al crear preferencia", e);
