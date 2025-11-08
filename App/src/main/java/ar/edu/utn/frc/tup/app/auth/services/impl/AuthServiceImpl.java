@@ -9,6 +9,7 @@ import ar.edu.utn.frc.tup.app.entities.Auth;
 import ar.edu.utn.frc.tup.app.entities.Usuario;
 import ar.edu.utn.frc.tup.app.repositories.AuthRepository;
 import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
+import ar.edu.utn.frc.tup.app.repositories.ProfesionalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final UsuarioRepository usuarioRepository;
+    private final ProfesionalRepository profesionalRepository;
 
 //    @Override
 //    public AuthResponse login(LoginRequest request) {
@@ -40,6 +42,13 @@ public class AuthServiceImpl implements AuthService {
         Auth auth = authRepository.findByMail(request.getEmail()).orElseThrow();
         Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null); // Debes tener este método
 
+        Integer idProfesional = null;
+        if (usuario != null) {
+            idProfesional = profesionalRepository.findByIdusuario_Id(usuario.getId())
+                    .map(p -> p.getId())
+                    .orElse(null);
+        }
+
         return AuthResponse.builder()
                 .token(jwtService.getToken(auth))
                 .nombre(auth.getName())
@@ -50,6 +59,7 @@ public class AuthServiceImpl implements AuthService {
                 .telefono(usuario != null ? usuario.getTelefono() : null)
                 .nacimiento(usuario != null && usuario.getNacimiento() != null ? usuario.getNacimiento().toString() : null)
                 .idDireccion(usuario != null ? usuario.getIddireccion().getId() : null)
+                .idProfesional(idProfesional)
              .build();
     }
     @Override

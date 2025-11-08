@@ -34,6 +34,10 @@ public class PerfilServiceImpl implements PerfilService {
 
     private final DisponibilidadRepository disponibilidadRepository;
 
+    private final EspecialidadRepository especialidadRepository;
+
+    private final OficioRepository oficioRepository;
+
     @Override
     public PerfilCliente getPerfilCliente(Integer idCliente) {
         Usuario usuario = usuarioRepository.findById(idCliente).orElse(null);
@@ -159,52 +163,100 @@ public class PerfilServiceImpl implements PerfilService {
                 .build();
     }
 
-    //Todo revisar este metodo
     @Override
-    public PerfilProfesional updatePerfilProfesional(ModificarProfesional profesional) {
-        Auth auth = authRepository.findByMail(profesional.getMail()).orElse(null);
-        Direccione direccion = direccionRepository.findById(profesional.getDireccion().getId()).orElse(null);
+    public PerfilProfesional updatePerfilProfesional(ModificarProfesional request) {
+        // Buscar el profesional por ID
+        Profesionale profesional = professionelleRepository.findById(request.getIdProfesional())
+                .orElseThrow(() -> new RuntimeException("Profesional no encontrado"));
 
-        if(auth == null){
-            throw new RuntimeException("Usuario no encontrado");
+        // Actualizar oficio si se proporciona
+        if (request.getIdOficio() != null) {
+            Oficio oficio = oficioRepository.findById(request.getIdOficio())
+                    .orElseThrow(() -> new RuntimeException("Oficio no encontrado"));
+            profesional.setIdoficio(oficio);
         }
 
-        auth.setName(profesional.getNombre());
-        auth.setLastname(profesional.getApellido());
-        authRepository.save(auth);
-
-        direccion.setIdbarrio(profesional.getDireccion().getIdbarrio());
-        direccion.setCalle(profesional.getDireccion().getCalle());
-        direccion.setNumero(profesional.getDireccion().getNumero());
-        direccion.setPiso(profesional.getDireccion().getPiso());
-        direccion.setDepto(profesional.getDireccion().getDepto());
-        direccion.setObservaciones(profesional.getDireccion().getObservaciones());
-
-        direccionRepository.save(direccion);
-
-        Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null);
-        if(usuario == null) {
-            throw new RuntimeException("Usuario no encontrado");
+        // Actualizar fechas de vigencia
+        if (request.getFechaDesde() != null) {
+            profesional.setFechadesde(request.getFechaDesde());
         }
-        usuario.setTelefono(profesional.getTelefono());
-        usuario.setIddireccion(direccion);
-
-        usuarioRepository.save(usuario);
-
-        Profesionale pro = professionelleRepository.findByIdusuario_Id(usuario.getId()).orElse(null);
-
-        if(pro == null) {
-            throw new RuntimeException("Profesional no encontrado");
+        if (request.getFechaHasta() != null) {
+            profesional.setFechahasta(request.getFechaHasta());
         }
-        pro.setIdoficio(profesional.getOficio());
 
-        professionelleRepository.save(pro);
+        // Actualizar precios
+        if (request.getPrecioMin() != null) {
+            profesional.setPrecioMin(request.getPrecioMin());
+        }
+        if (request.getPrecioMax() != null) {
+            profesional.setPrecioMax(request.getPrecioMax());
+        }
+
+        professionelleRepository.save(profesional);
+
+        // Actualizar las especialidades
+        if (request.getEspecialidades() != null) {
+            // Eliminar las especialidades existentes
+            if (profesional.getEspecialidades() != null && !profesional.getEspecialidades().isEmpty()) {
+                especialidadRepository.deleteAll(profesional.getEspecialidades());
+            }
+
+            // Agregar las nuevas especialidades
+            final Profesionale profesionalFinal = profesional;
+            request.getEspecialidades().forEach(especialidadNombre -> {
+                Especialidad especialidad = Especialidad.builder()
+                        .especialidad(especialidadNombre)
+                        .idprofesional(profesionalFinal)
+                        .build();
+                especialidadRepository.save(especialidad);
+            });
+        }
+
+        // Recargar el profesional con las especialidades actualizadas
+        profesional = professionelleRepository.findById(request.getIdProfesional())
+                .orElseThrow(() -> new RuntimeException("Profesional no encontrado"));
+
+        // Construir y retornar el perfil actualizado
+        Disponibilidad disponibilidad = disponibilidadRepository.findByIdprofesional_Id(profesional.getId()).orElse(null);
+        Monto monto = montoRepository.findByIdprofesional_Id(profesional.getId()).orElse(null);
+
+        // Handle rangoPrecio with null check for monto
+        String rangoPrecio;
+        if(monto != null && monto.getPreciomin() != null && monto.getPreciomax() != null) {
+            rangoPrecio = monto.getPreciomin().toString() + " - " + monto.getPreciomax().toString();
+        } else if(profesional.getPrecioMin() != null && profesional.getPrecioMax() != null) {
+            rangoPrecio = profesional.getPrecioMin().toString() + " - " + profesional.getPrecioMax().toString();
+        } else {
+            rangoPrecio = "No especificado";
+        }
+
+        // Handle disponibilidad with null check
+        String diaDisponible;
+        if(disponibilidad != null && disponibilidad.getDiasemana() != null &&
+           disponibilidad.getHorainicio() != null && disponibilidad.getHorafin() != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            diaDisponible = disponibilidad.getDiasemana() + " de " +
+                    disponibilidad.getHorainicio().format(formatter) + " a " +
+                    disponibilidad.getHorafin().format(formatter);
+        } else {
+            diaDisponible = "No especificada";
+        }
+
+        // Extract especialidades
+        List<String> especialidadesList = profesional.getEspecialidades() != null
+                ? profesional.getEspecialidades().stream()
+                    .map(Especialidad::getEspecialidad)
+                    .toList()
+                : List.of();
 
         return PerfilProfesional.builder()
-                .nombre(profesional.getNombre())
-                .apellido(profesional.getApellido())
-                .oficio(profesional.getOficio().getOficio())
-                .telefono(usuario.getTelefono())
+                .nombre(profesional.getIdusuario().getIdauth().getName())
+                .apellido(profesional.getIdusuario().getIdauth().getLastname())
+                .oficio(profesional.getIdoficio().getOficio())
+                .telefono(profesional.getIdusuario().getTelefono())
+                .rangoPrecio(rangoPrecio)
+                .disponibilidad(diaDisponible)
+                .especialidades(especialidadesList)
                 .build();
     }
 }

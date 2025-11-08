@@ -1,19 +1,21 @@
 package ar.edu.utn.frc.tup.app.dtos.request.perfil;
 
-import ar.edu.utn.frc.tup.app.entities.Direccione;
-import ar.edu.utn.frc.tup.app.entities.Oficio;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
 @Builder
 public class ModificarProfesional {
-    private String mail;
-    private String nombre;
-    private String apellido;
-    private String telefono;
-    private Direccione direccion;
-    private Oficio oficio;
+    private Integer idProfesional;
+    private Integer idOficio;
+    private LocalDate fechaDesde;
+    private LocalDate fechaHasta;
+    private Integer precioMin;
+    private Integer precioMax;
+    private List<String> especialidades;
 }

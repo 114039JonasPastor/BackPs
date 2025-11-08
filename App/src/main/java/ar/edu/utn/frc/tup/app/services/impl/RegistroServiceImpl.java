@@ -25,13 +25,11 @@ public class RegistroServiceImpl implements RegistroService {
 
     private final OficioRepository oficioRepository;
 
-    private final EspecialidadRepository especialidadRepository;
-
-    private final TipoDocumentoRepository tipoDocumentoRepository;
-
     private final DireccionRepository direccioneRepository;
 
     private final BarrioRepository barrioRepository;
+
+    private final TipoDocumentoRepository tipoDocumentoRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -91,10 +89,8 @@ public class RegistroServiceImpl implements RegistroService {
 
     //Fixme Posible error en el que el usuario se puede registrar como profesional muchas veces
     @Override
-    @Transactional
     public Profesionale registrarProfesional(ProfesionalRequest profesionalRequest) {
         try {
-            // Validar que los datos requeridos existan
             Usuario usuario = usuarioRepository.findById(profesionalRequest.getIdUsuario())
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
             Oficio oficio = oficioRepository.findById(profesionalRequest.getIdOficio())
@@ -106,27 +102,10 @@ public class RegistroServiceImpl implements RegistroService {
                     .idoficio(oficio)
                     .fechadesde(profesionalRequest.getFechaDesde())
                     .fechahasta(null)
-                    .precioMin(profesionalRequest.getPrecioMin())
-                    .precioMax(profesionalRequest.getPrecioMax())
                     .build();
 
-            profesional = profesionalRepository.save(profesional);
-
-            // Guardar las especialidades si existen
-            if (profesionalRequest.getEspecialidades() != null && !profesionalRequest.getEspecialidades().isEmpty()) {
-                final Profesionale profesionalFinal = profesional;
-                profesionalRequest.getEspecialidades().forEach(especialidadNombre -> {
-                    Especialidad especialidad = Especialidad.builder()
-                            .especialidad(especialidadNombre)
-                            .idprofesional(profesionalFinal)
-                            .build();
-                    especialidadRepository.save(especialidad);
-                });
-            }
-
-            return profesional;
-
-        } catch (Exception e){
+            return profesionalRepository.save(profesional);
+        } catch (Exception e) {
             throw new RuntimeException("Error durante el registro del profesional: " + e.getMessage(), e);
         }
     }
