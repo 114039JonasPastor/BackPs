@@ -152,12 +152,11 @@ public class RegistroServiceImpl implements RegistroService {
                 throw new RuntimeException("Este usuario ya es un profesional registrado");
             }
 
-        } catch (Exception e){
-            return profesionalRepository.save(profesional);
         } catch (Exception e) {
             throw new RuntimeException("Error durante el registro del profesional: " + e.getMessage(), e);
         }
     }
+
 
     private String loadAndProcessEmailTemplate(String nombre, String apellido, String confirmationLink) {
         try {

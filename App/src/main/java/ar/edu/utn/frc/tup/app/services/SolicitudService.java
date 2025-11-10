@@ -5,4 +5,6 @@ import ar.edu.utn.frc.tup.app.dtos.response.SolicitudResponse;
 
 public interface SolicitudService {
     SolicitudResponse enviarSolicitud(SolicitudRequest solicitud);
+    String responderSolicitud(Integer idSolicitud, Boolean aceptada);
+    SolicitudResponse getSolicitud(Integer idProfesional, String estado);
 }

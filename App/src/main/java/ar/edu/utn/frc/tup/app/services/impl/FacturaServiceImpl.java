@@ -1,6 +1,7 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
 import ar.edu.utn.frc.tup.app.dtos.request.factura.FacturaRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.PagoFactura;
 import ar.edu.utn.frc.tup.app.dtos.response.PreferenceResponse;
 import ar.edu.utn.frc.tup.app.entities.Factura;
 import ar.edu.utn.frc.tup.app.entities.Mediosdepago;
@@ -244,6 +245,26 @@ public class FacturaServiceImpl implements FacturaService {
         } catch (Exception e) {
             log.error("❌ Error al actualizar estado de factura", e);
             throw new RuntimeException("Error al actualizar estado: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<PagoFactura> historialDeIngresos(Instant desde, Instant hasta) {
+        List<Factura> facturas = facturaRepository.findByFechaBetweenAndEstadopago(desde, hasta, "APROBADO");
+
+        if(facturas.isEmpty()) {
+            throw  new RuntimeException("No existen pagos en este rango de fechas");
+        } else{
+            List<PagoFactura> pagos = new ArrayList<>();
+            for(Factura factura : facturas) {
+                PagoFactura pago = PagoFactura.builder()
+                        .fecha(factura.getFecha())
+                        .monto(factura.getImporte())
+                        .medioPago(factura.getIdmediopago().getDescripcion())
+                        .build();
+                pagos.add(pago);
+            }
+            return pagos;
         }
     }
 }
