@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -37,4 +38,12 @@ public class Profesionale {
     @JoinColumn(name = "idoficio", nullable = false)
     private Oficio idoficio;
 
+    @Column(name = "precio_min")
+    private Integer precioMin;
+
+    @Column(name = "precio_max")
+    private Integer precioMax;
+
+    @OneToMany(mappedBy = "idprofesional", fetch = FetchType.LAZY)
+    private List<Especialidad> especialidades;
 }

@@ -153,6 +153,8 @@ public class RegistroServiceImpl implements RegistroService {
             }
 
         } catch (Exception e){
+            return profesionalRepository.save(profesional);
+        } catch (Exception e) {
             throw new RuntimeException("Error durante el registro del profesional: " + e.getMessage(), e);
         }
     }
