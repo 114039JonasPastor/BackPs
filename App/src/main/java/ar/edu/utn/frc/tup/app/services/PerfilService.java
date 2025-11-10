@@ -12,4 +12,6 @@ public interface PerfilService {
     PerfilCliente updatePerfilCliente(ModificarCliente cliente);
     PerfilProfesional getPerfilProfesional(Integer idProfesional);
     PerfilProfesional updatePerfilProfesional(ModificarProfesional profesional);
+    void updateAvatar(Integer idAuth, String avatarUrl);
+    String getAvatar(Integer idAuth);
 }

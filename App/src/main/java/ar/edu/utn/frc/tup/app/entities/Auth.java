@@ -1,17 +1,16 @@
 package ar.edu.utn.frc.tup.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Builder
 @Getter
@@ -29,6 +28,7 @@ public class Auth implements UserDetails {
     @Size(max = 255)
     @NotNull
     @Column(name = "password", nullable = false)
+    @JsonIgnore
     private String password;
 
     @Size(max = 255)
@@ -44,30 +44,26 @@ public class Auth implements UserDetails {
     @Size(max = 150)
     @NotNull
     @Column(name = "mail", nullable = false, length = 150)
+    @Email
     private String mail;
 
     @NotNull
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
-//    @OneToMany(mappedBy = "auth")
-//    private List<Rolxusuario> roles;
-
-//    @Override
-//    public Collection<? extends GrantedAuthority> getAuthorities() {
-//        return roles.stream()
-//                .map(ru -> new SimpleGrantedAuthority("ROLE_" + ru.getIdrol().getDescripcion().toUpperCase()))
-//                .collect(Collectors.toList());
-//    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Retorna una lista vacía o implementa tu lógica personalizada
         return List.of();
     }
 
     @Override
     public String getUsername() {
-        return mail; // Usando el email como username
+        return mail;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
     }
 
     @Override

@@ -17,3 +17,22 @@ application.yml
 application.properties
 application-*.yml
 application-*.properties
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+target/
+*.log
+
+# Security files
+*.key
+*.pem
+*.crt
+*.p12
+*.jks

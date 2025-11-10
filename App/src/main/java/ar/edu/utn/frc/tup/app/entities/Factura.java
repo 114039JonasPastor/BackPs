@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Getter
@@ -14,8 +15,10 @@ import java.time.Instant;
 @Entity
 @Table(name = "facturas")
 public class Factura {
+
     @Id
-    @ColumnDefault("nextval('facturas_nrofactura_seq')")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "facturas_seq")
+    @SequenceGenerator(name = "facturas_seq", sequenceName = "facturas_nrofactura_seq", allocationSize = 1)
     @Column(name = "nrofactura", nullable = false)
     private Integer id;
 
@@ -43,4 +46,8 @@ public class Factura {
     @Column(name = "estadopago", nullable = false, length = 20)
     private String estadopago;
 
+    //Fixme Agregar a la base de datos
+    @NotNull
+    @Column(name = "importe", nullable = false, precision = 10, scale = 2)
+    private BigDecimal importe;
 }

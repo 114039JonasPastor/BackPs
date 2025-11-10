@@ -1,5 +1,3 @@
-CREATE DATABASE Ps
-
 CREATE TABLE Roles (
                        idRol SERIAL PRIMARY KEY,
                        descripcion VARCHAR(100) NOT NULL
@@ -62,7 +60,7 @@ create table Usuarios (
 CREATE TABLE RolXUsuario(
                             idRolXUsuario SERIAL PRIMARY KEY,
                             idRol INT NOT NULL REFERENCES Roles(idRol),
-                            idAuth INT NOT NULL REFERENCES Usuarios(idUsuario)
+                            idAuth INT NOT NULL REFERENCES Auth(idAuth)  -- Cambiar Usuarios(idUsuario) → Auth(idAuth)
 );
 
 
@@ -89,22 +87,22 @@ CREATE TABLE Disponibilidad (
 
 CREATE TABLE Solicitudes (
                              idSolicitud SERIAL PRIMARY KEY,
-                             idUsuario INT NOT NULL REFERENCES Usuario(idUsuario),
+                             idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),  -- Cambiar Usuario → Usuarios
                              idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
                              idOficio INT NOT NULL REFERENCES Oficios(idOficio),
                              fechaSolicitud TIMESTAMP NOT NULL DEFAULT NOW(),
                              fechaServicio TIMESTAMP NOT NULL,
-                             estado VARCHAR(20) NOT NULL, -- pendiente, aceptada, rechazada, finalizada
+                             estado VARCHAR(20) NOT NULL,
                              observacion VARCHAR(500)
 );
 
 CREATE TABLE Resenias (
-                         idResenia SERIAL PRIMARY KEY,
-                         idUsuario INT NOT NULL REFERENCES Usuario(idUsuario),
-                         idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
-                         puntuacion INT CHECK (puntuacion BETWEEN 1 AND 5),
-                         comentario VARCHAR(500),
-                         fecha TIMESTAMP DEFAULT NOW()
+                          idResenia SERIAL PRIMARY KEY,
+                          idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),  -- Cambiar Usuario → Usuarios
+                          idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
+                          puntuacion INT CHECK (puntuacion BETWEEN 1 AND 5),
+                          comentario VARCHAR(500),
+                          fecha TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE Mensajes (
@@ -133,11 +131,12 @@ CREATE TABLE MediosDePago (
 
 CREATE TABLE Facturas (
                           NroFactura SERIAL PRIMARY KEY,
-                          idUsuario INT NOT NULL REFERENCES Usuario(idUsuario),
+                          idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),  -- Cambiar Usuario → Usuarios
                           idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
                           idMedioPago INT NOT NULL REFERENCES MediosDePago(idMedioPago),
                           fecha TIMESTAMP DEFAULT NOW(),
-                          estadoPago VARCHAR(20) NOT NULL -- pendiente, pagado, cancelado
+                          estadoPago VARCHAR(20) NOT NULL,
+                          importe NUMERIC(10,2) NOT NULL
 );
 
 CREATE TABLE password_reset_tokens (
@@ -286,6 +285,32 @@ insert into tipos_documento (tipo) values
 CREATE INDEX idx_reset_token_email ON password_reset_tokens(email);
 CREATE INDEX idx_reset_token_expiry ON password_reset_tokens(expiry_date);
 
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS avatar VARCHAR(255);
+
+CREATE TABLE confirmation_token (
+                                    id BIGSERIAL PRIMARY KEY,
+                                    token VARCHAR(255) NOT NULL UNIQUE,
+                                    created_at TIMESTAMP NOT NULL,
+                                    expires_at TIMESTAMP NOT NULL,
+                                    confirmed_at TIMESTAMP,
+                                    idAuth BIGINT,
+                                    CONSTRAINT fk_confirmation_token_auth FOREIGN KEY (idAuth) REFERENCES auth(idAuth)
+);
+
+ALTER TABLE confirmation_token DROP CONSTRAINT IF EXISTS fk_confirmation_token_auth;
+
+ALTER TABLE confirmation_token ALTER COLUMN idauth TYPE integer USING idauth::integer;
+
+ALTER TABLE confirmation_token ADD CONSTRAINT fk_confirmation_token_auth FOREIGN KEY (idauth) REFERENCES auth(idauth);
+
+ALTER TABLE password_reset_tokens DROP CONSTRAINT IF EXISTS password_reset_tokens_id_auth_fkey;
+ALTER TABLE password_reset_tokens ALTER COLUMN id_auth TYPE integer USING id_auth::integer;
+ALTER TABLE password_reset_tokens ADD CONSTRAINT fk_password_reset_tokens_auth FOREIGN KEY (id_auth) REFERENCES auth(idauth);
+
+INSERT INTO MediosDePago (descripcion) VALUES
+                                           ('MercadoPago'),
+                                           ('Efectivo'),
+                                           ('Transferencia');
 -- Modificaciones para especialidades y rangos de precios
 ALTER TABLE profesionales
 ADD COLUMN precio_min int,
