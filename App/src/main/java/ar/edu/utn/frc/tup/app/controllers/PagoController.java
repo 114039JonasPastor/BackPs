@@ -1,6 +1,6 @@
 package ar.edu.utn.frc.tup.app.controllers;
 
-import ar.edu.utn.frc.tup.app.dtos.request.FacturaRequest;
+import ar.edu.utn.frc.tup.app.dtos.request.factura.FacturaRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.PreferenceResponse;
 import ar.edu.utn.frc.tup.app.services.FacturaService;
 import lombok.RequiredArgsConstructor;

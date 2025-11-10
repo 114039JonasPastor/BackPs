@@ -1,4 +1,4 @@
-package ar.edu.utn.frc.tup.app.dtos.request;
+package ar.edu.utn.frc.tup.app.dtos.request.factura;
 
 import lombok.*;
 
