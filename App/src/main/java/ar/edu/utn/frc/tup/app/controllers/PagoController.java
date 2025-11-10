@@ -1,7 +1,10 @@
 package ar.edu.utn.frc.tup.app.controllers;
 
+import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.factura.FacturaRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.PagoFactura;
 import ar.edu.utn.frc.tup.app.dtos.response.PreferenceResponse;
+import ar.edu.utn.frc.tup.app.entities.Departamento;
 import ar.edu.utn.frc.tup.app.services.FacturaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -90,6 +95,22 @@ public class PagoController {
         } catch (Exception e) {
             log.error("❌ Error procesando webhook", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/historial-ingresos/{desde}/{hasta}")
+    public ResponseEntity<?> historialDeIngresos(@PathVariable Instant desde, @PathVariable Instant hasta) {
+        try {
+            List<PagoFactura> pagos = facturaService.historialDeIngresos(desde, hasta);
+            return ResponseEntity.ok(pagos);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .error("Not Found")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
 
