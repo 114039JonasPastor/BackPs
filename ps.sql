@@ -322,3 +322,13 @@ create table Especialidades (
             especialidad VARCHAR(100) NOT NULL,
             idprofesional INT REFERENCES profesionales (idprofesional);
 );
+
+ALTER TABLE Solicitudes
+    ADD COLUMN IF NOT EXISTS idDireccion INT;
+
+ALTER TABLE Solicitudes
+    ADD CONSTRAINT fk_solicitudes_direcciones FOREIGN KEY (idDireccion) REFERENCES Direcciones(idDireccion);
+
+ALTER TABLE solicitudes
+    ALTER COLUMN iddireccion SET NOT NULL;
+

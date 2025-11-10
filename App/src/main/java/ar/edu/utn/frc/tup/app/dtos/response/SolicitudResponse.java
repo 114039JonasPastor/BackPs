@@ -14,5 +14,6 @@ public class SolicitudResponse {
     private String nombreProfesional;
     private Instant fechasolicitud;
     private Instant fechaservicio;
+    private String direccion;
     private String observacion;
 }
