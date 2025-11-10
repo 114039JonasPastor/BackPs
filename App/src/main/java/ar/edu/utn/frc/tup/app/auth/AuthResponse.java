@@ -19,4 +19,6 @@ public class AuthResponse {
     private String telefono;
     private String nacimiento;
     private Integer idDireccion;
+    // Added to return professional id when the user is a professional
+    private Integer idProfesional;
 }
