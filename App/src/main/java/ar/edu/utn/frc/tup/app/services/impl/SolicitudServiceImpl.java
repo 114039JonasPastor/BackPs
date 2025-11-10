@@ -33,6 +33,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .fechasolicitud(solicitud.getFechasolicitud())
                 .fechaservicio(solicitud.getFechaservicio())
                 .estado("PENDIENTE")
+                .iddireccion(usuario.getIddireccion())
                 .observacion(solicitud.getObservacion())
                 .build();
 
@@ -45,6 +46,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                         + " " + profesional.getIdusuario().getIdauth().getLastname())
                 .fechasolicitud(nueva.getFechasolicitud())
                 .fechaservicio(nueva.getFechaservicio())
+                .direccion(usuario.getIddireccion().getCalle() + " " + usuario.getIddireccion().getNumero())
                 .observacion(nueva.getObservacion())
                 .build();
 
@@ -84,6 +86,8 @@ public class SolicitudServiceImpl implements SolicitudService {
                             + " " + solicitud.getIdprofesional().getIdusuario().getIdauth().getLastname())
                     .fechasolicitud(solicitud.getFechasolicitud())
                     .fechaservicio(solicitud.getFechaservicio())
+                    .direccion(solicitud.getIdusuario().getIddireccion().getCalle() + " "
+                            + solicitud.getIdusuario().getIddireccion().getNumero())
                     .observacion(solicitud.getObservacion())
                     .build();
             return response;

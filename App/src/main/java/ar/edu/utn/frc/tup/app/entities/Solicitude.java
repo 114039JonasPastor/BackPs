@@ -37,6 +37,11 @@ public class Solicitude {
     private Oficio idoficio;
 
     @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "iddireccion", nullable = false)
+    private Direccione iddireccion;
+
+    @NotNull
     @ColumnDefault("now()")
     @Column(name = "fechasolicitud", nullable = false)
     private Instant fechasolicitud;
