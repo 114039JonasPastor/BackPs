@@ -10,6 +10,7 @@ import java.util.List;
 @Setter
 @Builder
 public class PerfilProfesional {
+    private Integer idProfesional;
     private String nombre;
     private String apellido;
     private String oficio;

@@ -53,7 +53,8 @@ public class SecurityConfig {
                                         "/api/v1/domicilios/barrio/ciudad/*",
                                         "/api/v1/domicilios/ciudad/departamento/*",
                                         "/api/v1/usuario/tipos-documento",
-                                        "/api/v1/oficios/all"
+                                        "/api/v1/oficios/all",
+                                        "/api/v1/perfil/profesionales/oficio"
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 )

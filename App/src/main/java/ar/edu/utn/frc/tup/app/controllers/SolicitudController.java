@@ -31,8 +31,8 @@ public class SolicitudController {
         }
     }
 
-    @PutMapping("/responder/")
-    public ResponseEntity<?> responderSolicitud(@RequestBody Integer idSolicitud, Boolean aceptada){
+    @PutMapping("/responder/{idSolicitud}")
+    public ResponseEntity<?> responderSolicitud(@PathVariable Integer idSolicitud, @RequestParam Boolean aceptada){
         try{
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(solicitudService.responderSolicitud(idSolicitud, aceptada));
         } catch (RuntimeException e){
