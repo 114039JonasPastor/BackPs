@@ -6,6 +6,8 @@ import ar.edu.utn.frc.tup.app.dtos.response.PerfilCliente;
 import ar.edu.utn.frc.tup.app.dtos.response.PerfilProfesional;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public interface PerfilService {
     PerfilCliente getPerfilCliente(Integer idCliente);
@@ -14,4 +16,5 @@ public interface PerfilService {
     PerfilProfesional updatePerfilProfesional(ModificarProfesional profesional);
     void updateAvatar(Integer idAuth, String avatarUrl);
     String getAvatar(Integer idAuth);
+    List<PerfilProfesional> getProfesionalesByOficio(String oficio);
 }

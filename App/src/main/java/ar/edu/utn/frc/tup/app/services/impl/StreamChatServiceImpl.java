@@ -1,8 +1,11 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
+import ar.edu.utn.frc.tup.app.entities.Usuario;
+import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
 import ar.edu.utn.frc.tup.app.services.StreamChatService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -14,6 +17,7 @@ import java.util.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class StreamChatServiceImpl implements StreamChatService {
 
     @Value("${stream.chat.api.key}")
@@ -23,6 +27,7 @@ public class StreamChatServiceImpl implements StreamChatService {
     private String apiSecret;
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final UsuarioRepository usuarioRepository;
 
     @Override
     public String createUserToken(String userId) {
@@ -86,13 +91,24 @@ public class StreamChatServiceImpl implements StreamChatService {
                     channelType, channelId, apiKey);
 
             Map<String, Object> channelData = new HashMap<>();
-            if (additionalData != null) {
-                channelData.putAll(additionalData);
-            }
             channelData.put("created_by_id", creatorId);
+            channelData.put("frozen", false);
+            channelData.put("disabled", false);
+            channelData.put("invite_only", true);
+
+            // ✅ Crear copia mutable antes de filtrar
+            if (additionalData != null && !additionalData.isEmpty()) {
+                Map<String, Object> mutableData = new HashMap<>(additionalData);
+                mutableData.remove("member_count");
+                mutableData.remove("max_members");
+                mutableData.remove("type");
+                channelData.putAll(mutableData);
+            }
 
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("data", channelData);
+            requestBody.put("state", true);
+            requestBody.put("watch", false);
 
             HttpHeaders headers = createServerAuthHeaders();
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
@@ -158,6 +174,106 @@ public class StreamChatServiceImpl implements StreamChatService {
             log.error("Error al enviar mensaje al canal: {}", channelId, e);
             throw new RuntimeException("Error al enviar mensaje: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public List<Map<String, Object>> getChannelMessages(String channelType, String channelId, int limit) {
+        try {
+            log.info("Obteniendo mensajes del canal: {} (límite: {})", channelId, limit);
+
+            String url = String.format("https://chat.stream-io-api.com/channels/%s/%s/query?api_key=%s",
+                    channelType, channelId, apiKey);
+
+            Map<String, Object> requestBody = new HashMap<>();
+            Map<String, Object> messagesConfig = new HashMap<>();
+            messagesConfig.put("limit", limit);
+            messagesConfig.put("offset", 0);
+            requestBody.put("messages", messagesConfig);
+
+            HttpHeaders headers = createServerAuthHeaders();
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+            if (response.getBody() != null && response.getBody().containsKey("messages")) {
+                List<Map<String, Object>> messages = (List<Map<String, Object>>) response.getBody().get("messages");
+                log.info("✅ Mensajes obtenidos: {}", messages.size());
+                return messages;
+            }
+
+            return new ArrayList<>();
+
+        } catch (Exception e) {
+            log.error("Error al obtener mensajes del canal: {}", channelId, e);
+            throw new RuntimeException("Error al obtener mensajes: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> getUserChannels(String userId) {
+        try {
+            log.info("Obteniendo canales del usuario: {}", userId);
+
+            String url = String.format("https://chat.stream-io-api.com/channels?api_key=%s", apiKey);
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("filter_conditions", Map.of(
+                    "members", Map.of("$in", List.of(userId))
+            ));
+            requestBody.put("sort", List.of(Map.of("last_message_at", -1)));
+            requestBody.put("limit", 30);
+
+            HttpHeaders headers = createServerAuthHeaders();
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+            if (response.getBody() != null && response.getBody().containsKey("channels")) {
+                List<Map<String, Object>> channels = (List<Map<String, Object>>) response.getBody().get("channels");
+                log.info("✅ Canales obtenidos: {}", channels.size());
+
+                // Transformar la respuesta para el frontend
+                return channels.stream()
+                        .map(channel -> {
+                            Map<String, Object> channelInfo = new HashMap<>();
+                            channelInfo.put("channelId", channel.get("id"));
+                            channelInfo.put("channelType", channel.get("type"));
+                            channelInfo.put("members", channel.get("members"));
+                            channelInfo.put("lastMessage", channel.get("last_message_at"));
+                            return channelInfo;
+                        })
+                        .toList();
+            }
+
+            return new ArrayList<>();
+
+        } catch (Exception e) {
+            log.error("Error al obtener canales del usuario: {}", userId, e);
+            throw new RuntimeException("Error al obtener conversaciones: " + e.getMessage(), e);
+        }
+    }
+
+
+    @Override
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    @Override
+    public String getUserFullName(String userId) {
+        try {
+            Integer id = Integer.parseInt(userId);
+            Optional<Usuario> opt = usuarioRepository.findById(id);
+            if (opt.isPresent()) {
+                Usuario u = opt.get();
+                String nombre = u.getIdauth().getName() != null ? u.getIdauth().getName() : "";
+                String apellido = u.getIdauth().getLastname() != null ? u.getIdauth().getLastname() : "";
+                return (nombre + " " + apellido).trim();
+            }
+        } catch (Exception e) {
+            log.warn("No se pudo obtener nombre completo para userId={}: {}", userId, e.getMessage());
+        }
+        return "";
     }
 
     private HttpHeaders createServerAuthHeaders() {

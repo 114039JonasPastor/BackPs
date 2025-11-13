@@ -2,6 +2,7 @@ package ar.edu.utn.frc.tup.app.services.impl;
 
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.SolicitudResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.SolicitudUsuarioResponse;
 import ar.edu.utn.frc.tup.app.entities.Profesionale;
 import ar.edu.utn.frc.tup.app.entities.Solicitude;
 import ar.edu.utn.frc.tup.app.entities.Usuario;
@@ -11,6 +12,9 @@ import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
 import ar.edu.utn.frc.tup.app.services.SolicitudService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -95,4 +99,30 @@ public class SolicitudServiceImpl implements SolicitudService {
             throw new RuntimeException("Solicitud no encontrada");
         }
     }
+
+    @Override
+    public List<SolicitudUsuarioResponse> getSolicitudByIdUsuario(Integer idUsuario) {
+        List<Solicitude> solicitudes = solicitudRepository.findByIdusuario_Id(idUsuario);
+
+        List<SolicitudUsuarioResponse> respuestas = new ArrayList<>();
+
+        if (!solicitudes.isEmpty()) {
+            for (Solicitude s : solicitudes) {
+                SolicitudUsuarioResponse response = SolicitudUsuarioResponse.builder()
+                        .idSolicitud(s.getId())
+                        .idProfesional(s.getIdprofesional().getId())
+                        .nombreProfesional(s.getIdprofesional().getIdusuario().getIdauth().getName())
+                        .apellidoProfesional(s.getIdprofesional().getIdusuario().getIdauth().getLastname())
+                        .fechaSolicitud(s.getFechasolicitud())
+                        .estado(s.getEstado())
+                        .imagenUrl(s.getIdprofesional().getIdusuario().getAvatar())
+                        .build();
+                respuestas.add(response);
+            }
+            return respuestas;
+        } else {
+            throw new RuntimeException("Solicitudes no encontradas");
+        }
+    }
+
 }

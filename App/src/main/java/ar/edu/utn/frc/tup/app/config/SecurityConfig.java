@@ -45,6 +45,7 @@ public class SecurityConfig {
                                         "/api/v1/pagos/**", // TODO: quitar en producción
                                         "/api/v1/password/**",
                                         "/api/v1/domicilios/departamentos/all",
+                                        "/api/v1/chat/**",// TODO: quitar en producción
                                         "/api/v1/domicilios/ciudades/all",
                                         "/api/v1/domicilios/barrios/all",
                                         "/api/v1/domicilios/departamento/*",
@@ -53,7 +54,8 @@ public class SecurityConfig {
                                         "/api/v1/domicilios/barrio/ciudad/*",
                                         "/api/v1/domicilios/ciudad/departamento/*",
                                         "/api/v1/usuario/tipos-documento",
-                                        "/api/v1/oficios/all"
+                                        "/api/v1/oficios/all",
+                                        "/api/v1/perfil/profesionales/oficio"
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 )

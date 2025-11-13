@@ -277,4 +277,60 @@ public class PerfilServiceImpl implements PerfilService {
 
         return usuario.getAvatar();
     }
+
+    @Override
+    public List<PerfilProfesional> getProfesionalesByOficio(String oficio) {
+        try {
+            List<Profesionale> profesionales = professionelleRepository.findByOficio(oficio);
+
+            return profesionales.stream()
+                    .map(profesional -> {
+                        Disponibilidad disponibilidad = disponibilidadRepository.findByIdprofesional_Id(profesional.getId()).orElse(null);
+                        Monto monto = montoRepository.findByIdprofesional_Id(profesional.getId()).orElse(null);
+
+                        // Handle rangoPrecio with null check for monto
+                        String rangoPrecio;
+                        if(monto != null && monto.getPreciomin() != null && monto.getPreciomax() != null) {
+                            rangoPrecio = monto.getPreciomin().toString() + " - " + monto.getPreciomax().toString();
+                        } else if(profesional.getPrecioMin() != null && profesional.getPrecioMax() != null) {
+                            rangoPrecio = profesional.getPrecioMin().toString() + " - " + profesional.getPrecioMax().toString();
+                        } else {
+                            rangoPrecio = "No especificado";
+                        }
+
+                        // Handle disponibilidad with null check
+                        String diaDisponible;
+                        if(disponibilidad != null && disponibilidad.getDiasemana() != null &&
+                                disponibilidad.getHorainicio() != null && disponibilidad.getHorafin() != null) {
+                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+                            diaDisponible = disponibilidad.getDiasemana() + " de " +
+                                    disponibilidad.getHorainicio().format(formatter) + " a " +
+                                    disponibilidad.getHorafin().format(formatter);
+                        } else {
+                            diaDisponible = "No especificada";
+                        }
+
+                        // Extract especialidades
+                        List<String> especialidadesList = profesional.getEspecialidades() != null
+                                ? profesional.getEspecialidades().stream()
+                                .map(Especialidad::getEspecialidad)
+                                .toList()
+                                : List.of();
+
+                        return PerfilProfesional.builder()
+                                .idProfesional(profesional.getId())
+                                .nombre(profesional.getIdusuario().getIdauth().getName())
+                                .apellido(profesional.getIdusuario().getIdauth().getLastname())
+                                .oficio(profesional.getIdoficio().getOficio())
+                                .telefono(profesional.getIdusuario().getTelefono())
+                                .rangoPrecio(rangoPrecio)
+                                .disponibilidad(diaDisponible)
+                                .especialidades(especialidadesList)
+                                .build();
+                    })
+                    .toList();
+        } catch (Exception e) {
+            throw new RuntimeException("Error al obtener profesionales por oficio", e);
+        }
+    }
 }

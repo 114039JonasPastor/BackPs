@@ -3,11 +3,15 @@ package ar.edu.utn.frc.tup.app.controllers;
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.SolicitudResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.SolicitudUsuarioResponse;
+import ar.edu.utn.frc.tup.app.entities.TiposDocumento;
 import ar.edu.utn.frc.tup.app.services.SolicitudService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/solicitudes")
@@ -31,8 +35,8 @@ public class SolicitudController {
         }
     }
 
-    @PutMapping("/responder/")
-    public ResponseEntity<?> responderSolicitud(@RequestBody Integer idSolicitud, Boolean aceptada){
+    @PutMapping("/responder/{idSolicitud}")
+    public ResponseEntity<?> responderSolicitud(@PathVariable Integer idSolicitud, @RequestParam Boolean aceptada){
         try{
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(solicitudService.responderSolicitud(idSolicitud, aceptada));
         } catch (RuntimeException e){
@@ -61,4 +65,18 @@ public class SolicitudController {
         return ResponseEntity.ok(solicitud);
     }
 
+    @GetMapping("/usuario/{idUsuario}")
+    public ResponseEntity<?> getSolicitudByIdUsuario(@PathVariable Integer idUsuario) {
+        List<SolicitudUsuarioResponse> solicitudes = solicitudService.getSolicitudByIdUsuario(idUsuario);
+        if (solicitudes.isEmpty()) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .error("Not Found")
+                    .message("Solicitudes no encontradas")
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+        return ResponseEntity.ok(solicitudes);
+    }
 }
