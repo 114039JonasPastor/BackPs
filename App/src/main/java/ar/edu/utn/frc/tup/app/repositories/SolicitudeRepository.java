@@ -12,6 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer> {
-    Optional<Solicitude> findByIdprofesionalAndEstado(Profesionale idProfesional, String estado);
+    List<Solicitude> findByIdprofesionalAndEstado(Profesionale idProfesional, String estado);
     List<Solicitude> findByIdusuario_Id(Integer idUsuario);
 }

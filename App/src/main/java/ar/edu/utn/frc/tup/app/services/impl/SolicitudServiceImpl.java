@@ -77,24 +77,28 @@ public class SolicitudServiceImpl implements SolicitudService {
     }
 
     @Override
-    public SolicitudResponse getSolicitud(Integer idProfesional, String estado) {
+    public List<SolicitudResponse> getSolicitudes(Integer idProfesional, String estado) {
 
         Profesionale profesionale = profesionalRepository.findById(idProfesional).orElse(null);
 
-        Solicitude solicitud = solicitudRepository.findByIdprofesionalAndEstado(profesionale, estado).orElse(null);
-        if (solicitud != null) {
-            SolicitudResponse response = SolicitudResponse.builder()
-                    .nombreUsuario(solicitud.getIdusuario().getIdauth().getName() + " "
-                            + solicitud.getIdusuario().getIdauth().getLastname())
-                    .nombreProfesional(solicitud.getIdprofesional().getIdusuario().getIdauth().getName()
-                            + " " + solicitud.getIdprofesional().getIdusuario().getIdauth().getLastname())
-                    .fechasolicitud(solicitud.getFechasolicitud())
-                    .fechaservicio(solicitud.getFechaservicio())
-                    .direccion(solicitud.getIdusuario().getIddireccion().getCalle() + " "
-                            + solicitud.getIdusuario().getIddireccion().getNumero())
-                    .observacion(solicitud.getObservacion())
-                    .build();
-            return response;
+        List<Solicitude> solicitudes = solicitudRepository.findByIdprofesionalAndEstado(profesionale, estado);
+        List<SolicitudResponse> respuestas = new ArrayList<>();
+        if (!solicitudes.isEmpty()) {
+            for (Solicitude s : solicitudes){
+                SolicitudResponse response = SolicitudResponse.builder()
+                        .nombreUsuario(s.getIdusuario().getIdauth().getName() + " "
+                                + s.getIdusuario().getIdauth().getLastname())
+                        .nombreProfesional(s.getIdprofesional().getIdusuario().getIdauth().getName()
+                                + " " + s.getIdprofesional().getIdusuario().getIdauth().getLastname())
+                        .fechasolicitud(s.getFechasolicitud())
+                        .fechaservicio(s.getFechaservicio())
+                        .direccion(s.getIdusuario().getIddireccion().getCalle() + " "
+                                + s.getIdusuario().getIddireccion().getNumero())
+                        .observacion(s.getObservacion())
+                        .build();
+                respuestas.add(response);
+            }
+            return respuestas;
         } else {
             throw new RuntimeException("Solicitud no encontrada");
         }

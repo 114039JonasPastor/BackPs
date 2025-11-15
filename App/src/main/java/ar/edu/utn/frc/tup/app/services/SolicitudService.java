@@ -9,6 +9,6 @@ import java.util.List;
 public interface SolicitudService {
     SolicitudResponse enviarSolicitud(SolicitudRequest solicitud);
     String responderSolicitud(Integer idSolicitud, Boolean aceptada);
-    SolicitudResponse getSolicitud(Integer idProfesional, String estado);
+    List<SolicitudResponse> getSolicitudes(Integer idProfesional, String estado);
     List<SolicitudUsuarioResponse> getSolicitudByIdUsuario(Integer idUsuario);
 }

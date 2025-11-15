@@ -52,17 +52,17 @@ public class SolicitudController {
 
     @GetMapping("/solicitud/{idProfesional}/{estado}")
     public ResponseEntity<?> getSolicitud(@PathVariable Integer idProfesional, @PathVariable String estado) {
-        SolicitudResponse solicitud = solicitudService.getSolicitud(idProfesional, estado);
-        if (solicitud == null) {
+        List<SolicitudResponse> solicitudes = solicitudService.getSolicitudes(idProfesional, estado);
+        if (solicitudes.isEmpty()) {
             ErrorApi error = ErrorApi.builder()
                     .timestamp(java.time.Instant.now().toString())
                     .status(HttpStatus.NOT_FOUND.value())
                     .error("Not Found")
-                    .message("Solicitud no encontrada")
+                    .message("Solicitudes no encontradas")
                     .build();
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
-        return ResponseEntity.ok(solicitud);
+        return ResponseEntity.ok(solicitudes);
     }
 
     @GetMapping("/usuario/{idUsuario}")
