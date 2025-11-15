@@ -39,7 +39,7 @@ public class StreamChatServiceImpl implements StreamChatService {
                     .signWith(SignatureAlgorithm.HS256, apiSecret.getBytes(StandardCharsets.UTF_8))
                     .compact();
 
-            log.info("✅ Token generado exitosamente para usuario: {}", userId);
+            log.info("Token generado exitosamente para usuario: {}", userId);
             return token;
 
         } catch (Exception e) {
@@ -53,7 +53,7 @@ public class StreamChatServiceImpl implements StreamChatService {
         try {
             log.info("Creando/actualizando usuario en Stream: {}", userId);
 
-            // ✅ URL correcta con api_key
+            // URL correcta con api_key
             String url = String.format("https://chat.stream-io-api.com/users?api_key=%s", apiKey);
 
             Map<String, Object> user = new HashMap<>();
@@ -74,7 +74,7 @@ public class StreamChatServiceImpl implements StreamChatService {
 
             ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
-            log.info("✅ Usuario creado/actualizado en Stream: {} - Status: {}", userId, response.getStatusCode());
+            log.info("Usuario creado/actualizado en Stream: {} - Status: {}", userId, response.getStatusCode());
 
         } catch (Exception e) {
             log.error("Error al crear/actualizar usuario en Stream: {}", userId, e);
@@ -96,7 +96,7 @@ public class StreamChatServiceImpl implements StreamChatService {
             channelData.put("disabled", false);
             channelData.put("invite_only", true);
 
-            // ✅ Crear copia mutable antes de filtrar
+            // Crear copia mutable antes de filtrar
             if (additionalData != null && !additionalData.isEmpty()) {
                 Map<String, Object> mutableData = new HashMap<>(additionalData);
                 mutableData.remove("member_count");
@@ -115,7 +115,7 @@ public class StreamChatServiceImpl implements StreamChatService {
 
             restTemplate.postForEntity(url, request, String.class);
 
-            log.info("✅ Canal creado exitosamente: {}", channelId);
+            log.info("Canal creado exitosamente: {}", channelId);
             return channelId;
 
         } catch (Exception e) {
@@ -140,7 +140,7 @@ public class StreamChatServiceImpl implements StreamChatService {
 
             restTemplate.postForEntity(url, request, String.class);
 
-            log.info("✅ Miembros agregados exitosamente al canal: {}", channelId);
+            log.info("Miembros agregados exitosamente al canal: {}", channelId);
 
         } catch (Exception e) {
             log.error("Error al agregar miembros al canal: {}", channelId, e);
@@ -168,7 +168,7 @@ public class StreamChatServiceImpl implements StreamChatService {
 
             restTemplate.postForEntity(url, request, String.class);
 
-            log.info("✅ Mensaje enviado exitosamente al canal: {}", channelId);
+            log.info("Mensaje enviado exitosamente al canal: {}", channelId);
 
         } catch (Exception e) {
             log.error("Error al enviar mensaje al canal: {}", channelId, e);
@@ -197,7 +197,7 @@ public class StreamChatServiceImpl implements StreamChatService {
 
             if (response.getBody() != null && response.getBody().containsKey("messages")) {
                 List<Map<String, Object>> messages = (List<Map<String, Object>>) response.getBody().get("messages");
-                log.info("✅ Mensajes obtenidos: {}", messages.size());
+                log.info("Mensajes obtenidos: {}", messages.size());
                 return messages;
             }
 
@@ -230,7 +230,7 @@ public class StreamChatServiceImpl implements StreamChatService {
 
             if (response.getBody() != null && response.getBody().containsKey("channels")) {
                 List<Map<String, Object>> channels = (List<Map<String, Object>>) response.getBody().get("channels");
-                log.info("✅ Canales obtenidos: {}", channels.size());
+                log.info("Canales obtenidos: {}", channels.size());
 
                 // Transformar la respuesta para el frontend
                 return channels.stream()
@@ -280,7 +280,7 @@ public class StreamChatServiceImpl implements StreamChatService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // ✅ Autenticación de servidor con JWT
+        // Autenticación de servidor con JWT
         String serverToken = Jwts.builder()
                 .claim("server", true)
                 .signWith(SignatureAlgorithm.HS256, apiSecret.getBytes(StandardCharsets.UTF_8))
