@@ -90,7 +90,7 @@ public class FacturaServiceImpl implements FacturaService {
                     .pending(baseUrl + "/pago-pendiente")
                     .build();
 
-            log.info("🔗 URLs de retorno configuradas:");
+            log.info("URLs de retorno configuradas:");
             log.info("Success: {}", backUrls.getSuccess());
             log.info("Failure: {}", backUrls.getFailure());
             log.info("Pending: {}", backUrls.getPending());
@@ -109,9 +109,9 @@ public class FacturaServiceImpl implements FacturaService {
                     .notificationUrl(webhookUrl)
                     .externalReference(String.valueOf(factura.getId()))
                     .statementDescriptor("Tu Oficio")
-                    .build();  // ELIMINAR .autoReturn("approved") temporalmente
+                    .build();
 
-            log.info("🔍 PreferenceRequest configurado:");
+            log.info("PreferenceRequest configurado:");
             log.info("Items: {}", items.size());
             log.info("Notification URL: {}", webhookUrl);
             log.info("External Reference: {}", factura.getId());
@@ -120,7 +120,7 @@ public class FacturaServiceImpl implements FacturaService {
             PreferenceClient client = new PreferenceClient();
             Preference preference = client.create(preferenceRequest);
 
-            log.info("✅ Preferencia creada exitosamente");
+            log.info("Preferencia creada exitosamente");
             log.info("Preference ID: {}", preference.getId());
 
             boolean isSandbox = accessToken != null && accessToken.startsWith("TEST-");
@@ -136,7 +136,7 @@ public class FacturaServiceImpl implements FacturaService {
                     .build();
 
         } catch (MPApiException e) {
-            log.error("❌ Error MPApiException");
+            log.error("Error MPApiException");
             log.error("Status Code: {}", e.getStatusCode());
             log.error("Message: {}", e.getMessage());
 
@@ -147,10 +147,10 @@ public class FacturaServiceImpl implements FacturaService {
 
             throw new RuntimeException("Error MercadoPago API: " + e.getMessage(), e);
         } catch (MPException e) {
-            log.error("❌ Error MPException: {}", e.getMessage(), e);
+            log.error("Error MPException: {}", e.getMessage(), e);
             throw new RuntimeException("Error MercadoPago: " + e.getMessage(), e);
         } catch (Exception e) {
-            log.error("❌ Error inesperado al crear preferencia", e);
+            log.error("Error inesperado al crear preferencia", e);
             throw new RuntimeException("Error interno: " + e.getMessage(), e);
         }
     }
@@ -173,12 +173,12 @@ public class FacturaServiceImpl implements FacturaService {
             factura.setFecha(Instant.now());
 
             Factura facturaSaved = facturaRepository.save(factura);
-            log.info("✅ Factura pendiente creada con ID: {}", facturaSaved.getId());
+            log.info("Factura pendiente creada con ID: {}", facturaSaved.getId());
 
             return facturaSaved;
 
         } catch (Exception e) {
-            log.error("❌ Error al crear factura pendiente", e);
+            log.error("Error al crear factura pendiente", e);
             throw new RuntimeException("Error al crear factura: " + e.getMessage(), e);
         }
     }
@@ -204,7 +204,7 @@ public class FacturaServiceImpl implements FacturaService {
 
                 factura.setEstadopago("APROBADO");
                 Factura facturaSaved = facturaRepository.save(factura);
-                log.info("✅ Factura actualizada a APROBADO con ID: {}", facturaSaved.getId());
+                log.info("Factura actualizada a APROBADO con ID: {}", facturaSaved.getId());
                 return facturaSaved;
             } else {
                 // Si no hay external_reference, buscar factura pendiente más reciente
@@ -213,7 +213,7 @@ public class FacturaServiceImpl implements FacturaService {
                     Factura factura = facturasPendientes.get(0);
                     factura.setEstadopago("APROBADO");
                     Factura facturaSaved = facturaRepository.save(factura);
-                    log.info("✅ Factura actualizada a APROBADO (por fecha) con ID: {}", facturaSaved.getId());
+                    log.info("Factura actualizada a APROBADO (por fecha) con ID: {}", facturaSaved.getId());
                     return facturaSaved;
                 }
             }
@@ -241,9 +241,9 @@ public class FacturaServiceImpl implements FacturaService {
             Factura factura = obtenerFacturaPorId(nroFactura);
             factura.setEstadopago(estado);
             facturaRepository.save(factura);
-            log.info("✅ Estado actualizado correctamente");
+            log.info("Estado actualizado correctamente");
         } catch (Exception e) {
-            log.error("❌ Error al actualizar estado de factura", e);
+            log.error("Error al actualizar estado de factura", e);
             throw new RuntimeException("Error al actualizar estado: " + e.getMessage(), e);
         }
     }
