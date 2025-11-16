@@ -3,8 +3,8 @@ package ar.edu.utn.frc.tup.app.services.impl;
 import ar.edu.utn.frc.tup.app.dtos.DomicilioDto;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarCliente;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarProfesional;
-import ar.edu.utn.frc.tup.app.dtos.response.PerfilCliente;
-import ar.edu.utn.frc.tup.app.dtos.response.PerfilProfesional;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilCliente;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
 import ar.edu.utn.frc.tup.app.entities.*;
 import ar.edu.utn.frc.tup.app.entities.Auth;
 import ar.edu.utn.frc.tup.app.entities.Direccione;
@@ -135,7 +135,7 @@ public class PerfilServiceImpl implements PerfilService {
         // Handle disponibilidad with null check
         String diaDisponible;
         if(disponibilidad != null && disponibilidad.getDiasemana() != null &&
-           disponibilidad.getHorainicio() != null && disponibilidad.getHorafin() != null) {
+                disponibilidad.getHorainicio() != null && disponibilidad.getHorafin() != null) {
             //Fixme mejorar el manejo de horario(puede que haya que cambiarlo desde la base de datos)
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
             diaDisponible = disponibilidad.getDiasemana() + " de " +
@@ -148,8 +148,8 @@ public class PerfilServiceImpl implements PerfilService {
         // Extract especialidades
         List<String> especialidadesList = profesional.getEspecialidades() != null
                 ? profesional.getEspecialidades().stream()
-                    .map(Especialidad::getEspecialidad)
-                    .toList()
+                .map(Especialidad::getEspecialidad)
+                .toList()
                 : List.of();
 
         return PerfilProfesional.builder()
@@ -233,7 +233,7 @@ public class PerfilServiceImpl implements PerfilService {
         // Handle disponibilidad with null check
         String diaDisponible;
         if(disponibilidad != null && disponibilidad.getDiasemana() != null &&
-           disponibilidad.getHorainicio() != null && disponibilidad.getHorafin() != null) {
+                disponibilidad.getHorainicio() != null && disponibilidad.getHorafin() != null) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
             diaDisponible = disponibilidad.getDiasemana() + " de " +
                     disponibilidad.getHorainicio().format(formatter) + " a " +
@@ -245,8 +245,8 @@ public class PerfilServiceImpl implements PerfilService {
         // Extract especialidades
         List<String> especialidadesList = profesional.getEspecialidades() != null
                 ? profesional.getEspecialidades().stream()
-                    .map(Especialidad::getEspecialidad)
-                    .toList()
+                .map(Especialidad::getEspecialidad)
+                .toList()
                 : List.of();
 
         return PerfilProfesional.builder()
@@ -301,7 +301,7 @@ public class PerfilServiceImpl implements PerfilService {
                         // Handle disponibilidad with null check
                         String diaDisponible;
                         if(disponibilidad != null && disponibilidad.getDiasemana() != null &&
-                           disponibilidad.getHorainicio() != null && disponibilidad.getHorafin() != null) {
+                                disponibilidad.getHorainicio() != null && disponibilidad.getHorafin() != null) {
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
                             diaDisponible = disponibilidad.getDiasemana() + " de " +
                                     disponibilidad.getHorainicio().format(formatter) + " a " +
@@ -313,8 +313,8 @@ public class PerfilServiceImpl implements PerfilService {
                         // Extract especialidades
                         List<String> especialidadesList = profesional.getEspecialidades() != null
                                 ? profesional.getEspecialidades().stream()
-                                    .map(Especialidad::getEspecialidad)
-                                    .toList()
+                                .map(Especialidad::getEspecialidad)
+                                .toList()
                                 : List.of();
 
                         return PerfilProfesional.builder()

@@ -8,9 +8,7 @@ import java.time.Instant;
 public class SolicitudRequest {
     private Integer idUsuario;
     private Integer idProfesional;
-//    private Integer idoficio;
     private Instant fechasolicitud;
     private Instant fechaservicio;
-//    private String estado;
     private String observacion;
 }

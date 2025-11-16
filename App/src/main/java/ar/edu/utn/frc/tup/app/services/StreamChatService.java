@@ -9,4 +9,8 @@ public interface StreamChatService {
     String createChannel(String channelType, String channelId, String creatorId, Map<String, Object> additionalData);
     void addMembersToChannel(String channelType, String channelId, List<String> userIds);
     void sendMessage(String channelType, String channelId, String userId, String message);
+    List<Map<String, Object>> getChannelMessages(String channelType, String channelId, int limit);
+    List<Map<String, Object>> getUserChannels(String userId);
+    String getApiKey();
+    String getUserFullName(String userId);
 }

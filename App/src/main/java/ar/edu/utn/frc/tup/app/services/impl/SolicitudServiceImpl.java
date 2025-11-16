@@ -1,7 +1,8 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
-import ar.edu.utn.frc.tup.app.dtos.response.SolicitudResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
 import ar.edu.utn.frc.tup.app.entities.Profesionale;
 import ar.edu.utn.frc.tup.app.entities.Solicitude;
 import ar.edu.utn.frc.tup.app.entities.Usuario;
@@ -11,6 +12,9 @@ import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
 import ar.edu.utn.frc.tup.app.services.SolicitudService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,15 +27,8 @@ public class SolicitudServiceImpl implements SolicitudService {
     @Override
     public SolicitudResponse enviarSolicitud(SolicitudRequest solicitud) { //TODO Muy importante, agregar despues a este metodo y a la clase de solicitud la direccion de la solicitud
 
-        Usuario usuario = usuarioRepository.findById(solicitud.getIdUsuario())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + solicitud.getIdUsuario()));
-
-        Profesionale profesional = profesionalRepository.findById(solicitud.getIdProfesional())
-                .orElseThrow(() -> new RuntimeException("Profesional no encontrado con ID: " + solicitud.getIdProfesional()));
-
-        if (usuario.getIddireccion() == null) {
-            throw new RuntimeException("El usuario no tiene una dirección registrada");
-        }
+        Usuario usuario = usuarioRepository.findById(solicitud.getIdUsuario()).orElse(null);
+        Profesionale profesional = profesionalRepository.findById(solicitud.getIdProfesional()).orElse(null);
 
         Solicitude nueva = Solicitude.builder()
                 .idusuario(usuario)
@@ -63,41 +60,73 @@ public class SolicitudServiceImpl implements SolicitudService {
     @Override
     public String responderSolicitud(Integer idSolicitud, Boolean aceptada) {
 
-        Solicitude solicitud = solicitudRepository.findById(idSolicitud)
-                .orElseThrow(() -> new RuntimeException("La solicitud no existe con ID: " + idSolicitud));
-
-        if (Boolean.TRUE.equals(aceptada)) {
-            solicitud.setEstado("ACEPTADA");
-            solicitudRepository.save(solicitud);
-            return "Solicitud aceptada";
+        Solicitude solicitud = solicitudRepository.findById(idSolicitud).orElse(null);
+        if(solicitud != null){
+            if (aceptada == true){
+                solicitud.setEstado("ACEPTADA");
+                solicitudRepository.save(solicitud);
+                return "Solicitud aceptada";
+            } else {
+                solicitud.setEstado("RECHAZADA");
+                solicitudRepository.save(solicitud);
+                return "Solicitud rechazada";
+            }
         } else {
-            solicitud.setEstado("RECHAZADA");
-            solicitudRepository.save(solicitud);
-            return "Solicitud rechazada";
+            return "La solicitud no existe";
         }
     }
 
     @Override
-    public SolicitudResponse getSolicitud(Integer idProfesional, String estado) {
+    public List<SolicitudResponse> getSolicitudes(Integer idProfesional, String estado) {
 
-        Profesionale profesionale = profesionalRepository.findById(idProfesional)
-                .orElseThrow(() -> new RuntimeException("Profesional no encontrado con ID: " + idProfesional));
+        Profesionale profesionale = profesionalRepository.findById(idProfesional).orElse(null);
 
-        Solicitude solicitud = solicitudRepository.findByIdprofesionalAndEstado(profesionale, estado)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada para el profesional ID: " + idProfesional + " con estado: " + estado));
-
-        SolicitudResponse response = SolicitudResponse.builder()
-                .nombreUsuario(solicitud.getIdusuario().getIdauth().getName() + " "
-                        + solicitud.getIdusuario().getIdauth().getLastname())
-                .nombreProfesional(solicitud.getIdprofesional().getIdusuario().getIdauth().getName()
-                        + " " + solicitud.getIdprofesional().getIdusuario().getIdauth().getLastname())
-                .fechasolicitud(solicitud.getFechasolicitud())
-                .fechaservicio(solicitud.getFechaservicio())
-                .direccion(solicitud.getIdusuario().getIddireccion().getCalle() + " "
-                        + solicitud.getIdusuario().getIddireccion().getNumero())
-                .observacion(solicitud.getObservacion())
-                .build();
-
-        return response;
+        List<Solicitude> solicitudes = solicitudRepository.findByIdprofesionalAndEstado(profesionale, estado);
+        List<SolicitudResponse> respuestas = new ArrayList<>();
+        if (!solicitudes.isEmpty()) {
+            for (Solicitude s : solicitudes){
+                SolicitudResponse response = SolicitudResponse.builder()
+                        .nombreUsuario(s.getIdusuario().getIdauth().getName() + " "
+                                + s.getIdusuario().getIdauth().getLastname())
+                        .nombreProfesional(s.getIdprofesional().getIdusuario().getIdauth().getName()
+                                + " " + s.getIdprofesional().getIdusuario().getIdauth().getLastname())
+                        .fechasolicitud(s.getFechasolicitud())
+                        .fechaservicio(s.getFechaservicio())
+                        .direccion(s.getIdusuario().getIddireccion().getCalle() + " "
+                                + s.getIdusuario().getIddireccion().getNumero())
+                        .observacion(s.getObservacion())
+                        .build();
+                respuestas.add(response);
+            }
+            return respuestas;
+        } else {
+            throw new RuntimeException("Solicitud no encontrada");
+        }
     }
+
+    @Override
+    public List<SolicitudUsuarioResponse> getSolicitudByIdUsuario(Integer idUsuario) {
+        List<Solicitude> solicitudes = solicitudRepository.findByIdusuario_Id(idUsuario);
+
+        List<SolicitudUsuarioResponse> respuestas = new ArrayList<>();
+
+        if (!solicitudes.isEmpty()) {
+            for (Solicitude s : solicitudes) {
+                SolicitudUsuarioResponse response = SolicitudUsuarioResponse.builder()
+                        .idSolicitud(s.getId())
+                        .idProfesional(s.getIdprofesional().getId())
+                        .nombreProfesional(s.getIdprofesional().getIdusuario().getIdauth().getName())
+                        .apellidoProfesional(s.getIdprofesional().getIdusuario().getIdauth().getLastname())
+                        .fechaSolicitud(s.getFechasolicitud())
+                        .estado(s.getEstado())
+                        .imagenUrl(s.getIdprofesional().getIdusuario().getAvatar())
+                        .build();
+                respuestas.add(response);
+            }
+            return respuestas;
+        } else {
+            throw new RuntimeException("Solicitudes no encontradas");
+        }
+    }
+
 }
