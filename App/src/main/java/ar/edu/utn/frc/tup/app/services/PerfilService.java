@@ -2,8 +2,8 @@ package ar.edu.utn.frc.tup.app.services;
 
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarCliente;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarProfesional;
-import ar.edu.utn.frc.tup.app.dtos.response.PerfilCliente;
-import ar.edu.utn.frc.tup.app.dtos.response.PerfilProfesional;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilCliente;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

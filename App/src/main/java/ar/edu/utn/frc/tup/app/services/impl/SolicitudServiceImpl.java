@@ -1,8 +1,8 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
-import ar.edu.utn.frc.tup.app.dtos.response.SolicitudResponse;
-import ar.edu.utn.frc.tup.app.dtos.response.SolicitudUsuarioResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
 import ar.edu.utn.frc.tup.app.entities.Profesionale;
 import ar.edu.utn.frc.tup.app.entities.Solicitude;
 import ar.edu.utn.frc.tup.app.entities.Usuario;

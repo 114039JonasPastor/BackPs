@@ -1,8 +1,8 @@
 package ar.edu.utn.frc.tup.app.services;
 
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
-import ar.edu.utn.frc.tup.app.dtos.response.SolicitudResponse;
-import ar.edu.utn.frc.tup.app.dtos.response.SolicitudUsuarioResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
 
 import java.util.List;
 

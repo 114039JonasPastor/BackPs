@@ -1,4 +1,4 @@
-package ar.edu.utn.frc.tup.app.dtos.response;
+package ar.edu.utn.frc.tup.app.dtos.response.perfil;
 
 import ar.edu.utn.frc.tup.app.dtos.DomicilioDto;
 import lombok.Builder;

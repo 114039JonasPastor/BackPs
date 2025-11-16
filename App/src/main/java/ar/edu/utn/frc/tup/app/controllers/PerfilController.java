@@ -3,9 +3,8 @@ package ar.edu.utn.frc.tup.app.controllers;
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarCliente;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarProfesional;
-import ar.edu.utn.frc.tup.app.dtos.response.PerfilCliente;
-import ar.edu.utn.frc.tup.app.dtos.response.PerfilProfesional;
-import ar.edu.utn.frc.tup.app.entities.Departamento;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilCliente;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
 import ar.edu.utn.frc.tup.app.services.ConfirmationTokenService;
 import ar.edu.utn.frc.tup.app.services.PerfilService;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/perfil")

@@ -1,7 +1,8 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
 import ar.edu.utn.frc.tup.app.dtos.request.resenia.ReseniaRequest;
-import ar.edu.utn.frc.tup.app.dtos.response.ReseniaResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.resenia.PuntuacionProfesional;
+import ar.edu.utn.frc.tup.app.dtos.response.resenia.ReseniaResponse;
 import ar.edu.utn.frc.tup.app.entities.Profesionale;
 import ar.edu.utn.frc.tup.app.entities.Resenia;
 import ar.edu.utn.frc.tup.app.entities.Usuario;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -57,5 +59,35 @@ public class ReseniaServiceImpl implements ReseniaService {
                 .build();
 
         return response;
+    }
+
+    @Override
+    public PuntuacionProfesional getPromedioProfesional(Integer idProfesional) {
+
+        Profesionale profesional = profesionalRepository.findById(idProfesional).orElse(null);
+        if (profesional == null) {
+            throw new RuntimeException("Profesional no encontrado");
+        }
+
+        List<Resenia> resenias = reseniaRepository.findByIdprofesional_Id(idProfesional);
+        if(resenias.isEmpty()){
+            throw new RuntimeException("El profesional no tiene reseñas");
+        }
+
+        double total = 0.0;
+
+        for (Resenia r : resenias) {
+            total += r.getPuntuacion();
+        }
+
+        int promedio = (int) Math.round(total / resenias.size());
+
+        PuntuacionProfesional puntuacionProfesional = PuntuacionProfesional.builder()
+                .nombreProfesional(profesional.getIdusuario().getIdauth().getName() + " " +
+                        profesional.getIdusuario().getIdauth().getLastname())
+                .puntuacion(promedio)
+                .build();
+
+        return puntuacionProfesional; 
     }
 }
