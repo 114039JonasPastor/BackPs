@@ -7,5 +7,5 @@ import lombok.Data;
 @Builder
 public class PuntuacionProfesional {
     private String nombreProfesional;
-    private Integer puntuacion;
+    private Double puntuacion;
 }

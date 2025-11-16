@@ -74,13 +74,13 @@ public class ReseniaServiceImpl implements ReseniaService {
             throw new RuntimeException("El profesional no tiene reseñas");
         }
 
-        double total = 0.0;
+        Double total = 0.0;
 
         for (Resenia r : resenias) {
             total += r.getPuntuacion();
         }
 
-        int promedio = (int) Math.round(total / resenias.size());
+        Double promedio = (double) (total / resenias.size());
 
         PuntuacionProfesional puntuacionProfesional = PuntuacionProfesional.builder()
                 .nombreProfesional(profesional.getIdusuario().getIdauth().getName() + " " +
@@ -88,6 +88,6 @@ public class ReseniaServiceImpl implements ReseniaService {
                 .puntuacion(promedio)
                 .build();
 
-        return puntuacionProfesional; 
+        return puntuacionProfesional;
     }
 }
