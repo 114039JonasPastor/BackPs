@@ -221,7 +221,7 @@ public class FacturaServiceImpl implements FacturaService {
             throw new RuntimeException("No se pudo procesar el pago - no hay facturas pendientes");
 
         } catch (Exception e) {
-            log.error("❌ Error al procesar pago aprobado", e);
+            log.error("Error al procesar pago aprobado", e);
             throw new RuntimeException("Error al actualizar factura: " + e.getMessage(), e);
         }
     }
