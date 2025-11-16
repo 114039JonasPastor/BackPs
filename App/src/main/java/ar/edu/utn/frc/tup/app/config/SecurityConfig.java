@@ -45,7 +45,6 @@ public class SecurityConfig {
                                         "/api/v1/pagos/**", // TODO: quitar en producción
                                         "/api/v1/password/**",
                                         "/api/v1/domicilios/departamentos/all",
-                                        "/api/v1/chat/**",// TODO: quitar en producción
                                         "/api/v1/domicilios/ciudades/all",
                                         "/api/v1/domicilios/barrios/all",
                                         "/api/v1/domicilios/departamento/*",
