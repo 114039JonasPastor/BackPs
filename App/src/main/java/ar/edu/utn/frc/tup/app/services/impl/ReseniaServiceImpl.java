@@ -3,9 +3,12 @@ package ar.edu.utn.frc.tup.app.services.impl;
 import ar.edu.utn.frc.tup.app.dtos.request.resenia.ReseniaRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.resenia.PuntuacionProfesional;
 import ar.edu.utn.frc.tup.app.dtos.response.resenia.ReseniaResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.resenia.TopProfesionales;
+import ar.edu.utn.frc.tup.app.entities.Oficio;
 import ar.edu.utn.frc.tup.app.entities.Profesionale;
 import ar.edu.utn.frc.tup.app.entities.Resenia;
 import ar.edu.utn.frc.tup.app.entities.Usuario;
+import ar.edu.utn.frc.tup.app.repositories.OficioRepository;
 import ar.edu.utn.frc.tup.app.repositories.ProfesionalRepository;
 import ar.edu.utn.frc.tup.app.repositories.ReseniaRepository;
 import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
@@ -14,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,6 +27,7 @@ public class ReseniaServiceImpl implements ReseniaService {
     private final ReseniaRepository reseniaRepository;
     private final UsuarioRepository usuarioRepository;
     private final ProfesionalRepository profesionalRepository;
+    private final OficioRepository oficioRepository;
 
     @Override
     public ReseniaResponse puntuarResenia(ReseniaRequest reseniaRequest) {
@@ -63,31 +68,71 @@ public class ReseniaServiceImpl implements ReseniaService {
 
     @Override
     public PuntuacionProfesional getPromedioProfesional(Integer idProfesional) {
-
-        Profesionale profesional = profesionalRepository.findById(idProfesional).orElse(null);
-        if (profesional == null) {
-            throw new RuntimeException("Profesional no encontrado");
-        }
+        Profesionale profesional = profesionalRepository.findById(idProfesional)
+                .orElseThrow(() -> new RuntimeException("Profesional no encontrado"));
 
         List<Resenia> resenias = reseniaRepository.findByIdprofesional_Id(idProfesional);
-        if(resenias.isEmpty()){
+        if (resenias.isEmpty()) {
             throw new RuntimeException("El profesional no tiene reseñas");
         }
 
         Double total = 0.0;
-
         for (Resenia r : resenias) {
             total += r.getPuntuacion();
         }
 
-        Double promedio = (double) (total / resenias.size());
+        Double promedio = total / resenias.size();
 
-        PuntuacionProfesional puntuacionProfesional = PuntuacionProfesional.builder()
+        return PuntuacionProfesional.builder()
                 .nombreProfesional(profesional.getIdusuario().getIdauth().getName() + " " +
                         profesional.getIdusuario().getIdauth().getLastname())
                 .puntuacion(promedio)
                 .build();
+    }
 
-        return puntuacionProfesional;
+    @Override
+    public List<TopProfesionales> getPosicionamientoSegunPuntuacion() {
+        List<Oficio> oficios = oficioRepository.findAllWithProfesionales();
+
+        List<TopProfesionales> topProfesionales = new ArrayList<>();
+
+        for (Oficio oficio : oficios) {
+            List<Profesionale> profesionalesDelOficio =
+                    profesionalRepository.findByIdOficio(oficio.getId());
+
+            Profesionale mejorProfesional = null;
+            Double mejorPromedio = 0.0;
+
+            for (Profesionale profesional : profesionalesDelOficio) {
+                Long cantidadResenias = reseniaRepository
+                        .countReseniasByProfesional(profesional.getId());
+
+                if (cantidadResenias > 0) {
+                    Double promedio = reseniaRepository
+                            .getPromedioPuntuacionByProfesional(profesional.getId());
+
+                    if (promedio != null && promedio > mejorPromedio) {
+                        mejorPromedio = promedio;
+                        mejorProfesional = profesional;
+                    }
+                }
+            }
+
+            if (mejorProfesional != null) {
+                TopProfesionales top = TopProfesionales.builder()
+                        .nombreProfesional(
+                                mejorProfesional.getIdusuario().getIdauth().getName() + " " +
+                                        mejorProfesional.getIdusuario().getIdauth().getLastname()
+                        )
+                        .profesion(oficio.getOficio())
+                        .puntuacion(Math.round(mejorPromedio * 100.0) / 100.0)
+                        .build();
+
+                topProfesionales.add(top);
+            }
+        }
+        topProfesionales.sort((a, b) -> b.getPuntuacion().compareTo(a.getPuntuacion()));
+
+        return topProfesionales;
     }
 }

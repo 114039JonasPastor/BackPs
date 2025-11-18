@@ -24,7 +24,4 @@ public class Oficio {
     @NotNull
     @Column(name = "oficio", nullable = false, length = 100)
     private String oficio;
-//
-//    @Column(name = "descripcion", nullable = false)
-//    private String descripcion;
 }

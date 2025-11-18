@@ -4,11 +4,15 @@ import ar.edu.utn.frc.tup.app.dtos.DomicilioDto;
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.resenia.ReseniaRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.resenia.PuntuacionProfesional;
+import ar.edu.utn.frc.tup.app.dtos.response.resenia.TopProfesionales;
 import ar.edu.utn.frc.tup.app.services.ReseniaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Instant;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/resenias")
@@ -45,5 +49,32 @@ public class ReseniaController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
         return ResponseEntity.ok(puntuacion);
+    }
+
+    @GetMapping("/top-profesionales")
+    public ResponseEntity<?> getTopProfesionales() {
+        try {
+            List<TopProfesionales> topProfesionales =
+                    reseniaService.getPosicionamientoSegunPuntuacion();
+
+            if (topProfesionales.isEmpty()) {
+                ErrorApi error = ErrorApi.builder()
+                        .timestamp(Instant.now().toString())
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .error("Not Found")
+                        .message("No se encontraron profesionales con reseñas")
+                        .build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            }
+            return ResponseEntity.ok(topProfesionales);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .error("Internal Server Error")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 }

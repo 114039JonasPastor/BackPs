@@ -52,4 +52,12 @@ public interface ProfesionalRepository extends JpaRepository<Profesionale, Integ
             "LEFT JOIN FETCH p.especialidades " +
             "WHERE p.idusuario.id = :idUsuario")
     Optional<Profesionale> findByIdusuario_Id(@Param("idUsuario") Integer idUsuario);
+
+    // Obtener todos los profesionales agrupados por oficio
+    @Query("SELECT p FROM Profesionale p ORDER BY p.idoficio.id")
+    List<Profesionale> findAllOrderedByOficio();
+
+    // Obtener profesionales por oficio
+    @Query("SELECT p FROM Profesionale p WHERE p.idoficio.id = :idOficio")
+    List<Profesionale> findByIdOficio(@Param("idOficio") Integer idOficio);
 }

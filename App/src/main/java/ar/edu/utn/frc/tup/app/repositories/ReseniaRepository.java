@@ -10,7 +10,11 @@ import java.util.List;
 
 @Repository
 public interface ReseniaRepository extends JpaRepository<Resenia,Integer> {
-//    @Query("SELECT r FROM Resenia r WHERE r.idprofesional.id = :idProfesional")
-//    List<Resenia> findByProfesionalId(@Param("idProfesional") Integer idProfesional);
     List<Resenia> findByIdprofesional_Id(Integer id);
+
+    @Query("SELECT AVG(r.puntuacion) FROM Resenia r WHERE r.idprofesional.id = :idProfesional")
+    Double getPromedioPuntuacionByProfesional(@Param("idProfesional") Integer idProfesional);
+
+    @Query("SELECT COUNT(r) FROM Resenia r WHERE r.idprofesional.id = :idProfesional")
+    Long countReseniasByProfesional(@Param("idProfesional") Integer idProfesional);
 }

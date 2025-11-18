@@ -107,7 +107,7 @@ public class SolicitudServiceImpl implements SolicitudService {
             }
             return respuestas;
         } else {
-            throw new RuntimeException("Solicitud no encontrada");
+            throw new RuntimeException("Solicitudes no encontradas");
         }
     }
 
