@@ -181,7 +181,7 @@ INSERT INTO Departamentos (departamento) VALUES
 alter table oficios
     add column descripcion varchar(255);
 
-INSERT INTO Oficios (oficio) VALUES
+INSERT INTO Oficios (oficio, descripcion) VALUES
 ('GASISTA', 'Reparación e instalación de artefactos, instalaciones de natural y/o envasado'),
 ('ELECTRICISTA', 'Instalaciones eléctricas, reparaciones y mantenimiento'),
 ('PLOMERO', 'Reparación de cañerías, instalaciones sanitarias y destapaciones'),
@@ -332,3 +332,8 @@ ALTER TABLE Solicitudes
 ALTER TABLE solicitudes
     ALTER COLUMN iddireccion SET NOT NULL;
 
+-- Insertar roles
+insert into roles (descripcion)
+values ('ADMINISTRADOR'),
+       ('PROFESIONAL'),
+       ('CLIENTE');

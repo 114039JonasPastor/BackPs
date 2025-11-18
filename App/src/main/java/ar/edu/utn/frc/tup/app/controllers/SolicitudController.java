@@ -48,17 +48,25 @@ public class SolicitudController {
 
     @GetMapping("/solicitud/{idProfesional}/{estado}")
     public ResponseEntity<?> getSolicitud(@PathVariable Integer idProfesional, @PathVariable String estado) {
-        SolicitudResponse solicitud = solicitudService.getSolicitud(idProfesional, estado);
-        if (solicitud == null) {
+        try {
+            SolicitudResponse solicitud = solicitudService.getSolicitud(idProfesional, estado);
+            
+            // Si no hay solicitudes, retornar 204 No Content (no es un error, simplemente no hay datos)
+            if (solicitud == null) {
+                return ResponseEntity.noContent().build();
+            }
+            
+            return ResponseEntity.ok(solicitud);
+        } catch (RuntimeException e) {
+            // Solo si hay un error real (ej: profesional no existe)
             ErrorApi error = ErrorApi.builder()
                     .timestamp(java.time.Instant.now().toString())
-                    .status(HttpStatus.NOT_FOUND.value())
-                    .error("Not Found")
-                    .message("Solicitud no encontrada")
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
                     .build();
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            return ResponseEntity.badRequest().body(error);
         }
-        return ResponseEntity.ok(solicitud);
     }
 
 }

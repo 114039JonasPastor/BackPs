@@ -10,6 +10,7 @@ import java.time.Instant;
 @Setter
 @Builder
 public class SolicitudResponse {
+    private Integer idSolicitud;
     private String nombreUsuario;
     private String nombreProfesional;
     private Instant fechasolicitud;

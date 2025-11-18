@@ -47,6 +47,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitudRepository.save(nueva);
 
         SolicitudResponse response = SolicitudResponse.builder()
+                .idSolicitud(nueva.getId())
                 .nombreUsuario(usuario.getIdauth().getName() + " "
                         + usuario.getIdauth().getLastname())
                 .nombreProfesional(profesional.getIdusuario().getIdauth().getName()
@@ -83,10 +84,17 @@ public class SolicitudServiceImpl implements SolicitudService {
         Profesionale profesionale = profesionalRepository.findById(idProfesional)
                 .orElseThrow(() -> new RuntimeException("Profesional no encontrado con ID: " + idProfesional));
 
+        // En lugar de lanzar excepción, retornamos null si no hay solicitudes
         Solicitude solicitud = solicitudRepository.findByIdprofesionalAndEstado(profesionale, estado)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada para el profesional ID: " + idProfesional + " con estado: " + estado));
+                .orElse(null);
+
+        // Si no hay solicitudes pendientes, retornar null
+        if (solicitud == null) {
+            return null;
+        }
 
         SolicitudResponse response = SolicitudResponse.builder()
+                .idSolicitud(solicitud.getId())
                 .nombreUsuario(solicitud.getIdusuario().getIdauth().getName() + " "
                         + solicitud.getIdusuario().getIdauth().getLastname())
                 .nombreProfesional(solicitud.getIdprofesional().getIdusuario().getIdauth().getName()

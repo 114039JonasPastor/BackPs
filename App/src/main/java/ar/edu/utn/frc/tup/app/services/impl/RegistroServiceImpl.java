@@ -63,9 +63,9 @@ public class RegistroServiceImpl implements RegistroService {
             direccion.setIdbarrio(barrio);
             direccion.setCalle(usuario.getCalle());
             direccion.setNumero(usuario.getNumero());
-            direccion.setDepto(usuario.getDepto().isPresent() ? usuario.getDepto().get() : null);
-            direccion.setPiso(usuario.getPiso().isPresent() ? usuario.getPiso().get() : null);
-            direccion.setObservaciones(usuario.getObservaciones().isPresent() ? usuario.getObservaciones().get() : null);
+            direccion.setDepto(usuario.getDepto() != null && usuario.getDepto().isPresent() ? usuario.getDepto().get() : null);
+            direccion.setPiso(usuario.getPiso() != null && usuario.getPiso().isPresent() ? usuario.getPiso().get() : null);
+            direccion.setObservaciones(usuario.getObservaciones() != null && usuario.getObservaciones().isPresent() ? usuario.getObservaciones().get() : null);
 
             Direccione direccionSaved = direccioneRepository.save(direccion);
 
