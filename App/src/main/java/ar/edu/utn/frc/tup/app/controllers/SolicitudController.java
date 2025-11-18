@@ -1,6 +1,7 @@
 package ar.edu.utn.frc.tup.app.controllers;
 
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
+import ar.edu.utn.frc.tup.app.dtos.request.solicitud.ReprogramarRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
@@ -12,9 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/solicitudes")
@@ -140,6 +144,65 @@ public class SolicitudController {
         } catch (RuntimeException e) {
             ErrorApi error = ErrorApi.builder()
                     .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @PutMapping("/reprogramar/{idSolicitud}")
+    public ResponseEntity<?> reprogramarSolicitud(
+            @PathVariable Integer idSolicitud,
+            @RequestBody ReprogramarRequest request) {
+        try {
+            String mensaje = solicitudService.reprogramarFecha(idSolicitud, request);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", mensaje);
+            response.put("timestamp", Instant.now().toString());
+
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    // Endpoint adicional: Verificar disponibilidad antes de reprogramar
+    @GetMapping("/verificar-disponibilidad/{idProfesional}")
+    public ResponseEntity<?> verificarDisponibilidad(
+            @PathVariable Integer idProfesional,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam String hora,
+            @RequestParam(defaultValue = "60") Integer duracion) {
+        try {
+            LocalTime horaTime = LocalTime.parse(hora);
+
+            // Obtener turnos disponibles
+            List<TurnoDisponibleDTO> turnosDisponibles = solicitudService
+                    .obtenerTurnosDisponiblesSemana(idProfesional, fecha, duracion);
+
+            // Verificar si el horario solicitado está disponible
+            boolean disponible = turnosDisponibles.stream()
+                    .anyMatch(t -> t.getFecha().equals(fecha) &&
+                            t.getHoraInicio().equals(horaTime));
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("disponible", disponible);
+            response.put("fecha", fecha);
+            response.put("hora", hora);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
                     .status(HttpStatus.BAD_REQUEST.value())
                     .error("Bad Request")
                     .message(e.getMessage())
