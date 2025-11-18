@@ -4,12 +4,16 @@ import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.solicitud.TurnoDisponibleDTO;
 import ar.edu.utn.frc.tup.app.services.SolicitudService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @RestController
@@ -78,4 +82,70 @@ public class SolicitudController {
         }
         return ResponseEntity.ok(solicitudes);
     }
+
+    @GetMapping("/turnos/disponibles/semana/{idProfesional}")
+    public ResponseEntity<?> getTurnosDisponiblesSemana(
+            @PathVariable Integer idProfesional,
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(defaultValue = "60") Integer duracion) {
+        try {
+            List<TurnoDisponibleDTO> turnos = solicitudService
+                    .obtenerTurnosDisponiblesSemana(idProfesional, fechaInicio, duracion);
+
+            if (turnos.isEmpty()) {
+                ErrorApi error = ErrorApi.builder()
+                        .timestamp(java.time.Instant.now().toString())
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .error("Not Found")
+                        .message("No hay turnos disponibles en la semana seleccionada")
+                        .build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            }
+
+            return ResponseEntity.ok(turnos);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @PostMapping("/turnos/confirmar")
+    public ResponseEntity<?> confirmarTurno(
+            @RequestParam Integer idUsuario,
+            @RequestParam Integer idProfesional,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam String hora, // Cambiar a String
+            @RequestParam(defaultValue = "60") Integer duracion,
+            @RequestParam(required = false) String observacion) {
+        try {
+            // Convertir String a LocalTime
+            LocalTime horaTime = LocalTime.parse(hora);
+
+            SolicitudResponse response = solicitudService
+                    .confirmarTurno(idUsuario, idProfesional, fecha, horaTime, duracion, observacion);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (java.time.format.DateTimeParseException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message("Formato de hora inválido. Use HH:mm:ss (ejemplo: 10:00:00)")
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
 }
+

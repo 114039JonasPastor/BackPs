@@ -59,4 +59,10 @@ public class Solicitude {
     @Column(name = "observacion", length = 500)
     private String observacion;
 
+    @Column(name = "es_turno")
+    private Boolean esTurno = false;
+
+    @Column(name = "duracion_estimada")
+    private Integer duracionEstimada;
+
 }
