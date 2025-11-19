@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,9 +37,9 @@ public class RegistroServiceImpl implements RegistroService {
     private final JwtService jwtService;
     private final EmailService emailService;
     private final ConfirmationTokenService confirmationTokenService;
-
-    // ✅ Agregar dependencia de StreamChatService
     private final StreamChatService streamChatService;
+    private final RoleRepository roleRepository;
+    private final RolxusuarioRepository rolxusuarioRepository;
 
     @Override
     @Transactional
@@ -63,9 +65,9 @@ public class RegistroServiceImpl implements RegistroService {
             direccion.setIdbarrio(barrio);
             direccion.setCalle(usuario.getCalle());
             direccion.setNumero(usuario.getNumero());
-            direccion.setDepto(usuario.getDepto().isPresent() ? usuario.getDepto().get() : null);
-            direccion.setPiso(usuario.getPiso().isPresent() ? usuario.getPiso().get() : null);
-            direccion.setObservaciones(usuario.getObservaciones().isPresent() ? usuario.getObservaciones().get() : null);
+            direccion.setDepto(usuario.getDepto() != null && usuario.getDepto().isPresent() ? usuario.getDepto().get() : null);
+            direccion.setPiso(usuario.getPiso() != null && usuario.getPiso().isPresent() ? usuario.getPiso().get() : null);
+            direccion.setObservaciones(usuario.getObservaciones() != null && usuario.getObservaciones().isPresent() ? usuario.getObservaciones().get() : null);
 
             Direccione direccionSaved = direccioneRepository.save(direccion);
 
@@ -79,6 +81,17 @@ public class RegistroServiceImpl implements RegistroService {
             nuevo.setTelefono(usuario.getTelefono());
 
             usuarioRepository.save(nuevo);
+
+            // ASIGNAR ROL CLIENTE AL NUEVO USUARIO
+            Role rolCliente = roleRepository.findByDescripcion("CLIENTE")
+                    .orElseThrow(() -> new RuntimeException("Rol CLIENTE no encontrado"));
+
+            if (!rolxusuarioRepository.existsByIdauthAndIdrol(auth, rolCliente)) {
+                Rolxusuario rolxusuario = new Rolxusuario();
+                rolxusuario.setIdauth(auth);
+                rolxusuario.setIdrol(rolCliente);
+                rolxusuarioRepository.save(rolxusuario);
+            }
 
             // ✅ REGISTRAR USUARIO EN STREAM CHAT
             try {
@@ -118,6 +131,7 @@ public class RegistroServiceImpl implements RegistroService {
     }
 
     @Override
+    @Transactional
     public Profesionale registrarProfesional(ProfesionalRequest profesionalRequest) {
         try {
             Usuario usuario = usuarioRepository.findById(profesionalRequest.getIdUsuario())
@@ -134,6 +148,18 @@ public class RegistroServiceImpl implements RegistroService {
 
             if(profesionalRepository.findByIdusuario_Id(usuario.getId()).isEmpty()){
                 profesionalRepository.save(profesional);
+
+                // ASIGNAR ROL PROFESIONAL AL USUARIO ASOCIADO
+                Auth auth = usuario.getIdauth();
+                Role rolProfesional = roleRepository.findByDescripcion("PROFESIONAL")
+                        .orElseThrow(() -> new RuntimeException("Rol PROFESIONAL no encontrado"));
+
+                if (!rolxusuarioRepository.existsByIdauthAndIdrol(auth, rolProfesional)) {
+                    Rolxusuario rolxusuario = new Rolxusuario();
+                    rolxusuario.setIdauth(auth);
+                    rolxusuario.setIdrol(rolProfesional);
+                    rolxusuarioRepository.save(rolxusuario);
+                }
 
                 // ✅ ACTUALIZAR USUARIO EN STREAM CHAT COMO PROFESIONAL
                 try {
@@ -154,6 +180,63 @@ public class RegistroServiceImpl implements RegistroService {
 
         } catch (Exception e) {
             throw new RuntimeException("Error durante el registro del profesional: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public AuthResponse registrarAdministrador(UsuarioRequest adminRequest) {
+        try {
+            TiposDocumento tipo = tipoDocumentoRepository.findById(adminRequest.getIdTipoDoc())
+                    .orElseThrow(() -> new RuntimeException("Tipo de documento no encontrado"));
+            Barrio barrio = barrioRepository.findById(adminRequest.getIdBarrio())
+                    .orElseThrow(() -> new RuntimeException("Barrio no encontrado"));
+
+            // Crear solo Auth para el administrador (sin entrada en Usuario)
+            Auth auth = Auth.builder()
+                    .password(passwordEncoder.encode(adminRequest.getPassword()))
+                    .mail(adminRequest.getMail())
+                    .name(adminRequest.getName())
+                    .lastname(adminRequest.getLastName())
+                    .active(true)
+                    .build();
+            authRepository.save(auth);
+
+            // Asignar rol ADMINISTRADOR al Auth creado
+            Role rolAdmin = roleRepository.findByDescripcion("ADMINISTRADOR")
+                    .orElseThrow(() -> new RuntimeException("Rol ADMINISTRADOR no encontrado"));
+
+            if (!rolxusuarioRepository.existsByIdauthAndIdrol(auth, rolAdmin)) {
+                Rolxusuario rolxusuario = new Rolxusuario();
+                rolxusuario.setIdauth(auth);
+                rolxusuario.setIdrol(rolAdmin);
+                rolxusuarioRepository.save(rolxusuario);
+            }
+
+            // Generar JWT para el admin usando JwtService
+            String jwtToken = jwtService.getToken(auth);
+
+            // Obtener roles del administrador
+            List<String> roles = rolxusuarioRepository.findByIdauth(auth).stream()
+                    .map(rolxusuario -> rolxusuario.getIdrol().getDescripcion())
+                    .collect(Collectors.toList());
+
+            // Devolver AuthResponse sin datos de Usuario (no se creó Usuario para admins)
+            return AuthResponse.builder()
+                    .token(jwtToken)
+                    .nombre(auth.getName())
+                    .apellido(auth.getLastname())
+                    .email(auth.getMail())
+                    .idUsuario(null)
+                    .documento(null)
+                    .telefono(null)
+                    .nacimiento(null)
+                    .idDireccion(null)
+                    .roles(roles)
+                    .build();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error durante el registro del administrador: " + e.getMessage(), e);
         }
     }
 
@@ -195,4 +278,3 @@ public class RegistroServiceImpl implements RegistroService {
         );
     }
 }
-

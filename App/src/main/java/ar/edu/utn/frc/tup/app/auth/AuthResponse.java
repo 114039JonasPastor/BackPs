@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -19,6 +21,6 @@ public class AuthResponse {
     private String telefono;
     private String nacimiento;
     private Integer idDireccion;
-    // Added to return professional id when the user is a professional
     private Integer idProfesional;
+    private List<String> roles;
 }

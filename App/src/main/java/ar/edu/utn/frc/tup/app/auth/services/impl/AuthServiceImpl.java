@@ -10,11 +10,15 @@ import ar.edu.utn.frc.tup.app.entities.Usuario;
 import ar.edu.utn.frc.tup.app.repositories.AuthRepository;
 import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
 import ar.edu.utn.frc.tup.app.repositories.ProfesionalRepository;
+import ar.edu.utn.frc.tup.app.repositories.RolxusuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final UsuarioRepository usuarioRepository;
     private final ProfesionalRepository profesionalRepository;
+    private final RolxusuarioRepository rolxusuarioRepository;
 
 //    @Override
 //    public AuthResponse login(LoginRequest request) {
@@ -49,6 +54,11 @@ public class AuthServiceImpl implements AuthService {
                     .orElse(null);
         }
 
+        // Obtener roles del usuario desde rolxusuario
+        List<String> roles = rolxusuarioRepository.findByIdauth(auth).stream()
+                .map(rolxusuario -> rolxusuario.getIdrol().getDescripcion())
+                .collect(Collectors.toList());
+
         return AuthResponse.builder()
                 .token(jwtService.getToken(auth))
                 .nombre(auth.getName())
@@ -60,6 +70,7 @@ public class AuthServiceImpl implements AuthService {
                 .nacimiento(usuario != null && usuario.getNacimiento() != null ? usuario.getNacimiento().toString() : null)
                 .idDireccion(usuario != null ? usuario.getIddireccion().getId() : null)
                 .idProfesional(idProfesional)
+                .roles(roles)
              .build();
     }
     @Override

@@ -89,7 +89,7 @@ CREATE TABLE Solicitudes (
                              idSolicitud SERIAL PRIMARY KEY,
                              idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),  -- Cambiar Usuario → Usuarios
                              idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
-                             idOficio INT NOT NULL REFERENCES Oficios(idOficio),
+                             idOficio INT NOT NULL REFERENCES Oficios(idOficio), -- No se usa
                              fechaSolicitud TIMESTAMP NOT NULL DEFAULT NOW(),
                              fechaServicio TIMESTAMP NOT NULL,
                              estado VARCHAR(20) NOT NULL,
@@ -181,7 +181,7 @@ INSERT INTO Departamentos (departamento) VALUES
 alter table oficios
     add column descripcion varchar(255);
 
-INSERT INTO Oficios (oficio) VALUES
+INSERT INTO Oficios (oficio, descripcion) VALUES
 ('GASISTA', 'Reparación e instalación de artefactos, instalaciones de natural y/o envasado'),
 ('ELECTRICISTA', 'Instalaciones eléctricas, reparaciones y mantenimiento'),
 ('PLOMERO', 'Reparación de cañerías, instalaciones sanitarias y destapaciones'),
@@ -332,7 +332,12 @@ ALTER TABLE Solicitudes
 ALTER TABLE solicitudes
     ALTER COLUMN iddireccion SET NOT NULL;
 
-
+-- Insertar roles
+insert into roles (descripcion)
+values ('ADMINISTRADOR'),
+       ('PROFESIONAL'),
+       ('CLIENTE');
+       
 ALTER TABLE Solicitudes
     ADD COLUMN es_turno BOOLEAN DEFAULT FALSE,
     ADD COLUMN duracion_estimada INT;
