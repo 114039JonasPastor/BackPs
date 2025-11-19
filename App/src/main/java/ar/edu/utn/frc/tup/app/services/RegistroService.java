@@ -10,4 +10,5 @@ import org.springframework.stereotype.Service;
 public interface RegistroService {
     AuthResponse registrarUsuario(UsuarioRequest usuario);
     Profesionale registrarProfesional(ProfesionalRequest profesionalRequest);
+    AuthResponse registrarAdministrador(UsuarioRequest adminRequest);
 }
