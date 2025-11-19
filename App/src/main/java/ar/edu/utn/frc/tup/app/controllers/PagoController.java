@@ -5,6 +5,7 @@ import ar.edu.utn.frc.tup.app.dtos.request.factura.FacturaRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.PagoFactura;
 import ar.edu.utn.frc.tup.app.dtos.response.PreferenceResponse;
 import ar.edu.utn.frc.tup.app.entities.Departamento;
+import ar.edu.utn.frc.tup.app.entities.Factura;
 import ar.edu.utn.frc.tup.app.services.FacturaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

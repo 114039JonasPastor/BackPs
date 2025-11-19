@@ -154,21 +154,35 @@ public class FacturaServiceImpl implements FacturaService {
                     .build();
 
         } catch (MPApiException e) {
-            log.error("Error MPApiException");
+            log.error("========== ERROR MERCADOPAGO API ==========");
             log.error("Status Code: {}", e.getStatusCode());
             log.error("Message: {}", e.getMessage());
 
             if (e.getApiResponse() != null) {
+                log.error("API Response Status: {}", e.getApiResponse().getStatusCode());
                 log.error("API Response Content: {}", e.getApiResponse().getContent());
-                log.error("API Response Status Code: {}", e.getApiResponse().getStatusCode());
+                log.error("API Response Headers: {}", e.getApiResponse().getHeaders());
             }
 
-            throw new RuntimeException("Error MercadoPago API: " + e.getMessage(), e);
+            if (e.getCause() != null) {
+                log.error("Cause: {}", e.getCause().getMessage());
+            }
+
+            // Mensaje más detallado
+            String errorDetail = e.getApiResponse() != null ?
+                    e.getApiResponse().getContent() : e.getMessage();
+            throw new RuntimeException("Error MercadoPago API: " + errorDetail, e);
+
         } catch (MPException e) {
+            log.error("========== ERROR MERCADOPAGO ==========");
             log.error("Error MPException: {}", e.getMessage(), e);
             throw new RuntimeException("Error MercadoPago: " + e.getMessage(), e);
+
         } catch (Exception e) {
+            log.error("========== ERROR INESPERADO ==========");
             log.error("Error inesperado al crear preferencia", e);
+            log.error("Tipo de error: {}", e.getClass().getName());
+            log.error("Stack trace completo:", e);
             throw new RuntimeException("Error interno: " + e.getMessage(), e);
         }
     }
