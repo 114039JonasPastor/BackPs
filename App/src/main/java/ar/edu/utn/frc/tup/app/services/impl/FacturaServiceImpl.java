@@ -6,9 +6,11 @@ import ar.edu.utn.frc.tup.app.dtos.response.PreferenceResponse;
 import ar.edu.utn.frc.tup.app.entities.Factura;
 import ar.edu.utn.frc.tup.app.entities.Mediosdepago;
 import ar.edu.utn.frc.tup.app.entities.Solicitude;
+import ar.edu.utn.frc.tup.app.entities.Trabajo;
 import ar.edu.utn.frc.tup.app.repositories.FacturaRepository;
 import ar.edu.utn.frc.tup.app.repositories.MediosdepagoRepository;
 import ar.edu.utn.frc.tup.app.repositories.SolicitudeRepository;
+import ar.edu.utn.frc.tup.app.repositories.TrabajoRepository;
 import ar.edu.utn.frc.tup.app.services.FacturaService;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.preference.*;
@@ -35,6 +37,7 @@ public class FacturaServiceImpl implements FacturaService {
     private final FacturaRepository facturaRepository;
     private final MediosdepagoRepository mediosdepagoRepository;
     private final SolicitudeRepository solicitudeRepository;
+    private final TrabajoRepository trabajoRepository; // ⭐ NUEVO
 
     @Value("${mercadopago.webhook.url}")
     private String webhookUrl;
@@ -49,20 +52,37 @@ public class FacturaServiceImpl implements FacturaService {
     @Transactional
     public PreferenceResponse crearPreferenciaPago(FacturaRequest request) {
         try {
-            // Configurar el token de acceso
             MercadoPagoConfig.setAccessToken(accessToken);
 
             log.info("========== CREAR PREFERENCIA ==========");
             log.info("Access Token configurado: {}...", accessToken.substring(0, 20));
             log.info("Frontend URL base: {}", frontendUrl);
-            log.info("ID Solicitud: {}", request.getIdSolicitud());
 
-            // Obtener la solicitud
-            Solicitude solicitud = solicitudeRepository.findById(request.getIdSolicitud())
-                    .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+            // ⭐ CAMBIO: Validar que venga idTrabajo
+            if (request.getIdTrabajo() == null) {
+                throw new RuntimeException("Debe proporcionar el ID del trabajo");
+            }
 
-            // Crear factura pendiente
-            Factura factura = crearFacturaPendiente(solicitud, request.getMonto());
+            // ⭐ CAMBIO: Obtener el trabajo en lugar de la solicitud directamente
+            Trabajo trabajo = trabajoRepository.findById(request.getIdTrabajo())
+                    .orElseThrow(() -> new RuntimeException("Trabajo no encontrado"));
+
+            // ⭐ VALIDAR que el trabajo esté finalizado
+            if (!"FINALIZADO".equals(trabajo.getEstado())) {
+                throw new RuntimeException("Solo se pueden facturar trabajos finalizados");
+            }
+
+            // ⭐ VALIDAR que no tenga factura ya
+            if (trabajo.getFactura() != null) {
+                throw new RuntimeException("Este trabajo ya tiene una factura asociada");
+            }
+
+            Solicitude solicitud = trabajo.getSolicitud();
+            log.info("ID Trabajo: {}", trabajo.getId());
+            log.info("ID Solicitud: {}", solicitud.getId());
+
+            // ⭐ CAMBIO: Pasar el trabajo al crear la factura
+            Factura factura = crearFacturaPendiente(trabajo, request.getMonto());
 
             log.info("Factura creada con ID: {}", factura.getId());
             log.info("Título: {}", request.getTitulo());
@@ -81,8 +101,9 @@ public class FacturaServiceImpl implements FacturaService {
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(item);
 
-            // URLs de retorno - Asegurar que NO tengan doble barra
-            String baseUrl = frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
+            // URLs de retorno
+            String baseUrl = frontendUrl.endsWith("/") ?
+                    frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
 
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
                     .success(baseUrl + "/pago-exitoso")
@@ -95,13 +116,11 @@ public class FacturaServiceImpl implements FacturaService {
             log.info("Failure: {}", backUrls.getFailure());
             log.info("Pending: {}", backUrls.getPending());
 
-            // Configurar métodos de pago
             PreferencePaymentMethodsRequest paymentMethods = PreferencePaymentMethodsRequest.builder()
                     .installments(12)
                     .defaultInstallments(1)
                     .build();
 
-            // Crear la preferencia SIN autoReturn primero
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(items)
                     .backUrls(backUrls)
@@ -116,7 +135,6 @@ public class FacturaServiceImpl implements FacturaService {
             log.info("Notification URL: {}", webhookUrl);
             log.info("External Reference: {}", factura.getId());
 
-            // Crear preferencia con el cliente de MercadoPago
             PreferenceClient client = new PreferenceClient();
             Preference preference = client.create(preferenceRequest);
 
@@ -155,12 +173,15 @@ public class FacturaServiceImpl implements FacturaService {
         }
     }
 
+    // ⭐ CAMBIO: Método modificado para recibir Trabajo en lugar de Solicitud
     @Transactional
-    protected Factura crearFacturaPendiente(Solicitude solicitud, BigDecimal monto) {
+    protected Factura crearFacturaPendiente(Trabajo trabajo, BigDecimal monto) {
         try {
-            log.info("Creando factura pendiente para solicitud: {}", solicitud.getId());
+            log.info("Creando factura pendiente para trabajo: {}", trabajo.getId());
 
-            // Obtener medio de pago de MercadoPago (asumiendo ID 1)
+            Solicitude solicitud = trabajo.getSolicitud();
+
+            // Obtener medio de pago de MercadoPago
             Mediosdepago medioPago = mediosdepagoRepository.findById(1)
                     .orElseThrow(() -> new RuntimeException("Medio de pago no encontrado"));
 
@@ -171,9 +192,15 @@ public class FacturaServiceImpl implements FacturaService {
             factura.setImporte(monto);
             factura.setEstadopago("PENDIENTE");
             factura.setFecha(Instant.now());
+            factura.setTrabajo(trabajo); // ⭐ NUEVO: Asociar el trabajo
 
             Factura facturaSaved = facturaRepository.save(factura);
             log.info("Factura pendiente creada con ID: {}", facturaSaved.getId());
+
+            // ⭐ NUEVO: Actualizar trabajo con la factura (relación bidireccional)
+            trabajo.setFactura(facturaSaved);
+            trabajoRepository.save(trabajo);
+            log.info("Trabajo actualizado con factura ID: {}", facturaSaved.getId());
 
             return facturaSaved;
 
@@ -190,7 +217,6 @@ public class FacturaServiceImpl implements FacturaService {
             log.info("========== PROCESAR PAGO APROBADO ==========");
             log.info("Payment Data: {}", paymentData);
 
-            // Intentar obtener external_reference de diferentes maneras
             String externalReference = null;
 
             if (paymentData.get("external_reference") != null) {
@@ -205,9 +231,12 @@ public class FacturaServiceImpl implements FacturaService {
                 factura.setEstadopago("APROBADO");
                 Factura facturaSaved = facturaRepository.save(factura);
                 log.info("Factura actualizada a APROBADO con ID: {}", facturaSaved.getId());
+
+                // ⭐ NUEVO: No necesitas hacer nada más, la relación bidireccional ya existe
+                log.info("Trabajo asociado ID: {}", facturaSaved.getTrabajo().getId());
+
                 return facturaSaved;
             } else {
-                // Si no hay external_reference, buscar factura pendiente más reciente
                 List<Factura> facturasPendientes = facturaRepository.findByEstadopagoOrderByFechaDesc("PENDIENTE");
                 if (!facturasPendientes.isEmpty()) {
                     Factura factura = facturasPendientes.get(0);
@@ -253,8 +282,8 @@ public class FacturaServiceImpl implements FacturaService {
         List<Factura> facturas = facturaRepository.findByFechaBetweenAndEstadopago(desde, hasta, "APROBADO");
 
         if(facturas.isEmpty()) {
-            throw  new RuntimeException("No existen pagos en este rango de fechas");
-        } else{
+            throw new RuntimeException("No existen pagos en este rango de fechas");
+        } else {
             List<PagoFactura> pagos = new ArrayList<>();
             for(Factura factura : facturas) {
                 PagoFactura pago = PagoFactura.builder()

@@ -3,7 +3,9 @@ package ar.edu.utn.frc.tup.app.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
@@ -12,6 +14,9 @@ import java.time.Instant;
 
 @Getter
 @Setter
+//@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "facturas")
 public class Factura {
@@ -37,6 +42,9 @@ public class Factura {
     @JoinColumn(name = "idmediopago", nullable = false)
     private Mediosdepago idmediopago;
 
+    @OneToOne(mappedBy = "factura", fetch = FetchType.LAZY)
+    private Trabajo trabajo;
+
     @ColumnDefault("now()")
     @Column(name = "fecha")
     private Instant fecha;
@@ -46,8 +54,14 @@ public class Factura {
     @Column(name = "estadopago", nullable = false, length = 20)
     private String estadopago;
 
-    //Fixme Agregar a la base de datos
     @NotNull
     @Column(name = "importe", nullable = false, precision = 10, scale = 2)
     private BigDecimal importe;
+
+    @PrePersist
+    protected void onCreate() {
+        if (fecha == null) {
+            fecha = Instant.now();
+        }
+    }
 }

@@ -33,15 +33,18 @@ public class PagoController {
     @Value("${mercadopago.public.key}")
     private String publicKey;
 
+    // ⭐ Ahora espera idTrabajo en el request
     @PostMapping("/crear-preferencia")
     public ResponseEntity<PreferenceResponse> crearPreferencia(@RequestBody FacturaRequest request) {
         try {
             log.info("📝 Solicitud de creación de preferencia recibida");
+            log.info("ID Trabajo: {}", request.getIdTrabajo());
             PreferenceResponse response = facturaService.crearPreferenciaPago(request);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("❌ Error al crear preferencia", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
         }
     }
 
@@ -76,7 +79,6 @@ public class PagoController {
 
             log.info("Type: {}, Action: {}", type, action);
 
-            // Procesar según el tipo de notificación
             if ("payment".equals(type)) {
                 Object dataObj = payload.get("data");
                 if (dataObj instanceof Map) {
@@ -84,7 +86,6 @@ public class PagoController {
                     String paymentId = (String) data.get("id");
                     log.info("💰 Payment ID recibido: {}", paymentId);
 
-                    // Procesar CUALQUIER acción relacionada con payment
                     if (action != null && action.startsWith("payment")) {
                         facturaService.procesarPagoAprobado(data);
                         log.info("🔄 Procesando acción: {}", action);
@@ -105,7 +106,7 @@ public class PagoController {
             return ResponseEntity.ok(pagos);
         } catch (RuntimeException e) {
             ErrorApi error = ErrorApi.builder()
-                    .timestamp(java.time.Instant.now().toString())
+                    .timestamp(Instant.now().toString())
                     .status(HttpStatus.NOT_FOUND.value())
                     .error("Not Found")
                     .message(e.getMessage())
@@ -113,6 +114,5 @@ public class PagoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
-
 }
 

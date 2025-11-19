@@ -10,8 +10,9 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class FacturaRequest {
     private Integer idSolicitud;
+    private Integer idTrabajo;
     private String titulo;
     private String descripcion;
-    private BigDecimal monto;
     private Integer cantidad;
+    private BigDecimal monto;
 }
