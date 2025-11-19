@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/perfil")
@@ -64,7 +64,22 @@ public class PerfilController {
         return ResponseEntity.ok(perfil);
     }
 
-    @PutMapping("profesional")
+    @GetMapping("/profesional/oficio/{oficio}")
+    public ResponseEntity<?> getProfesionalesByOficio(@PathVariable String oficio) {
+        var profesionales = perfilService.getProfesionalesByOficio(oficio);
+        if (profesionales.isEmpty()) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .error("Not Found")
+                    .message("No se encontraron profesionales para el oficio especificado")
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+        return ResponseEntity.ok(profesionales);
+    }
+
+    @PutMapping("/profesional")
     public ResponseEntity<PerfilProfesional> updatePerfilProfesional(@RequestBody ModificarProfesional profesional) {
         return ResponseEntity.ok(perfilService.updatePerfilProfesional(profesional));
     }
@@ -88,30 +103,5 @@ public class PerfilController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
         return ResponseEntity.ok(avatar);
-    }
-
-    @GetMapping("/profesionales/oficio")
-    public ResponseEntity<?> getProfesionalesByOficio(@RequestParam String oficio) {
-        try {
-            List<PerfilProfesional> profesionales = perfilService.getProfesionalesByOficio(oficio);
-            if (profesionales.isEmpty()) {
-                ErrorApi error = ErrorApi.builder()
-                        .timestamp(java.time.Instant.now().toString())
-                        .status(HttpStatus.NOT_FOUND.value())
-                        .error("Not Found")
-                        .message("No se encontraron profesionales para el oficio: " + oficio)
-                        .build();
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-            }
-            return ResponseEntity.ok(profesionales);
-        } catch (RuntimeException e) {
-            ErrorApi error = ErrorApi.builder()
-                    .timestamp(java.time.Instant.now().toString())
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .error("Bad Request")
-                    .message(e.getMessage())
-                    .build();
-            return ResponseEntity.badRequest().body(error);
-        }
     }
 }

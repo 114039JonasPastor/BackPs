@@ -53,6 +53,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitudRepository.save(nueva);
 
         SolicitudResponse response = SolicitudResponse.builder()
+                .idSolicitud(nueva.getId())
                 .nombreUsuario(usuario.getIdauth().getName() + " "
                         + usuario.getIdauth().getLastname())
                 .nombreProfesional(profesional.getIdusuario().getIdauth().getName()

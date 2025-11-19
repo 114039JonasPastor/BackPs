@@ -45,6 +45,12 @@ public class RegistroController {
         }
     }
 
+    @PostMapping("/administrador")
+    public ResponseEntity<AuthResponse> registrarAdministrador(@RequestBody UsuarioRequest administrador) {
+        return ResponseEntity.ok(registroService.registrarAdministrador(administrador));
+
+    }
+
     @GetMapping("/confirm")
     public ResponseEntity<String> confirmarCuenta(@RequestParam("token") String token) {
         try {

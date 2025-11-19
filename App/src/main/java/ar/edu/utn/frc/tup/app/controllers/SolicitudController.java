@@ -78,7 +78,7 @@ public class SolicitudController {
                     .error("Not Found")
                     .message("Solicitudes no encontradas")
                     .build();
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            return ResponseEntity.badRequest().body(error);
         }
         return ResponseEntity.ok(solicitudes);
     }
