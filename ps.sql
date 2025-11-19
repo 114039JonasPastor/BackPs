@@ -451,3 +451,17 @@ COMMENT ON COLUMN usuarios.strike IS 'Contador de infracciones del usuario (NULL
 
 -- Opcional: Crear índice si vas a filtrar por strike frecuentemente
 CREATE INDEX idx_usuarios_strike ON usuarios(strike);
+
+
+-- Agregar columna activo (por defecto TRUE)
+ALTER TABLE oficios
+    ADD COLUMN activo BOOLEAN DEFAULT TRUE NOT NULL;
+
+-- Opcional: Agregar comentario explicativo
+COMMENT ON COLUMN oficios.activo IS 'Indica si el oficio está activo/disponible en el sistema';
+
+-- Opcional: Crear índice para filtrar oficios activos
+CREATE INDEX idx_oficios_activo ON oficios(activo);
+
+-- Opcional: Actualizar oficios existentes para que estén activos
+UPDATE oficios SET activo = TRUE WHERE activo IS NULL;

@@ -9,4 +9,7 @@ import java.util.List;
 public interface OficioService {
 
     List<Oficio> getAllOficios();
+    List<Oficio> getAllOficiosIncludingInactive();
+    void desactivarOficio(Integer idOficio);
+    void activarOficio(Integer idOficio);
 }

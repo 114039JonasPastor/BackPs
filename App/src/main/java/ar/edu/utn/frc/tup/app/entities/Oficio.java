@@ -24,4 +24,9 @@ public class Oficio {
     @NotNull
     @Column(name = "oficio", nullable = false, length = 100)
     private String oficio;
+
+    @NotNull
+    @ColumnDefault("true")
+    @Column(name = "activo", nullable = false)
+    private Boolean activo = true;
 }
