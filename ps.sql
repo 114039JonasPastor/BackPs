@@ -373,3 +373,71 @@ VALUES (1, 'VIERNES', '08:00:00', '12:00:00');
 -- Sábado de 9:00 a 13:00
 INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
 VALUES (1, 'SÁBADO', '09:00:00', '13:00:00');
+
+
+
+-- Se agrega una tabla de trabajo que antes no teniamos
+
+CREATE TABLE Trabajos (
+                          idTrabajo SERIAL PRIMARY KEY,
+                          idSolicitud INT NOT NULL UNIQUE REFERENCES Solicitudes(idSolicitud),
+                          idFactura INT UNIQUE REFERENCES Facturas(NroFactura),
+
+                          estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
+
+                          fechaInicio TIMESTAMP,
+                          fechaFinalizacion TIMESTAMP,
+                          fechaCancelacion TIMESTAMP,
+
+                          duracionReal INT,
+                          observacionesTrabajo VARCHAR(500),
+                          observacionesCancelacion VARCHAR(500),
+
+                          montoFinal NUMERIC(10,2),
+                          montoAdicional NUMERIC(10,2),
+                          descripcionAdicional VARCHAR(300),
+
+                          fotoTrabajo VARCHAR(255),
+
+                          creadoEn TIMESTAMP DEFAULT NOW(),
+                          actualizadoEn TIMESTAMP DEFAULT NOW(),
+
+                          CONSTRAINT chk_estado_trabajo CHECK (
+                              estado IN ('PENDIENTE', 'EN_CURSO', 'PAUSADO', 'FINALIZADO', 'CANCELADO')
+                              ),
+                          CONSTRAINT chk_fechas_trabajo CHECK (
+                              (fechaFinalizacion IS NULL OR fechaInicio IS NULL OR fechaFinalizacion >= fechaInicio)
+                              ),
+                    -- Solo los trabajos finalizados tiene facturas
+                          CONSTRAINT chk_factura_solo_finalizado CHECK (
+                              (idFactura IS NULL) OR
+                              (idFactura IS NOT NULL AND estado = 'FINALIZADO')
+                              )
+);
+
+--Indices
+CREATE INDEX idx_trabajos_estado ON Trabajos(estado);
+CREATE INDEX idx_trabajos_solicitud ON Trabajos(idSolicitud);
+CREATE INDEX idx_trabajos_fecha_inicio ON Trabajos(fechaInicio);
+CREATE INDEX idx_trabajos_fecha_finalizacion ON Trabajos(fechaFinalizacion);
+CREATE INDEX idx_trabajos_factura ON Trabajos(idFactura);
+
+--Relacion bidireccional
+ALTER TABLE Facturas
+    ADD COLUMN idTrabajo INT UNIQUE REFERENCES Trabajos(idTrabajo);
+
+CREATE INDEX idx_facturas_trabajo ON Facturas(idTrabajo);
+
+--Trigger para timestap automatico
+CREATE OR REPLACE FUNCTION actualizar_fecha_trabajo()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.actualizadoEn = NOW();
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_actualizar_trabajo
+    BEFORE UPDATE ON Trabajos
+    FOR EACH ROW
+    EXECUTE FUNCTION actualizar_fecha_trabajo();

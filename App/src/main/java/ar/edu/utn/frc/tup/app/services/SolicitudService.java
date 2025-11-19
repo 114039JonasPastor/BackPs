@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.tup.app.services;
 
+import ar.edu.utn.frc.tup.app.dtos.request.solicitud.ReprogramarRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
@@ -16,4 +17,5 @@ public interface SolicitudService {
     List<SolicitudUsuarioResponse> getSolicitudByIdUsuario(Integer idUsuario);
     List<TurnoDisponibleDTO> obtenerTurnosDisponiblesSemana(Integer idProfesional, LocalDate fechaInicio, Integer duracionEstimada);
     SolicitudResponse confirmarTurno(Integer idUsuario, Integer idProfesional, LocalDate fecha, LocalTime hora, Integer duracion, String observacion);
+    String reprogramarFecha(Integer idSolicitud, ReprogramarRequest request);
 }

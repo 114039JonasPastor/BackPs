@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
+import ar.edu.utn.frc.tup.app.dtos.request.solicitud.ReprogramarRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
@@ -16,14 +17,13 @@ import ar.edu.utn.frc.tup.app.services.SolicitudService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +32,6 @@ public class SolicitudServiceImpl implements SolicitudService {
     private final SolicitudeRepository solicitudRepository;
     private final UsuarioRepository usuarioRepository;
     private final ProfesionalRepository profesionalRepository;
-    private final DisponibilidadRepository disponibilidadRepository;
 
     @Override
     public SolicitudResponse enviarSolicitud(SolicitudRequest solicitud) {
@@ -108,7 +107,7 @@ public class SolicitudServiceImpl implements SolicitudService {
             }
             return respuestas;
         } else {
-            throw new RuntimeException("Solicitud no encontrada");
+            throw new RuntimeException("Solicitudes no encontradas");
         }
     }
 
@@ -147,25 +146,20 @@ public class SolicitudServiceImpl implements SolicitudService {
         List<TurnoDisponibleDTO> turnosDisponibles = new ArrayList<>();
         LocalDate fechaFin = fechaInicio.plusDays(7);
 
-        // Horario laboral fijo
         LocalTime horaInicioLaboral = LocalTime.of(8, 0);
         LocalTime horaFinLaboral = LocalTime.of(18, 0);
 
-        // Iterar cada día de la semana
         for (LocalDate fecha = fechaInicio; fecha.isBefore(fechaFin); fecha = fecha.plusDays(1)) {
 
-            // Verificar si es fin de semana
             java.time.DayOfWeek diaSemana = fecha.getDayOfWeek();
             if (diaSemana == java.time.DayOfWeek.SATURDAY ||
                     diaSemana == java.time.DayOfWeek.SUNDAY) {
                 continue;
             }
 
-            // Obtener todas las solicitudes ACEPTADAS para este día
             List<Solicitude> turnosOcupados = solicitudRepository
                     .findSolicitudesAceptadasByProfesionalAndFecha(idProfesional, fecha);
 
-            // Crear un Set con las horas ocupadas para búsqueda rápida
             Set<LocalTime> horasOcupadas = new HashSet<>();
             for (Solicitude turno : turnosOcupados) {
                 LocalDateTime fechaHoraTurno = LocalDateTime.ofInstant(
@@ -174,27 +168,23 @@ public class SolicitudServiceImpl implements SolicitudService {
                 );
                 LocalTime horaInicio = fechaHoraTurno.toLocalTime();
 
-                // Agregar la hora de inicio y todas las horas que ocupa el turno
                 Integer duracion = turno.getDuracionEstimada() != null ?
                         turno.getDuracionEstimada() : duracionEstimada;
                 LocalTime horaActualTurno = horaInicio;
                 LocalTime horaFinTurno = horaInicio.plusMinutes(duracion);
 
-                // Marcar todos los slots que este turno ocupa
                 while (horaActualTurno.isBefore(horaFinTurno)) {
                     horasOcupadas.add(horaActualTurno);
                     horaActualTurno = horaActualTurno.plusMinutes(duracionEstimada);
                 }
             }
 
-            // Generar todos los slots del día
             LocalTime horaActual = horaInicioLaboral;
             LocalDate finalFecha = fecha;
 
             while (horaActual.plusMinutes(duracionEstimada).isBefore(horaFinLaboral) ||
                     horaActual.plusMinutes(duracionEstimada).equals(horaFinLaboral)) {
 
-                // Solo agregar si la hora NO está ocupada
                 if (!horasOcupadas.contains(horaActual)) {
                     turnosDisponibles.add(TurnoDisponibleDTO.builder()
                             .fecha(finalFecha)
@@ -221,7 +211,6 @@ public class SolicitudServiceImpl implements SolicitudService {
         Profesionale profesional = profesionalRepository.findById(idProfesional)
                 .orElseThrow(() -> new RuntimeException("Profesional no encontrado"));
 
-        // Validar que el turno esté disponible
         List<Solicitude> turnosOcupados = solicitudRepository
                 .findSolicitudesAceptadasByProfesionalAndFecha(idProfesional, fecha);
 
@@ -237,7 +226,6 @@ public class SolicitudServiceImpl implements SolicitudService {
                     turnoExistente.getDuracionEstimada() : duracion;
             LocalTime horaFinExistente = horaInicioExistente.plusMinutes(duracionExistente);
 
-            // Verificar solapamiento de horarios
             boolean seSolapan = (hora.isBefore(horaFinExistente) && horaFinNuevoTurno.isAfter(horaInicioExistente));
 
             if (seSolapan) {
@@ -274,5 +262,135 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .direccion(usuario.getIddireccion().getCalle() + " " + usuario.getIddireccion().getNumero())
                 .observacion(turno.getObservacion())
                 .build();
+    }
+
+    @Override
+    public String reprogramarFecha(Integer idSolicitud, ReprogramarRequest request) {
+        // 1. Verificar que la solicitud existe
+        Solicitude solicitud = solicitudRepository.findById(idSolicitud)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+        // 2. Verificar que la solicitud esté ACEPTADA
+        if (!"ACEPTADA".equals(solicitud.getEstado())) {
+            throw new RuntimeException("Solo se pueden reprogramar solicitudes aceptadas");
+        }
+
+        // 3. Obtener datos necesarios
+        Integer idProfesional = solicitud.getIdprofesional().getId();
+        LocalDate nuevaFecha = request.getNuevaFecha();
+        LocalTime nuevaHora = request.getNuevaHora();
+        Integer duracion = request.getDuracion() != null ?
+                request.getDuracion() :
+                (solicitud.getDuracionEstimada() != null ? solicitud.getDuracionEstimada() : 60);
+
+        // 4. Validar que la nueva fecha sea futura
+        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime nuevaFechaHora = LocalDateTime.of(nuevaFecha, nuevaHora);
+
+        if (nuevaFechaHora.isBefore(ahora)) {
+            throw new RuntimeException("La fecha de reprogramación debe ser futura");
+        }
+
+        // 5. Validar que no sea fin de semana
+        DayOfWeek diaSemana = nuevaFecha.getDayOfWeek();
+        if (diaSemana == DayOfWeek.SATURDAY || diaSemana == DayOfWeek.SUNDAY) {
+            throw new RuntimeException("No se pueden programar servicios en fines de semana");
+        }
+
+        // 6. Validar horario laboral (8:00 - 18:00)
+        LocalTime horaInicioLaboral = LocalTime.of(8, 0);
+        LocalTime horaFinLaboral = LocalTime.of(18, 0);
+        LocalTime horaFinTurno = nuevaHora.plusMinutes(duracion);
+
+        if (nuevaHora.isBefore(horaInicioLaboral) || horaFinTurno.isAfter(horaFinLaboral)) {
+            throw new RuntimeException("El horario debe estar entre las 08:00 y 18:00");
+        }
+
+        // 7. Verificar disponibilidad del profesional
+        List<Solicitude> turnosOcupados = solicitudRepository
+                .findSolicitudesAceptadasByProfesionalAndFecha(idProfesional, nuevaFecha);
+
+        // Excluir la solicitud actual de la verificación
+        turnosOcupados = turnosOcupados.stream()
+                .filter(s -> !s.getId().equals(idSolicitud))
+                .collect(Collectors.toList());
+
+        LocalTime horaFinNuevoTurno = nuevaHora.plusMinutes(duracion);
+
+        for (Solicitude turnoExistente : turnosOcupados) {
+            LocalDateTime fechaHoraTurno = LocalDateTime.ofInstant(
+                    turnoExistente.getFechaservicio(),
+                    ZoneId.systemDefault()
+            );
+            LocalTime horaInicioExistente = fechaHoraTurno.toLocalTime();
+            Integer duracionExistente = turnoExistente.getDuracionEstimada() != null ?
+                    turnoExistente.getDuracionEstimada() : duracion;
+            LocalTime horaFinExistente = horaInicioExistente.plusMinutes(duracionExistente);
+
+            // Verificar solapamiento
+            boolean seSolapan = (nuevaHora.isBefore(horaFinExistente) &&
+                    horaFinNuevoTurno.isAfter(horaInicioExistente));
+
+            if (seSolapan) {
+                throw new RuntimeException(
+                        "El horario seleccionado se solapa con otro turno. " +
+                                "Turno ocupado de " + horaInicioExistente + " a " + horaFinExistente
+                );
+            }
+        }
+
+        // 8. Actualizar la solicitud
+        LocalDateTime fechaServicio = LocalDateTime.of(nuevaFecha, nuevaHora);
+        Instant fechaServicioInstant = fechaServicio
+                .atZone(ZoneId.systemDefault())
+                .toInstant();
+
+        solicitud.setFechaservicio(fechaServicioInstant);
+        solicitud.setDuracionEstimada(duracion);
+
+        solicitudRepository.save(solicitud);
+
+        // 9. Formatear fecha para respuesta
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm");
+        String fechaFormateada = nuevaFechaHora.format(formatter);
+
+        return "Solicitud reprogramada para el día " + fechaFormateada;
+    }
+
+    // Método auxiliar para obtener turnos ocupados (reutilizable)
+    private boolean verificarDisponibilidad(
+            Integer idProfesional,
+            LocalDate fecha,
+            LocalTime hora,
+            Integer duracion,
+            Integer idSolicitudExcluir) {
+
+        List<Solicitude> turnosOcupados = solicitudRepository
+                .findSolicitudesAceptadasByProfesionalAndFecha(idProfesional, fecha);
+
+        // Excluir solicitud actual si se proporciona
+        if (idSolicitudExcluir != null) {
+            turnosOcupados = turnosOcupados.stream()
+                    .filter(s -> !s.getId().equals(idSolicitudExcluir))
+                    .collect(Collectors.toList());
+        }
+
+        LocalTime horaFinNuevo = hora.plusMinutes(duracion);
+
+        for (Solicitude turno : turnosOcupados) {
+            LocalDateTime fechaHoraTurno = LocalDateTime.ofInstant(
+                    turno.getFechaservicio(),
+                    ZoneId.systemDefault()
+            );
+            LocalTime horaInicio = fechaHoraTurno.toLocalTime();
+            Integer duracionTurno = turno.getDuracionEstimada() != null ?
+                    turno.getDuracionEstimada() : duracion;
+            LocalTime horaFin = horaInicio.plusMinutes(duracionTurno);
+
+            if (hora.isBefore(horaFin) && horaFinNuevo.isAfter(horaInicio)) {
+                return false; // Hay solapamiento
+            }
+        }
+        return true; // Está disponible
     }
 }

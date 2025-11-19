@@ -13,5 +13,6 @@ public class PreferenceResponse {
     private String preferenceId;
     private String initPoint;
     private String sandboxInitPoint;
+    private Integer facturaId;
 }
 
