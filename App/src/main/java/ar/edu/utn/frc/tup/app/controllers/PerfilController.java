@@ -120,4 +120,14 @@ public class PerfilController {
             return ResponseEntity.badRequest().body(error);
         }
     }
+
+    @GetMapping("/metrica/usuarios")
+    public ResponseEntity<List<?>> getUsuariosMetrica() {
+        return ResponseEntity.ok(perfilService.getUsuariosMetrica());
+    }
+
+    @GetMapping("/metrica/profesionales")
+    public ResponseEntity<List<?>> getProfesionalesMetrica() {
+        return ResponseEntity.ok(perfilService.getProfesionalesMetrica());
+    }
 }

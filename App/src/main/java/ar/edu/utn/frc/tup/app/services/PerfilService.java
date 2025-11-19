@@ -4,6 +4,8 @@ import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarCliente;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarProfesional;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilCliente;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.metrica.ProfesionalMetrica;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.metrica.UsuarioMetrica;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,4 +20,6 @@ public interface PerfilService {
     String getAvatar(Integer idAuth);
     List<PerfilProfesional> getProfesionalesByOficio(String oficio);
     void agregarStrike(Integer idUsuario, String motivo);
+    List<UsuarioMetrica> getUsuariosMetrica();
+    List<ProfesionalMetrica> getProfesionalesMetrica();
 }

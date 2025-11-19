@@ -5,16 +5,21 @@ import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarCliente;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarProfesional;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilCliente;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.metrica.ProfesionalMetrica;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.metrica.UsuarioMetrica;
 import ar.edu.utn.frc.tup.app.entities.*;
 import ar.edu.utn.frc.tup.app.entities.Auth;
 import ar.edu.utn.frc.tup.app.entities.Direccione;
 import ar.edu.utn.frc.tup.app.entities.Usuario;
 import ar.edu.utn.frc.tup.app.repositories.*;
 import ar.edu.utn.frc.tup.app.services.PerfilService;
+import ar.edu.utn.frc.tup.app.services.ReseniaService;
+import ar.edu.utn.frc.tup.app.services.TrabajoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,16 +32,14 @@ public class PerfilServiceImpl implements PerfilService {
     private final CiudadRepository ciudadRepository;
     private final DepartamentoRepository departamentoRepository;
     private final BarrioRepository barrioRepository;
-
     private final ProfesionalRepository professionelleRepository;
-
     private final MontoRepository montoRepository;
-
     private final DisponibilidadRepository disponibilidadRepository;
-
     private final EspecialidadRepository especialidadRepository;
-
     private final OficioRepository oficioRepository;
+
+    private final ReseniaService reseniaService;
+    private final TrabajoService trabajoService;
 
     @Override
     public PerfilCliente getPerfilCliente(Integer idCliente) {
@@ -348,5 +351,58 @@ public class PerfilServiceImpl implements PerfilService {
             // Enviar notificación, etc.
         }
         usuarioRepository.save(usuario);
+    }
+
+    @Override
+    public List<UsuarioMetrica> getUsuariosMetrica() {
+        List<Usuario> usuarios = usuarioRepository.findAll();
+
+        List<UsuarioMetrica> usuarioMetricas = new ArrayList<>();
+
+        for (Usuario usuario : usuarios) {
+            UsuarioMetrica metrica = UsuarioMetrica.builder()
+                    .nombre(usuario.getIdauth().getName() + " " + usuario.getIdauth().getLastname())
+                    .email(usuario.getIdauth().getMail())
+                    .strikes(usuario.getStrike() != null ? usuario.getStrike() : 0)
+                    .estado(usuario.getIdauth().getActive())
+                    .build();
+            usuarioMetricas.add(metrica);
+        }
+
+        return usuarioMetricas;
+    }
+
+    @Override
+    public List<ProfesionalMetrica> getProfesionalesMetrica() {
+        List<Profesionale> profesionales = professionelleRepository.findAll();
+
+        List<ProfesionalMetrica> profesionalMetricas = new ArrayList<>();
+
+        for(Profesionale profesional : profesionales) {
+            String calificacionTexto = "No tiene reseñas";
+            Integer serviciosCompletados = 0;
+
+            try {
+                Integer calificacionNumerica = reseniaService.getPromedioProfesional(profesional.getId()).getPuntuacion().intValue();
+
+                calificacionTexto = calificacionNumerica.toString();
+
+                serviciosCompletados = trabajoService.obtenerTrabajosPorUsuario(profesional.getIdusuario().getId(),"FINALIZADO").size();
+
+            } catch (Exception e) {
+                System.err.println("Error al obtener promedio o trabajos para el profesional " + profesional.getId() + ": " + e.getMessage());
+            }
+
+            ProfesionalMetrica metrica = ProfesionalMetrica.builder()
+                    .nombre(profesional.getIdusuario().getIdauth().getName() + " " +
+                            profesional.getIdusuario().getIdauth().getLastname())
+                    .oficio(profesional.getIdoficio().getOficio())
+                    .calificacion(calificacionTexto) // 👈 Usamos la variable String
+                    .serviciosCompletados(serviciosCompletados)
+                    .build();
+            profesionalMetricas.add(metrica);
+        }
+
+        return profesionalMetricas;
     }
 }
