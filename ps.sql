@@ -89,7 +89,7 @@ CREATE TABLE Solicitudes (
                              idSolicitud SERIAL PRIMARY KEY,
                              idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),  -- Cambiar Usuario → Usuarios
                              idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
-                             idOficio INT NOT NULL REFERENCES Oficios(idOficio),
+                             idOficio INT NOT NULL REFERENCES Oficios(idOficio), -- No se usa
                              fechaSolicitud TIMESTAMP NOT NULL DEFAULT NOW(),
                              fechaServicio TIMESTAMP NOT NULL,
                              estado VARCHAR(20) NOT NULL,
