@@ -28,6 +28,6 @@ public interface OficioRepository extends JpaRepository<Oficio,Integer> {
     WHERE o.activo = TRUE
     GROUP BY o.oficio
     ORDER BY COUNT(s.id) DESC
-""")
+    """)
     List<OficioXSolicitud> findOficiosMasDemandados();
 }
