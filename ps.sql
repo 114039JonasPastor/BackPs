@@ -436,3 +436,18 @@ CREATE TRIGGER trigger_actualizar_trabajo
     BEFORE UPDATE ON Trabajos
     FOR EACH ROW
     EXECUTE FUNCTION actualizar_fecha_trabajo();
+
+
+-- Agregar columna strike (puede ser NULL)
+ALTER TABLE usuarios
+    ADD COLUMN strike INT;
+
+-- Opcional: Agregar un constraint para limitar valores (por ejemplo, entre 0 y 3)
+ALTER TABLE usuarios
+    ADD CONSTRAINT chk_strike_range CHECK (strike IS NULL OR (strike >= 0 AND strike <= 3));
+
+-- Opcional: Agregar un comentario explicativo
+COMMENT ON COLUMN usuarios.strike IS 'Contador de infracciones del usuario (NULL = sin strikes)';
+
+-- Opcional: Crear índice si vas a filtrar por strike frecuentemente
+CREATE INDEX idx_usuarios_strike ON usuarios(strike);

@@ -17,4 +17,5 @@ public interface PerfilService {
     void updateAvatar(Integer idAuth, String avatarUrl);
     String getAvatar(Integer idAuth);
     List<PerfilProfesional> getProfesionalesByOficio(String oficio);
+    void agregarStrike(Integer idUsuario, String motivo);
 }

@@ -74,6 +74,12 @@ public class PerfilController {
         perfilService.updateAvatar(idAuth, avatarUrl);
         return ResponseEntity.ok("Avatar updated successfully");
     }
+    
+    @PutMapping("/strike/{idUsuario}")
+    public ResponseEntity<String> agregarStrike(@PathVariable Integer idUsuario, @RequestBody String motivo) {
+        perfilService.agregarStrike(idUsuario, motivo);
+        return ResponseEntity.ok("Strike agregado correctamente");
+    }
 
     @GetMapping("/avatar/{idAuth}")
     public ResponseEntity<?> getAvatar(@PathVariable Integer idAuth) {

@@ -333,4 +333,20 @@ public class PerfilServiceImpl implements PerfilService {
             throw new RuntimeException("Error al obtener profesionales por oficio", e);
         }
     }
+
+    @Override
+    public void agregarStrike(Integer idUsuario, String motivo) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        Integer strikesActuales = usuario.getStrike() != null ? usuario.getStrike() : 0;
+        usuario.setStrike(strikesActuales + 1);
+
+        // Si llega a 3 strikes, suspender usuario
+        if (usuario.getStrike() >= 3) {
+            usuario.getIdauth().setActive(false);
+            // Enviar notificación, etc.
+        }
+        usuarioRepository.save(usuario);
+    }
 }
