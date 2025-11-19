@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.tup.app.repositories;
 
+import ar.edu.utn.frc.tup.app.dtos.response.oficio.OficioXSolicitud;
 import ar.edu.utn.frc.tup.app.entities.Oficio;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,4 +18,16 @@ public interface OficioRepository extends JpaRepository<Oficio,Integer> {
     @Query("SELECT o FROM Oficio o WHERE o.activo = false")
     List<Oficio> findByActivoFalse();
     Optional<Oficio> findByOficioAndActivoTrue(String oficio);
+    @Query("""
+    SELECT new ar.edu.utn.frc.tup.app.dtos.response.oficio.OficioXSolicitud(
+        o.oficio,
+        COUNT(s.id)
+    )
+    FROM Oficio o
+    JOIN Solicitude s ON s.idoficio = o
+    WHERE o.activo = TRUE
+    GROUP BY o.oficio
+    ORDER BY COUNT(s.id) DESC
+""")
+    List<OficioXSolicitud> findOficiosMasDemandados();
 }

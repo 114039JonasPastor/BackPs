@@ -1,6 +1,7 @@
 package ar.edu.utn.frc.tup.app.controllers;
 
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
+import ar.edu.utn.frc.tup.app.dtos.response.oficio.OficioXSolicitud;
 import ar.edu.utn.frc.tup.app.entities.Oficio;
 import ar.edu.utn.frc.tup.app.services.OficioService;
 import lombok.RequiredArgsConstructor;
@@ -65,5 +66,20 @@ public class OficioController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/oficios-demandados")
+    public ResponseEntity<?> getOficiosMasDemandados() {
+        List<OficioXSolicitud> oficios = oficioService.getOficiosMasDemandados();
+        if (oficios.isEmpty()) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .error("Not Found")
+                    .message("Oficios no encontrados")
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+        return ResponseEntity.ok(oficios);
     }
 }

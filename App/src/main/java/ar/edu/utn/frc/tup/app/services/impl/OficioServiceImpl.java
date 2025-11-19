@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
+import ar.edu.utn.frc.tup.app.dtos.response.oficio.OficioXSolicitud;
 import ar.edu.utn.frc.tup.app.entities.Oficio;
 import ar.edu.utn.frc.tup.app.repositories.OficioRepository;
 import ar.edu.utn.frc.tup.app.services.OficioService;
@@ -41,5 +42,10 @@ public class OficioServiceImpl implements OficioService {
 
         oficio.setActivo(true);
         oficioRepository.save(oficio);
+    }
+
+    @Override
+    public List<OficioXSolicitud> getOficiosMasDemandados() {
+        return oficioRepository.findOficiosMasDemandados();
     }
 }
