@@ -54,4 +54,6 @@ public class Usuario {
     @JoinColumn(name = "idauth", nullable = false)
     private Auth idauth;
 
+    @Column(name = "strike")
+    private Integer strike;
 }

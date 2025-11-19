@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
+import ar.edu.utn.frc.tup.app.dtos.response.oficio.OficioXSolicitud;
 import ar.edu.utn.frc.tup.app.entities.Oficio;
 import ar.edu.utn.frc.tup.app.repositories.OficioRepository;
 import ar.edu.utn.frc.tup.app.services.OficioService;
@@ -17,6 +18,34 @@ public class OficioServiceImpl implements OficioService {
 
     @Override
     public List<Oficio> getAllOficios() {
-        return oficioRepository.findAll();
+        return oficioRepository.findByActivoTrue();
+    }
+
+    @Override
+    public List<Oficio> getAllOficiosIncludingInactive() {
+        return oficioRepository.findByActivoFalse();
+    }
+
+    @Override
+    public void desactivarOficio(Integer idOficio) {
+        Oficio oficio = oficioRepository.findById(idOficio)
+                .orElseThrow(() -> new RuntimeException("Oficio no encontrado"));
+
+        oficio.setActivo(false);
+        oficioRepository.save(oficio);
+    }
+
+    @Override
+    public void activarOficio(Integer idOficio) {
+        Oficio oficio = oficioRepository.findById(idOficio)
+                .orElseThrow(() -> new RuntimeException("Oficio no encontrado"));
+
+        oficio.setActivo(true);
+        oficioRepository.save(oficio);
+    }
+
+    @Override
+    public List<OficioXSolicitud> getOficiosMasDemandados() {
+        return oficioRepository.findOficiosMasDemandados();
     }
 }

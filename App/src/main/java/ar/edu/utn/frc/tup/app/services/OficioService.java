@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.tup.app.services;
 
+import ar.edu.utn.frc.tup.app.dtos.response.oficio.OficioXSolicitud;
 import ar.edu.utn.frc.tup.app.entities.Oficio;
 import org.springframework.stereotype.Service;
 
@@ -9,4 +10,8 @@ import java.util.List;
 public interface OficioService {
 
     List<Oficio> getAllOficios();
+    List<Oficio> getAllOficiosIncludingInactive();
+    void desactivarOficio(Integer idOficio);
+    void activarOficio(Integer idOficio);
+    List<OficioXSolicitud> getOficiosMasDemandados();
 }
