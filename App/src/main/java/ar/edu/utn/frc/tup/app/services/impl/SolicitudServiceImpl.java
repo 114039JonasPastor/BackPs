@@ -47,6 +47,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .estado("PENDIENTE")
                 .iddireccion(usuario.getIddireccion())
                 .observacion(solicitud.getObservacion())
+                .horaReserva(solicitud.getHoraReserva())
                 .build();
 
         solicitudRepository.save(nueva);
@@ -61,6 +62,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .fechaservicio(nueva.getFechaservicio())
                 .direccion(usuario.getIddireccion().getCalle() + " " + usuario.getIddireccion().getNumero())
                 .observacion(nueva.getObservacion())
+                .horaReserva(nueva.getHoraReserva())
                 .build();
 
         return response;
@@ -93,6 +95,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         if (!solicitudes.isEmpty()) {
             for (Solicitude s : solicitudes){
                 SolicitudResponse response = SolicitudResponse.builder()
+                        .idSolicitud(s.getId())
                         .nombreUsuario(s.getIdusuario().getIdauth().getName() + " "
                                 + s.getIdusuario().getIdauth().getLastname())
                         .nombreProfesional(s.getIdprofesional().getIdusuario().getIdauth().getName()
@@ -102,13 +105,12 @@ public class SolicitudServiceImpl implements SolicitudService {
                         .direccion(s.getIdusuario().getIddireccion().getCalle() + " "
                                 + s.getIdusuario().getIddireccion().getNumero())
                         .observacion(s.getObservacion())
+                        .horaReserva(s.getHoraReserva())
                         .build();
                 respuestas.add(response);
             }
-            return respuestas;
-        } else {
-            throw new RuntimeException("Solicitudes no encontradas");
         }
+        return respuestas;
     }
 
     @Override
@@ -247,6 +249,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .estado("PENDIENTE")
                 .esTurno(true)
                 .duracionEstimada(duracion)
+                .horaReserva(hora.toString())
                 .iddireccion(usuario.getIddireccion())
                 .observacion(observacion)
                 .build();
@@ -262,6 +265,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .fechaservicio(turno.getFechaservicio())
                 .direccion(usuario.getIddireccion().getCalle() + " " + usuario.getIddireccion().getNumero())
                 .observacion(turno.getObservacion())
+                .horaReserva(turno.getHoraReserva())
                 .build();
     }
 
