@@ -17,4 +17,5 @@ public class SolicitudResponse {
     private Instant fechaservicio;
     private String direccion;
     private String observacion;
+    private String horaReserva;
 }
