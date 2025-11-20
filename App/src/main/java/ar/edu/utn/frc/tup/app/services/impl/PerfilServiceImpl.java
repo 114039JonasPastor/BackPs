@@ -8,20 +8,19 @@ import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.metrica.ProfesionalMetrica;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.metrica.UsuarioMetrica;
 import ar.edu.utn.frc.tup.app.entities.*;
-import ar.edu.utn.frc.tup.app.entities.Auth;
-import ar.edu.utn.frc.tup.app.entities.Direccione;
-import ar.edu.utn.frc.tup.app.entities.Usuario;
 import ar.edu.utn.frc.tup.app.repositories.*;
 import ar.edu.utn.frc.tup.app.services.PerfilService;
 import ar.edu.utn.frc.tup.app.services.ReseniaService;
 import ar.edu.utn.frc.tup.app.services.TrabajoService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -123,44 +122,19 @@ public class PerfilServiceImpl implements PerfilService {
         if(profesional == null){
             throw new RuntimeException("Profesional no encontrado");
         }
-        List<Disponibilidad> disponibilidades = disponibilidadRepository.findByIdprofesional_Id(profesional.getId());
-        List<Monto> montos = montoRepository.findByIdprofesional_Id(profesional.getId());
 
-        // Handle rangoPrecio with null check for monto
-        String rangoPrecio;
-        if(!montos.isEmpty() && montos.get(0).getPreciomin() != null && montos.get(0).getPreciomax() != null) {
-            rangoPrecio = montos.get(0).getPreciomin().toString() + " - " + montos.get(0).getPreciomax().toString();
-        } else if(profesional.getPrecioMin() != null && profesional.getPrecioMax() != null) {
-            rangoPrecio = profesional.getPrecioMin().toString() + " - " + profesional.getPrecioMax().toString();
-        } else {
-            rangoPrecio = "No especificado";
-        }
+        Monto monto = montoRepository.findByIdprofesional_Id(profesional.getId()).orElse(null);
 
-        // Convert disponibilidad entities to DTOs
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        List<ar.edu.utn.frc.tup.app.dtos.response.perfil.DisponibilidadDto> disponibilidadesList = disponibilidades.stream()
-                .filter(d -> d.getDiasemana() != null && d.getHorainicio() != null && d.getHorafin() != null)
-                .map(d -> ar.edu.utn.frc.tup.app.dtos.response.perfil.DisponibilidadDto.builder()
-                        .diaSemana(d.getDiasemana())
-                        .horaInicio(d.getHorainicio().format(formatter))
-                        .horaFin(d.getHorafin().format(formatter))
-                        .build())
-                .toList();
-
-        // Extract especialidades
-        List<String> especialidadesList = profesional.getEspecialidades() != null
-                ? profesional.getEspecialidades().stream()
-                .map(Especialidad::getEspecialidad)
-                .toList()
-                : List.of();
+        String rangoPrecio = calcularRangoPrecio(monto, profesional);
+        List<String> especialidadesList = obtenerEspecialidades(profesional);
 
         return PerfilProfesional.builder()
+                .idProfesional(profesional.getId())
                 .nombre(profesional.getIdusuario().getIdauth().getName())
                 .apellido(profesional.getIdusuario().getIdauth().getLastname())
                 .oficio(profesional.getIdoficio().getOficio())
                 .telefono(profesional.getIdusuario().getTelefono())
                 .rangoPrecio(rangoPrecio)
-                .disponibilidad(disponibilidadesList)
                 .especialidades(especialidadesList)
                 .build();
     }
@@ -218,47 +192,7 @@ public class PerfilServiceImpl implements PerfilService {
         profesional = professionelleRepository.findById(request.getIdProfesional())
                 .orElseThrow(() -> new RuntimeException("Profesional no encontrado"));
 
-        // Construir y retornar el perfil actualizado
-        List<Disponibilidad> disponibilidades = disponibilidadRepository.findByIdprofesional_Id(profesional.getId());
-        List<Monto> montos = montoRepository.findByIdprofesional_Id(profesional.getId());
-
-        // Handle rangoPrecio with null check for monto
-        String rangoPrecio;
-        if(!montos.isEmpty() && montos.get(0).getPreciomin() != null && montos.get(0).getPreciomax() != null) {
-            rangoPrecio = montos.get(0).getPreciomin().toString() + " - " + montos.get(0).getPreciomax().toString();
-        } else if(profesional.getPrecioMin() != null && profesional.getPrecioMax() != null) {
-            rangoPrecio = profesional.getPrecioMin().toString() + " - " + profesional.getPrecioMax().toString();
-        } else {
-            rangoPrecio = "No especificado";
-        }
-
-        // Convert disponibilidad entities to DTOs
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        List<ar.edu.utn.frc.tup.app.dtos.response.perfil.DisponibilidadDto> disponibilidadesList = disponibilidades.stream()
-                .filter(d -> d.getDiasemana() != null && d.getHorainicio() != null && d.getHorafin() != null)
-                .map(d -> ar.edu.utn.frc.tup.app.dtos.response.perfil.DisponibilidadDto.builder()
-                        .diaSemana(d.getDiasemana())
-                        .horaInicio(d.getHorainicio().format(formatter))
-                        .horaFin(d.getHorafin().format(formatter))
-                        .build())
-                .toList();
-
-        // Extract especialidades
-        List<String> especialidadesList = profesional.getEspecialidades() != null
-                ? profesional.getEspecialidades().stream()
-                .map(Especialidad::getEspecialidad)
-                .toList()
-                : List.of();
-
-        return PerfilProfesional.builder()
-                .nombre(profesional.getIdusuario().getIdauth().getName())
-                .apellido(profesional.getIdusuario().getIdauth().getLastname())
-                .oficio(profesional.getIdoficio().getOficio())
-                .telefono(profesional.getIdusuario().getTelefono())
-                .rangoPrecio(rangoPrecio)
-                .disponibilidad(disponibilidadesList)
-                .especialidades(especialidadesList)
-                .build();
+        return mapToPerfilProfesional(profesional);
     }
 
     @Override
@@ -280,57 +214,23 @@ public class PerfilServiceImpl implements PerfilService {
     }
 
     @Override
+    @Transactional
     public List<PerfilProfesional> getProfesionalesByOficio(String oficio) {
         try {
-            List<Profesionale> profesionales = professionelleRepository.findByOficio(oficio);
+            List<Profesionale> profesionales = professionelleRepository.findByOficioSimple(oficio);
+
+            // Forzar la carga de especialidades dentro de la transacción
+            profesionales.forEach(p -> {
+                if (p.getEspecialidades() != null) {
+                    p.getEspecialidades().size(); // Esto fuerza la carga lazy
+                }
+            });
 
             return profesionales.stream()
-                    .map(profesional -> {
-                        List<Disponibilidad> disponibilidades = disponibilidadRepository.findByIdprofesional_Id(profesional.getId());
-                        List<Monto> montos = montoRepository.findByIdprofesional_Id(profesional.getId());
-
-                        // Handle rangoPrecio - use first monto or fallback to profesional prices
-                        String rangoPrecio;
-                        if(!montos.isEmpty() && montos.get(0).getPreciomin() != null && montos.get(0).getPreciomax() != null) {
-                            rangoPrecio = montos.get(0).getPreciomin().toString() + " - " + montos.get(0).getPreciomax().toString();
-                        } else if(profesional.getPrecioMin() != null && profesional.getPrecioMax() != null) {
-                            rangoPrecio = profesional.getPrecioMin().toString() + " - " + profesional.getPrecioMax().toString();
-                        } else {
-                            rangoPrecio = "No especificado";
-                        }
-
-                        // Convert disponibilidad entities to DTOs
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-                        List<ar.edu.utn.frc.tup.app.dtos.response.perfil.DisponibilidadDto> disponibilidadesList = disponibilidades.stream()
-                                .filter(d -> d.getDiasemana() != null && d.getHorainicio() != null && d.getHorafin() != null)
-                                .map(d -> ar.edu.utn.frc.tup.app.dtos.response.perfil.DisponibilidadDto.builder()
-                                        .diaSemana(d.getDiasemana())
-                                        .horaInicio(d.getHorainicio().format(formatter))
-                                        .horaFin(d.getHorafin().format(formatter))
-                                        .build())
-                                .toList();
-
-                        // Extract especialidades
-                        List<String> especialidadesList = profesional.getEspecialidades() != null
-                                ? profesional.getEspecialidades().stream()
-                                .map(Especialidad::getEspecialidad)
-                                .toList()
-                                : List.of();
-
-                        return PerfilProfesional.builder()
-                                .idProfesional(profesional.getId())
-                                .nombre(profesional.getIdusuario().getIdauth().getName())
-                                .apellido(profesional.getIdusuario().getIdauth().getLastname())
-                                .oficio(profesional.getIdoficio().getOficio())
-                                .telefono(profesional.getIdusuario().getTelefono())
-                                .rangoPrecio(rangoPrecio)
-                                .disponibilidad(disponibilidadesList)
-                                .especialidades(especialidadesList)
-                                .build();
-                    })
+                    .map(this::mapToPerfilProfesional)
                     .toList();
         } catch (Exception e) {
-            throw new RuntimeException("Error al obtener profesionales por oficio", e);
+            throw new RuntimeException("Error al obtener profesionales por oficio: " + e.getMessage(), e);
         }
     }
 
@@ -394,12 +294,63 @@ public class PerfilServiceImpl implements PerfilService {
                     .nombre(profesional.getIdusuario().getIdauth().getName() + " " +
                             profesional.getIdusuario().getIdauth().getLastname())
                     .oficio(profesional.getIdoficio().getOficio())
-                    .calificacion(calificacionTexto) // 👈 Usamos la variable String
+                    .calificacion(calificacionTexto)
                     .serviciosCompletados(serviciosCompletados)
                     .build();
             profesionalMetricas.add(metrica);
         }
 
         return profesionalMetricas;
+    }
+
+    // ==================== MÉTODOS PRIVADOS DE APOYO ====================
+
+    /**
+     * Mapea un Profesionale a PerfilProfesional
+     */
+    private PerfilProfesional mapToPerfilProfesional(Profesionale profesional) {
+        Monto monto = montoRepository.findByIdprofesional_Id(profesional.getId()).orElse(null);
+
+        String rangoPrecio = calcularRangoPrecio(monto, profesional);
+        List<String> especialidadesList = obtenerEspecialidades(profesional);
+
+        return PerfilProfesional.builder()
+                .idProfesional(profesional.getId())
+                .nombre(profesional.getIdusuario().getIdauth().getName())
+                .apellido(profesional.getIdusuario().getIdauth().getLastname())
+                .oficio(profesional.getIdoficio().getOficio())
+                .telefono(profesional.getIdusuario().getTelefono())
+                .rangoPrecio(rangoPrecio)
+                .especialidades(especialidadesList)
+                .build();
+    }
+
+    /**
+     * Calcula el rango de precio del profesional
+     */
+    private String calcularRangoPrecio(Monto monto, Profesionale profesional) {
+        if (monto != null && monto.getPreciomin() != null && monto.getPreciomax() != null) {
+            return monto.getPreciomin() + " - " + monto.getPreciomax();
+        } else if (profesional.getPrecioMin() != null && profesional.getPrecioMax() != null) {
+            return profesional.getPrecioMin() + " - " + profesional.getPrecioMax();
+        }
+        return "No especificado";
+    }
+
+    /**
+     * Obtiene la lista de especialidades del profesional
+     */
+    private List<String> obtenerEspecialidades(Profesionale profesional) {
+        if (profesional.getEspecialidades() != null) {
+            try {
+                return profesional.getEspecialidades().stream()
+                        .map(Especialidad::getEspecialidad)
+                        .toList();
+            } catch (Exception e) {
+                // Si falla la carga lazy, retornar lista vacía
+                return List.of();
+            }
+        }
+        return List.of();
     }
 }

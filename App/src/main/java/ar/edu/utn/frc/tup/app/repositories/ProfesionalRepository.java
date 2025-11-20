@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface ProfesionalRepository extends JpaRepository<Profesionale, Integer> {
@@ -23,11 +24,9 @@ public interface ProfesionalRepository extends JpaRepository<Profesionale, Integ
             "    OR LOWER(c.ciudad) LIKE LOWER(CONCAT('%', :zona, '%')))")
     List<Profesionale> findByOficioAndZona(@Param("oficio") String oficio, @Param("zona") String zona);
 
-    @Query("SELECT DISTINCT p FROM Profesionale p " +
-            "LEFT JOIN FETCH p.especialidades " +
-            "JOIN p.idoficio o " +
-            "WHERE LOWER(o.oficio) LIKE LOWER(CONCAT('%', :oficio, '%'))")
-    List<Profesionale> findByOficio(@Param("oficio") String oficio);
+    @Query("SELECT p FROM Profesionale p " +
+            "WHERE LOWER(p.idoficio.oficio) LIKE LOWER(CONCAT('%', :oficio, '%'))")
+    List<Profesionale> findByOficioSimple(@Param("oficio") String oficio);
 
     @Query("SELECT DISTINCT p FROM Profesionale p " +
             "LEFT JOIN FETCH p.especialidades " +

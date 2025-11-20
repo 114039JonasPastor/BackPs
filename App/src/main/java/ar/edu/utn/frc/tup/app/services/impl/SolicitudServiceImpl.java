@@ -244,7 +244,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .idoficio(profesional.getIdoficio())
                 .fechasolicitud(java.time.Instant.now())
                 .fechaservicio(fechaServicioInstant)
-                .estado("ACEPTADA")
+                .estado("PENDIENTE")
                 .esTurno(true)
                 .duracionEstimada(duracion)
                 .iddireccion(usuario.getIddireccion())
@@ -254,6 +254,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitudRepository.save(turno);
 
         return SolicitudResponse.builder()
+                .idSolicitud(turno.getId())
                 .nombreUsuario(usuario.getIdauth().getName() + " " + usuario.getIdauth().getLastname())
                 .nombreProfesional(profesional.getIdusuario().getIdauth().getName() + " " +
                         profesional.getIdusuario().getIdauth().getLastname())

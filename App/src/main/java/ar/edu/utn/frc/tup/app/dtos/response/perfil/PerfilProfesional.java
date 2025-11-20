@@ -16,6 +16,6 @@ public class PerfilProfesional {
     private String oficio;
     private String telefono;
     private String rangoPrecio;
-    private List<DisponibilidadDto> disponibilidad;
+//    private String disponibilidad;
     private List<String> especialidades;
 }

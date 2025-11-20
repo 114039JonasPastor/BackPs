@@ -28,7 +28,7 @@ public class BusquedaServiceImpl implements BusquedaService {
         if (oficio != null && zona != null) {
             return profesionalRepository.findByOficioAndZona(oficio, zona);
         } else if (oficio != null) {
-            return profesionalRepository.findByOficio(oficio);
+            return profesionalRepository.findByOficioSimple(oficio);
         } else if (zona != null) {
             return profesionalRepository.findByZona(zona);
         } else {
