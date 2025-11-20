@@ -210,5 +210,25 @@ public class SolicitudController {
             return ResponseEntity.badRequest().body(error);
         }
     }
+
+    @GetMapping("/verificar-pendiente")
+    public ResponseEntity<?> verificarSolicitudPendiente(
+            @RequestParam Integer idUsuario,
+            @RequestParam Integer idProfesional) {
+        try {
+            boolean tienePendiente = solicitudService.tieneSolicitudPendiente(idUsuario, idProfesional);
+            Map<String, Object> response = new HashMap<>();
+            response.put("tieneSolicitudPendiente", tienePendiente);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
 }
 

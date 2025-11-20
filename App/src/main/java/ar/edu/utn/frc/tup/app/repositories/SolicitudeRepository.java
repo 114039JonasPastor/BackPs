@@ -33,4 +33,11 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
             @Param("idProfesional") Integer idProfesional,
             @Param("fecha") LocalDate fecha
     );
+
+    // Verificar si existe una solicitud pendiente entre usuario y profesional
+    boolean existsByIdusuario_IdAndIdprofesional_IdAndEstado(
+            Integer idUsuario,
+            Integer idProfesional,
+            String estado
+    );
 }
