@@ -173,11 +173,10 @@ public class TrabajoController {
     // Obtener trabajos del profesional
     @GetMapping("/profesional/{idProfesional}")
     public ResponseEntity<?> obtenerTrabajosPorProfesional(
-            @PathVariable Integer idProfesional,
-            @RequestParam(required = false) String estado) {
+            @PathVariable Integer idProfesional) {
         try {
             List<TrabajoResponse> trabajos = trabajoService
-                    .obtenerTrabajosPorProfesional(idProfesional, estado);
+                    .obtenerTrabajosPorProfesional(idProfesional);
 
             if (trabajos.isEmpty()) {
                 ErrorApi error = ErrorApi.builder()
