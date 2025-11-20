@@ -65,4 +65,6 @@ public class Solicitude {
     @Column(name = "duracion_estimada")
     private Integer duracionEstimada;
 
+    @Column(name = "hora_reserva")
+    private String horaReserva;
 }

@@ -11,4 +11,5 @@ public class SolicitudRequest {
     private Instant fechasolicitud;
     private Instant fechaservicio;
     private String observacion;
+    private String horaReserva;
 }
