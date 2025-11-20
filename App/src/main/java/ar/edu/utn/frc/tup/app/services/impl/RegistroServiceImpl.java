@@ -45,10 +45,11 @@ public class RegistroServiceImpl implements RegistroService {
     @Transactional
     public AuthResponse registrarUsuario(UsuarioRequest usuario) {
         try {
+            log.info("ID Tipo Documento recibido: {}", usuario.getIdTipoDoc());
             TiposDocumento tipo = tipoDocumentoRepository.findById(usuario.getIdTipoDoc())
-                    .orElseThrow(() -> new RuntimeException("Tipo de documento no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Tipo de documento no encontrado"));
             Barrio barrio = barrioRepository.findById(usuario.getIdBarrio())
-                    .orElseThrow(() -> new RuntimeException("Barrio no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Barrio no encontrado"));
 
             // Crear y guardar la autenticación pero inactiva hasta confirmar
             Auth auth = Auth.builder()
