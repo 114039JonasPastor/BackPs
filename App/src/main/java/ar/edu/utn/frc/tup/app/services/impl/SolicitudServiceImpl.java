@@ -393,4 +393,13 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
         return true; // Está disponible
     }
+
+    @Override
+    public boolean tieneSolicitudPendiente(Integer idUsuario, Integer idProfesional) {
+        return solicitudRepository.existsByIdusuario_IdAndIdprofesional_IdAndEstado(
+                idUsuario, 
+                idProfesional, 
+                "PENDIENTE"
+        );
+    }
 }

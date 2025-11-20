@@ -18,4 +18,5 @@ public interface SolicitudService {
     List<TurnoDisponibleDTO> obtenerTurnosDisponiblesSemana(Integer idProfesional, LocalDate fechaInicio, Integer duracionEstimada);
     SolicitudResponse confirmarTurno(Integer idUsuario, Integer idProfesional, LocalDate fecha, LocalTime hora, Integer duracion, String observacion);
     String reprogramarFecha(Integer idSolicitud, ReprogramarRequest request);
+    boolean tieneSolicitudPendiente(Integer idUsuario, Integer idProfesional);
 }
