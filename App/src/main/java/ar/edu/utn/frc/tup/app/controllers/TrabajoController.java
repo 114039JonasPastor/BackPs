@@ -201,6 +201,38 @@ public class TrabajoController {
         }
     }
 
+    // Obtener trabajos del profesional y estado
+    @GetMapping("/profesional/estado/{idProfesional}")
+    public ResponseEntity<?> obtenerTrabajosPorProfesional(
+            @PathVariable Integer idProfesional,
+            @RequestParam String estado) {
+        try {
+            List<TrabajoResponse> trabajos = trabajoService
+                    .obtenerTrabajosPorProfesionalyEstado(idProfesional, estado);
+
+            if (trabajos.isEmpty()) {
+                ErrorApi error = ErrorApi.builder()
+                        .timestamp(Instant.now().toString())
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .error("Not Found")
+                        .message("No se encontraron trabajos")
+                        .build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            }
+
+            return ResponseEntity.ok(trabajos);
+        } catch (RuntimeException e) {
+            log.error("Error al obtener trabajos del profesional", e);
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
     // Obtener trabajos del usuario
     @GetMapping("/usuario/{idUsuario}")
     public ResponseEntity<?> obtenerTrabajosPorUsuario(

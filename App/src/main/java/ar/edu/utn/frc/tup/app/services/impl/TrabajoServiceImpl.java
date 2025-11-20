@@ -205,22 +205,22 @@ public class TrabajoServiceImpl implements TrabajoService {
         }
     }
 
-//    @Override
-//    public List<TrabajoResponse> obtenerTrabajosPorProfesional(Integer idProfesional, String estado) {
-//        log.info("Obteniendo trabajos del profesional {} con estado {}", idProfesional, estado);
-//
-//        List<Trabajo> trabajos;
-//
-//        if (estado != null && !estado.isEmpty()) {
-//            trabajos = trabajoRepository.findByProfesionalAndEstado(idProfesional, estado);
-//        } else {
-//            trabajos = trabajoRepository.findByProfesionalAndEstado(idProfesional, null);
-//        }
-//
-//        return trabajos.stream()
-//                .map(this::mapearATrabajoResponse)
-//                .collect(Collectors.toList());
-//    }
+    @Override
+    public List<TrabajoResponse> obtenerTrabajosPorProfesionalyEstado(Integer idProfesional, String estado) {
+        log.info("Obteniendo trabajos del profesional {} con estado {}", idProfesional, estado);
+
+        List<Trabajo> trabajos;
+
+        if (estado != null && !estado.isEmpty()) {
+            trabajos = trabajoRepository.findByProfesionalAndEstado(idProfesional, estado);
+        } else {
+            trabajos = trabajoRepository.findByProfesionalAndEstado(idProfesional, null);
+        }
+
+        return trabajos.stream()
+                .map(this::mapearATrabajoResponse)
+                .collect(Collectors.toList());
+    }
 
     @Override
     public List<TrabajoResponse> obtenerTrabajosPorUsuario(Integer idUsuario, String estado) {
