@@ -254,6 +254,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitudRepository.save(turno);
 
         return SolicitudResponse.builder()
+                .idSolicitud(turno.getId())
                 .nombreUsuario(usuario.getIdauth().getName() + " " + usuario.getIdauth().getLastname())
                 .nombreProfesional(profesional.getIdusuario().getIdauth().getName() + " " +
                         profesional.getIdusuario().getIdauth().getLastname())

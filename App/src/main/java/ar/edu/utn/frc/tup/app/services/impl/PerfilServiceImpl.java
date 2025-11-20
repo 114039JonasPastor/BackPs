@@ -336,7 +336,7 @@ public class PerfilServiceImpl implements PerfilService {
         }
         return "No especificado";
     }
-    
+
     /**
      * Obtiene la lista de especialidades del profesional
      */
