@@ -244,7 +244,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .idoficio(profesional.getIdoficio())
                 .fechasolicitud(java.time.Instant.now())
                 .fechaservicio(fechaServicioInstant)
-                .estado("ACEPTADA")
+                .estado("PENDIENTE")
                 .esTurno(true)
                 .duracionEstimada(duracion)
                 .iddireccion(usuario.getIddireccion())

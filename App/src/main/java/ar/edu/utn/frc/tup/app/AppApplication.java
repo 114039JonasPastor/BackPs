@@ -3,10 +3,12 @@ package ar.edu.utn.frc.tup.app;
 import jakarta.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.TimeZone;
 
 @SpringBootApplication
+@EnableTransactionManagement
 public class AppApplication {
 
     @PostConstruct
