@@ -16,7 +16,7 @@ public interface TrabajoService {
     TrabajoResponse cancelarTrabajo(Integer idTrabajo, String motivoCancelacion);
     TrabajoResponse obtenerTrabajoPorId(Integer idTrabajo);
     TrabajoResponse obtenerTrabajoPorSolicitud(Integer idSolicitud);
-    List<TrabajoResponse> obtenerTrabajosPorProfesional(Integer idProfesional, String estado);
+    List<TrabajoResponse> obtenerTrabajosPorProfesional(Integer idProfesional);
     List<TrabajoResponse> obtenerTrabajosPorUsuario(Integer idUsuario, String estado);
     List<TrabajoResponse> obtenerTrabajosSinFactura();
 }
