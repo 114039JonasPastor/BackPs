@@ -1,6 +1,7 @@
 package ar.edu.utn.frc.tup.app.services;
 
 import ar.edu.utn.frc.tup.app.dtos.request.trabajo.FinalizarTrabajoRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoClienteResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoResponse;
 import ar.edu.utn.frc.tup.app.entities.Factura;
 import ar.edu.utn.frc.tup.app.entities.Trabajo;
@@ -20,4 +21,5 @@ public interface TrabajoService {
     List<TrabajoResponse> obtenerTrabajosPorProfesionalyEstado(Integer idProfesional, String estado);
     List<TrabajoResponse> obtenerTrabajosPorUsuario(Integer idUsuario, String estado);
     List<TrabajoResponse> obtenerTrabajosSinFactura();
+    List<TrabajoClienteResponse> obtenerTrabajosFinalizadosPorCliente(Integer idUsuario);
 }

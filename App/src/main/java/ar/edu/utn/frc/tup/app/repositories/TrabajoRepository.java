@@ -37,6 +37,15 @@ public interface TrabajoRepository extends JpaRepository<Trabajo, Integer> {
             "WHERE s.idusuario.id = :idUsuario")
     List<Trabajo> findByUsuario(@Param("idUsuario") Integer idUsuario);
 
+    // Buscar trabajos por usuario y estado
+    @Query("SELECT t FROM Trabajo t " +
+            "JOIN t.solicitud s " +
+            "WHERE s.idusuario.id = :idUsuario AND t.estado = :estado")
+    List<Trabajo> findByUsuarioAndEstado(
+            @Param("idUsuario") Integer idUsuario,
+            @Param("estado") String estado
+    );
+
     // Contar trabajos por estado
     @Query("SELECT COUNT(t) FROM Trabajo t " +
             "JOIN t.solicitud s " +

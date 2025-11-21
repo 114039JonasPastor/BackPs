@@ -72,6 +72,9 @@ public class Trabajo {
     @Column(name = "fototrabajo", length = 255)
     private String fotoTrabajo;
 
+    @Column(name = "idpago", length = 255)
+    private String idpago;
+
     @ColumnDefault("now()")
     @Column(name = "creadoen", nullable = false)
     private Instant creadoEn;

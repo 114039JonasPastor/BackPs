@@ -470,3 +470,7 @@ CREATE INDEX idx_oficios_activo ON oficios(activo);
 
 -- Opcional: Actualizar oficios existentes para que estén activos
 UPDATE oficios SET activo = TRUE WHERE activo IS NULL;
+
+-- Se agrega columna id pago a la tabla trabajos
+alter table trabajos
+add column idpago varchar(255);

@@ -147,6 +147,10 @@ public class FacturaServiceImpl implements FacturaService {
             log.info("Modo sandbox: {}", isSandbox);
             log.info("Init URL: {}", initUrl);
 
+            trabajo.setIdpago(initUrl);
+            trabajoRepository.save(trabajo);
+            log.info("Campo idpago actualizado en el trabajo {} con initPoint: {}", trabajo.getId(), initUrl);
+
             return PreferenceResponse.builder()
                     .preferenceId(preference.getId())
                     .initPoint(initUrl)

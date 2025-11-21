@@ -1,6 +1,7 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
 import ar.edu.utn.frc.tup.app.dtos.request.trabajo.FinalizarTrabajoRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoClienteResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoResponse;
 import ar.edu.utn.frc.tup.app.entities.Solicitude;
 import ar.edu.utn.frc.tup.app.entities.Trabajo;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -247,6 +249,31 @@ public class TrabajoServiceImpl implements TrabajoService {
 
         return trabajos.stream()
                 .map(this::mapearATrabajoResponse)
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public List<TrabajoClienteResponse> obtenerTrabajosFinalizadosPorCliente(Integer idUsuario) {
+        log.info("Obteniendo trabajos finalizados para el cliente: {}", idUsuario);
+
+        // Buscar trabajos por usuario con estado FINALIZADO
+        List<Trabajo> trabajos = trabajoRepository.findByUsuarioAndEstado(idUsuario, "FINALIZADO");
+
+        if (trabajos.isEmpty()) {
+            log.warn("No se encontraron trabajos finalizados para el cliente: {}", idUsuario);
+            return List.of();
+        }
+
+        // Mapear los trabajos a TrabajoClienteResponse
+        return trabajos.stream()
+                .map(trabajo -> TrabajoClienteResponse.builder()
+                        .idTrabajo(trabajo.getId())
+                        .idSolicitud(trabajo.getSolicitud().getId())
+                        .idpago(trabajo.getIdpago())
+                        .estado(trabajo.getEstado())
+                        .montoFinal(trabajo.getMontoFinal() != null ? trabajo.getMontoFinal().toString() : null)
+                        .build())
                 .collect(Collectors.toList());
     }
 

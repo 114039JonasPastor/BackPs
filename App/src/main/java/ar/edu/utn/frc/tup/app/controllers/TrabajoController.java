@@ -2,6 +2,7 @@ package ar.edu.utn.frc.tup.app.controllers;
 
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.trabajo.FinalizarTrabajoRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoClienteResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoResponse;
 import ar.edu.utn.frc.tup.app.entities.Trabajo;
 import ar.edu.utn.frc.tup.app.services.TrabajoService;
@@ -284,6 +285,37 @@ public class TrabajoController {
             return ResponseEntity.ok(trabajos);
         } catch (RuntimeException e) {
             log.error("Error al obtener trabajos sin factura", e);
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    // Obtener trabajos finalizados por cliente (usuario)
+    @GetMapping("/cliente/finalizados/{idUsuario}")
+    public ResponseEntity<?> obtenerTrabajosFinalizadosPorCliente(
+            @PathVariable Integer idUsuario) {
+        try {
+            List<TrabajoClienteResponse> trabajos =
+                    trabajoService.obtenerTrabajosFinalizadosPorCliente(idUsuario);
+
+            if (trabajos.isEmpty()) {
+                ErrorApi error = ErrorApi.builder()
+                        .timestamp(Instant.now().toString())
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .error("Not Found")
+                        .message("No se encontraron trabajos finalizados para el cliente")
+                        .build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            }
+
+            return ResponseEntity.ok(trabajos);
+        } catch (RuntimeException e) {
+            log.error("Error al obtener trabajos finalizados del cliente", e);
             ErrorApi error = ErrorApi.builder()
                     .timestamp(Instant.now().toString())
                     .status(HttpStatus.BAD_REQUEST.value())
