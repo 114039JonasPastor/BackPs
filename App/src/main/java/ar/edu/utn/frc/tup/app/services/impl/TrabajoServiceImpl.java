@@ -265,15 +265,30 @@ public class TrabajoServiceImpl implements TrabajoService {
             return List.of();
         }
 
-        // Mapear los trabajos a TrabajoClienteResponse
+        // Mapear los trabajos a TrabajoClienteResponse y ordenar por fecha de finalizacion descendente
         return trabajos.stream()
-                .map(trabajo -> TrabajoClienteResponse.builder()
-                        .idTrabajo(trabajo.getId())
-                        .idSolicitud(trabajo.getSolicitud().getId())
-                        .idpago(trabajo.getIdpago())
-                        .estado(trabajo.getEstado())
-                        .montoFinal(trabajo.getMontoFinal() != null ? trabajo.getMontoFinal().toString() : null)
-                        .build())
+                .map(trabajo -> {
+                    Solicitude solicitud = trabajo.getSolicitud();
+                    String nombreProfesional = solicitud.getIdprofesional().getIdusuario().getIdauth().getName() + " " +
+                            solicitud.getIdprofesional().getIdusuario().getIdauth().getLastname();
+
+                    return TrabajoClienteResponse.builder()
+                            .idTrabajo(trabajo.getId())
+                            .idSolicitud(solicitud.getId())
+                            .profesional(nombreProfesional)
+                            .descripcion(trabajo.getObservacionesTrabajo())
+                            .idpago(trabajo.getIdpago())
+                            .estado(trabajo.getEstado())
+                            .montoFinal(trabajo.getMontoFinal() != null ? trabajo.getMontoFinal().toString() : null)
+                            .fechaFinalizacion(trabajo.getFechaFinalizacion())
+                            .build();
+                })
+                .sorted((t1, t2) -> {
+                    if (t1.getFechaFinalizacion() == null && t2.getFechaFinalizacion() == null) return 0;
+                    if (t1.getFechaFinalizacion() == null) return 1;
+                    if (t2.getFechaFinalizacion() == null) return -1;
+                    return t2.getFechaFinalizacion().compareTo(t1.getFechaFinalizacion());
+                })
                 .collect(Collectors.toList());
     }
 
