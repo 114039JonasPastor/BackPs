@@ -100,10 +100,13 @@ public class PagoController {
         }
     }
 
-    @GetMapping("/historial-ingresos/{desde}/{hasta}")
-    public ResponseEntity<?> historialDeIngresos(@PathVariable Instant desde, @PathVariable Instant hasta) {
+    @GetMapping("/historial-ingresos")
+    public ResponseEntity<?> historialDeIngresos(
+            @RequestParam(required = false) Instant desde,
+            @RequestParam(required = false) Instant hasta,
+            @RequestParam Integer idProfesional) {
         try {
-            List<PagoFactura> pagos = facturaService.historialDeIngresos(desde, hasta);
+            List<PagoFactura> pagos = facturaService.historialDeIngresos(desde, hasta, idProfesional);
             return ResponseEntity.ok(pagos);
         } catch (RuntimeException e) {
             ErrorApi error = ErrorApi.builder()

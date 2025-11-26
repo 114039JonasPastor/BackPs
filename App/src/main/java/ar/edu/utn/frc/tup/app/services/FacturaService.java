@@ -16,5 +16,5 @@ public interface FacturaService {
     Factura procesarPagoAprobado(Map<String, Object> paymentData);
     Factura obtenerFacturaPorId(Integer nroFactura);
     void actualizarEstadoPago(Integer nroFactura, String estado);
-    List<PagoFactura> historialDeIngresos(Instant desde, Instant hasta);
+    List<PagoFactura> historialDeIngresos(Instant desde, Instant hasta, Integer idProfesional);
 }
