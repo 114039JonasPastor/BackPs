@@ -474,3 +474,10 @@ UPDATE oficios SET activo = TRUE WHERE activo IS NULL;
 -- Se agrega columna id pago a la tabla trabajos
 alter table trabajos
 add column idpago varchar(255);
+
+-- Elimina la restricción actual (ajusta el nombre si es diferente)
+ALTER TABLE rolxusuario DROP CONSTRAINT rolxusuario_idauth_fkey;
+
+-- Crea la restricción correcta apuntando a auth
+ALTER TABLE rolxusuario
+    ADD CONSTRAINT fk_rolxusuario_idauth FOREIGN KEY (idauth) REFERENCES auth(idauth);

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -40,4 +41,75 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
             Integer idProfesional,
             String estado
     );
+    
+    //Mapa para solicitudes
+    @Query("""
+        SELECT new map(
+            s.id as idSolicitud,
+            s.fechasolicitud as fechaSolicitud,
+            s.fechaservicio as fechaServicio,
+            s.estado as estado,
+            s.observacion as descripcion,
+            u.id as idUsuario,
+            auth.name as nombreCliente,
+            auth.lastname as apellidoCliente,
+            auth.mail as emailCliente,
+            u.telefono as telefonoCliente,
+            d.calle as calle,
+            d.numero as numero,
+            d.piso as piso,
+            d.depto as depto,
+            b.barrio as barrio,
+            c.ciudad as ciudad,
+            p.id as idProfesional,
+            o.oficio as oficio
+        )
+        FROM Solicitude s
+        JOIN s.idusuario u
+        JOIN u.idauth auth
+        JOIN u.iddireccion d
+        JOIN d.idbarrio b
+        JOIN b.idciudad c
+        JOIN s.idprofesional p
+        JOIN p.idoficio o
+        WHERE s.id = :idSolicitud
+        """)
+    Map<String, Object> findSolicitudConDireccion(@Param("idSolicitud") Integer idSolicitud);
+
+    /**
+     * Obtiene todas las solicitudes de un profesional con información de dirección
+     */
+    @Query("""
+        SELECT new map(
+            s.id as idSolicitud,
+            s.fechasolicitud as fechaSolicitud,
+            s.fechaservicio as fechaServicio,
+            s.estado as estado,
+            s.observacion as descripcion,
+            u.id as idUsuario,
+            auth.name as nombreCliente,
+            auth.lastname as apellidoCliente,
+            auth.mail as emailCliente,
+            u.telefono as telefonoCliente,
+            d.calle as calle,
+            d.numero as numero,
+            d.piso as piso,
+            d.depto as depto,
+            b.barrio as barrio,
+            c.ciudad as ciudad,
+            p.id as idProfesional,
+            o.oficio as oficio
+        )
+        FROM Solicitude s
+        JOIN s.idusuario u
+        JOIN u.idauth auth
+        JOIN u.iddireccion d
+        JOIN d.idbarrio b
+        JOIN b.idciudad c
+        JOIN s.idprofesional p
+        JOIN p.idoficio o
+        WHERE p.id = :idProfesional
+        ORDER BY s.fechasolicitud DESC
+        """)
+    List<Map<String, Object>> findSolicitudesByProfesionalConDireccion(@Param("idProfesional") Integer idProfesional);
 }
