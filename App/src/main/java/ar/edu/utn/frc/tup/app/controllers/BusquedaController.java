@@ -66,9 +66,10 @@ public class BusquedaController {
     @GetMapping("/profesionales")
     public ResponseEntity<?> buscarProfesionales(
             @RequestParam(required = false) String oficio,
-            @RequestParam(required = false) String zona) {
+            @RequestParam(required = false) String zona,
+            @RequestParam(required = false) String nombre) {
         try {
-            List<Map<String, Object>> profesionales = busquedaService.buscarProfesionalesConUbicacion(oficio, zona);
+            List<Map<String, Object>> profesionales = busquedaService.buscarProfesionalesConUbicacion(oficio, zona, nombre);
             if (profesionales.isEmpty()) {
                 return ResponseEntity.ok(Map.of("mensaje", "No se encontraron profesionales"));
             }
@@ -77,6 +78,7 @@ public class BusquedaController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
 
     @GetMapping("/profesionales/cercanos")
     public ResponseEntity<List<Map<String, Object>>> buscarProfesionalesCercanos(
