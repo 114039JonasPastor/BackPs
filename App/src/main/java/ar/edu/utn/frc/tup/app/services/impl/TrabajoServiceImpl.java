@@ -257,7 +257,6 @@ public class TrabajoServiceImpl implements TrabajoService {
     public List<TrabajoClienteResponse> obtenerTrabajosFinalizadosPorCliente(Integer idUsuario) {
         log.info("Obteniendo trabajos finalizados para el cliente: {}", idUsuario);
 
-        // Buscar trabajos por usuario con estado FINALIZADO
         List<Trabajo> trabajos = trabajoRepository.findByUsuarioAndEstado(idUsuario, "FINALIZADO");
 
         if (trabajos.isEmpty()) {
@@ -265,7 +264,6 @@ public class TrabajoServiceImpl implements TrabajoService {
             return List.of();
         }
 
-        // Mapear los trabajos a TrabajoClienteResponse y ordenar por fecha de finalizacion descendente
         return trabajos.stream()
                 .map(trabajo -> {
                     Solicitude solicitud = trabajo.getSolicitud();
@@ -281,6 +279,7 @@ public class TrabajoServiceImpl implements TrabajoService {
                             .estado(trabajo.getEstado())
                             .montoFinal(trabajo.getMontoFinal() != null ? trabajo.getMontoFinal().toString() : null)
                             .fechaFinalizacion(trabajo.getFechaFinalizacion())
+                            .estadoPago(trabajo.getFactura() != null ? trabajo.getFactura().getEstadopago() : "PENDIENTE") // ⭐ AGREGAR
                             .build();
                 })
                 .sorted((t1, t2) -> {
