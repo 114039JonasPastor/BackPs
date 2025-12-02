@@ -11,4 +11,5 @@ import java.util.List;
 public interface FacturaRepository extends JpaRepository<Factura,Integer> {
     List<Factura> findByEstadopagoOrderByFechaDesc(String estadopago);
     List<Factura> findByFechaBetweenAndEstadopago(Instant fechaInicio, Instant fechaFin, String estadopago);
+    List<Factura> findByFechaBetweenAndEstadopagoAndIdprofesionalId(Instant fechaInicio, Instant fechaFin, String estadopago, Integer idprofesional);
 }

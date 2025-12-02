@@ -4,17 +4,18 @@ import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.factura.FacturaRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.PagoFactura;
 import ar.edu.utn.frc.tup.app.dtos.response.PreferenceResponse;
-import ar.edu.utn.frc.tup.app.entities.Departamento;
-import ar.edu.utn.frc.tup.app.entities.Factura;
 import ar.edu.utn.frc.tup.app.services.FacturaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,12 +101,26 @@ public class PagoController {
         }
     }
 
-    @GetMapping("/historial-ingresos/{desde}/{hasta}")
-    public ResponseEntity<?> historialDeIngresos(@PathVariable Instant desde, @PathVariable Instant hasta) {
+    @GetMapping("/historial-ingresos")
+    public ResponseEntity<?> historialDeIngresos(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(required = false) Integer idProfesional) {
         try {
-            List<PagoFactura> pagos = facturaService.historialDeIngresos(desde, hasta);
+            log.info("📊 Consultando historial de ingresos desde {} hasta {}, profesional: {}",
+                    desde, hasta, idProfesional != null ? idProfesional : "todos");
+
+            // Convertir LocalDate a Instant (inicio del día y fin del día)
+            Instant desdeInstant = desde.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            Instant hastaInstant = hasta.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+
+            log.info("🕐 Rango de tiempo: {} a {}", desdeInstant, hastaInstant);
+
+            List<PagoFactura> pagos = facturaService.historialDeIngresos(desdeInstant, hastaInstant, idProfesional);
+            log.info("✅ Encontrados {} pagos", pagos.size());
             return ResponseEntity.ok(pagos);
         } catch (RuntimeException e) {
+            log.error("❌ Error al consultar historial: {}", e.getMessage());
             ErrorApi error = ErrorApi.builder()
                     .timestamp(Instant.now().toString())
                     .status(HttpStatus.NOT_FOUND.value())
@@ -113,6 +128,15 @@ public class PagoController {
                     .message(e.getMessage())
                     .build();
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        } catch (Exception e) {
+            log.error("❌ Error inesperado al consultar historial", e);
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .error("Internal Server Error")
+                    .message("Error al procesar la solicitud: " + e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 }

@@ -296,8 +296,17 @@ public class FacturaServiceImpl implements FacturaService {
     }
 
     @Override
-    public List<PagoFactura> historialDeIngresos(Instant desde, Instant hasta) {
-        List<Factura> facturas = facturaRepository.findByFechaBetweenAndEstadopago(desde, hasta, "APROBADO");
+    public List<PagoFactura> historialDeIngresos(Instant desde, Instant hasta, Integer idProfesional) {
+        List<Factura> facturas;
+
+        // Filtrar por idProfesional si no es null
+        if (idProfesional != null) {
+            facturas = facturaRepository.findByFechaBetweenAndEstadopagoAndIdprofesionalId(desde, hasta, "APROBADO", idProfesional);
+            log.info("Buscando ingresos para profesional ID: {}", idProfesional);
+        } else {
+            facturas = facturaRepository.findByFechaBetweenAndEstadopago(desde, hasta, "APROBADO");
+            log.info("Buscando todos los ingresos sin filtro de profesional");
+        }
 
         if(facturas.isEmpty()) {
             throw new RuntimeException("No existen pagos en este rango de fechas");
