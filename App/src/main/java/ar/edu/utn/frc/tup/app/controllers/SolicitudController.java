@@ -3,6 +3,7 @@ package ar.edu.utn.frc.tup.app.controllers;
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.ReprogramarRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudDetalleResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.TurnoDisponibleDTO;
@@ -268,6 +269,23 @@ public class SolicitudController {
                     "error", error.getError(),
                     "message", error.getMessage()
             ));
+        }
+    }
+
+    @GetMapping("/{idSolicitud}")
+    public ResponseEntity<?> getSolicitudById(@PathVariable Integer idSolicitud) {
+        try {
+            Solicitude solicitud = solicitudService.getSolicitudById(idSolicitud);
+            SolicitudDetalleResponse response = new SolicitudDetalleResponse(solicitud);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .error("Not Found")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
 }
