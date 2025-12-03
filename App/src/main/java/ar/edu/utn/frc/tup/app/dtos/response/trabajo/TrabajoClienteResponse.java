@@ -16,4 +16,5 @@ public class TrabajoClienteResponse {
     private String estado;
     private String montoFinal;
     private Instant fechaFinalizacion;
+    private String estadoPago;
 }

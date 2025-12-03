@@ -3,9 +3,12 @@ package ar.edu.utn.frc.tup.app.controllers;
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.ReprogramarRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudDetalleResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.TurnoDisponibleDTO;
+import ar.edu.utn.frc.tup.app.entities.Direccione;
+import ar.edu.utn.frc.tup.app.entities.Solicitude;
 import ar.edu.utn.frc.tup.app.services.SolicitudService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -228,6 +231,61 @@ public class SolicitudController {
                     .message(e.getMessage())
                     .build();
             return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    //Mapa
+    @GetMapping("/profesional/{idProfesional}/con-ubicacion")
+    public ResponseEntity<List<Map<String, Object>>> getSolicitudesByProfesionalConUbicacion(
+            @PathVariable Integer idProfesional) {
+        try {
+            List<Map<String, Object>> solicitudes = solicitudService
+                    .getSolicitudesByProfesionalConUbicacion(idProfesional);
+
+            if (solicitudes.isEmpty()) {
+                return ResponseEntity.ok(List.of());
+            }
+
+            return ResponseEntity.ok(solicitudes);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/{idSolicitud}/ubicacion")
+    public ResponseEntity<Map<String, Object>> getSolicitudConUbicacion(
+            @PathVariable Integer idSolicitud) {
+        try {
+            Map<String, Object> resultado = solicitudService.getSolicitudConUbicacion(idSolicitud);
+            return ResponseEntity.ok(resultado);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .error("Not Found")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "error", error.getError(),
+                    "message", error.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/{idSolicitud}")
+    public ResponseEntity<?> getSolicitudById(@PathVariable Integer idSolicitud) {
+        try {
+            Solicitude solicitud = solicitudService.getSolicitudById(idSolicitud);
+            SolicitudDetalleResponse response = new SolicitudDetalleResponse(solicitud);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .error("Not Found")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
 }

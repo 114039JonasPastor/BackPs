@@ -13,16 +13,14 @@ import ar.edu.utn.frc.tup.app.repositories.DisponibilidadRepository;
 import ar.edu.utn.frc.tup.app.repositories.ProfesionalRepository;
 import ar.edu.utn.frc.tup.app.repositories.SolicitudeRepository;
 import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
+import ar.edu.utn.frc.tup.app.services.OpenStreetMapService;
 import ar.edu.utn.frc.tup.app.services.SolicitudService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +30,7 @@ public class SolicitudServiceImpl implements SolicitudService {
     private final SolicitudeRepository solicitudRepository;
     private final UsuarioRepository usuarioRepository;
     private final ProfesionalRepository profesionalRepository;
+    private final OpenStreetMapService openStreetMapService;
 
     @Override
     public SolicitudResponse enviarSolicitud(SolicitudRequest solicitud) {
@@ -406,5 +405,88 @@ public class SolicitudServiceImpl implements SolicitudService {
                 idProfesional, 
                 "PENDIENTE"
         );
+    }
+
+    //Para el mapa
+    @Override
+    public Map<String, Object> getSolicitudConUbicacion(Integer idSolicitud) {
+        Map<String, Object> solicitudData = solicitudRepository.findSolicitudConDireccion(idSolicitud);
+
+        if (solicitudData == null) {
+            throw new RuntimeException("Solicitud no encontrada");
+        }
+
+        return procesarSolicitudConUbicacion(solicitudData);
+    }
+
+    @Override
+    public List<Map<String, Object>> getSolicitudesByProfesionalConUbicacion(Integer idProfesional) {
+        List<Map<String, Object>> solicitudes = solicitudRepository.findSolicitudesByProfesionalConDireccion(idProfesional);
+
+        return solicitudes.stream()
+                .map(this::procesarSolicitudConUbicacion)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Solicitude getSolicitudById(Integer idSolicitud) {
+        return solicitudRepository.findById(idSolicitud)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+    }
+
+    private Map<String, Object> procesarSolicitudConUbicacion(Map<String, Object> solicitudData) {
+        String direccionCompleta = construirDireccionDesdeMap(solicitudData);
+        solicitudData.put("direccionCompleta", direccionCompleta);
+
+        try {
+            String ciudad = (String) solicitudData.get("ciudad");
+            Map<String, Object> coordenadas = openStreetMapService.obtenerCoordenadasPorCiudadEspecifica(
+                    direccionCompleta,
+                    ciudad
+            );
+
+            if ((Boolean) coordenadas.getOrDefault("encontrado", false)) {
+                solicitudData.put("latitud", coordenadas.get("latitud"));
+                solicitudData.put("longitud", coordenadas.get("longitud"));
+                solicitudData.put("ubicacionEncontrada", true);
+            } else {
+                solicitudData.put("latitud", null);
+                solicitudData.put("longitud", null);
+                solicitudData.put("ubicacionEncontrada", false);
+                solicitudData.put("mensajeUbicacion", coordenadas.get("mensaje"));
+            }
+        } catch (Exception e) {
+            solicitudData.put("latitud", null);
+            solicitudData.put("longitud", null);
+            solicitudData.put("ubicacionEncontrada", false);
+            solicitudData.put("errorUbicacion", "No se pudo geocodificar: " + e.getMessage());
+        }
+
+        return solicitudData;
+    }
+
+    private String construirDireccionDesdeMap(Map<String, Object> data) {
+        StringBuilder direccion = new StringBuilder();
+
+        direccion.append(data.get("calle"))
+                .append(" ")
+                .append(data.get("numero"));
+
+        String piso = (String) data.get("piso");
+        if (piso != null && !piso.trim().isEmpty()) {
+            direccion.append(", Piso ").append(piso);
+        }
+
+        String depto = (String) data.get("depto");
+        if (depto != null && !depto.trim().isEmpty()) {
+            direccion.append(", Depto ").append(depto);
+        }
+
+        direccion.append(", ")
+                .append(data.get("barrio"))
+                .append(", ")
+                .append(data.get("ciudad"));
+
+        return direccion.toString();
     }
 }

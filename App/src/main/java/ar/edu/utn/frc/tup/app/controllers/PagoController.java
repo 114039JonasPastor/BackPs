@@ -4,6 +4,9 @@ import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.factura.FacturaRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.PagoFactura;
 import ar.edu.utn.frc.tup.app.dtos.response.PreferenceResponse;
+import ar.edu.utn.frc.tup.app.entities.Factura;
+import ar.edu.utn.frc.tup.app.entities.Trabajo;
+import ar.edu.utn.frc.tup.app.repositories.TrabajoRepository;
 import ar.edu.utn.frc.tup.app.services.FacturaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +31,7 @@ import java.util.Map;
 public class PagoController {
 
     private final FacturaService facturaService;
+    private final TrabajoRepository trabajoRepository;
 
     @Value("${mercadopago.access.token}")
     private String accessToken;
@@ -35,18 +39,52 @@ public class PagoController {
     @Value("${mercadopago.public.key}")
     private String publicKey;
 
-    // ⭐ Ahora espera idTrabajo en el request
     @PostMapping("/crear-preferencia")
-    public ResponseEntity<PreferenceResponse> crearPreferencia(@RequestBody FacturaRequest request) {
+    public ResponseEntity<?> crearPreferencia(@RequestBody FacturaRequest request) {
         try {
             log.info("📝 Solicitud de creación de preferencia recibida");
             log.info("ID Trabajo: {}", request.getIdTrabajo());
+
+            // ⭐ VERIFICAR SI YA EXISTE UNA FACTURA PARA ESTE TRABAJO
+            if (request.getIdTrabajo() == null) {
+                throw new RuntimeException("Debe proporcionar el ID del trabajo");
+            }
+
+            Trabajo trabajo = trabajoRepository.findById(request.getIdTrabajo())
+                    .orElseThrow(() -> new RuntimeException("Trabajo no encontrado"));
+
+            // Si ya tiene factura, verificar el estado
+            if (trabajo.getFactura() != null) {
+                Factura facturaExistente = trabajo.getFactura();
+
+                // Si ya está aprobada, no permitir crear otra preferencia
+                if ("APROBADO".equals(facturaExistente.getEstadopago())) {
+                    log.warn("❌ Intento de crear preferencia para trabajo ya pagado: {}", trabajo.getId());
+                    throw new RuntimeException("Este trabajo ya ha sido pagado");
+                }
+
+                // Si está pendiente, retornar el link existente
+                if (trabajo.getIdpago() != null && !trabajo.getIdpago().isEmpty()) {
+                    log.info("✅ Retornando preferencia existente para trabajo {}", trabajo.getId());
+                    return ResponseEntity.ok(PreferenceResponse.builder()
+                            .initPoint(trabajo.getIdpago())
+                            .sandboxInitPoint(trabajo.getIdpago())
+                            .build());
+                }
+            }
+
+            // Si no existe factura o no tiene link de pago, crear nueva preferencia
             PreferenceResponse response = facturaService.crearPreferenciaPago(request);
             return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            log.error("❌ Error al crear preferencia: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            log.error("❌ Error al crear preferencia", e);
+            log.error("❌ Error inesperado al crear preferencia", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
+                    .body(Map.of("error", "Error interno del servidor"));
         }
     }
 

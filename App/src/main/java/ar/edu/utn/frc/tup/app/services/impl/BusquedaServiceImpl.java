@@ -24,7 +24,10 @@ public class BusquedaServiceImpl implements BusquedaService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public List<Profesionale> buscarProfesionalesPorFiltros(String oficio, String zona) {
+    public List<Profesionale> buscarProfesionalesPorFiltros(String oficio, String zona, String nombre) {
+        if (nombre != null && !nombre.isEmpty()) {
+            return profesionalRepository.findByIdusuario_Idauth_NameContainingIgnoreCaseOrIdusuario_Idauth_LastnameContainingIgnoreCase(nombre, nombre);
+        }
         if (oficio != null && zona != null) {
             return profesionalRepository.findByOficioAndZona(oficio, zona);
         } else if (oficio != null) {
@@ -36,8 +39,8 @@ public class BusquedaServiceImpl implements BusquedaService {
         }
     }
 
-    public List<Map<String, Object>> buscarProfesionalesConUbicacion(String oficio, String zona) {
-        List<Profesionale> profesionales = buscarProfesionalesPorFiltros(oficio, zona);
+    public List<Map<String, Object>> buscarProfesionalesConUbicacion(String oficio, String zona, String nombre) {
+        List<Profesionale> profesionales = buscarProfesionalesPorFiltros(oficio, zona, nombre);
         List<Map<String, Object>> resultado = new ArrayList<>();
 
         for (Profesionale prof : profesionales) {
@@ -79,6 +82,7 @@ public class BusquedaServiceImpl implements BusquedaService {
 
         return resultado;
     }
+
 
     private String construirDireccionCompleta(Profesionale profesional) {
         var direccion = profesional.getIdusuario().getIddireccion();
@@ -122,7 +126,7 @@ public class BusquedaServiceImpl implements BusquedaService {
     }
 
     public List<Map<String, Object>> buscarProfesionalesCercanos(double lat, double lon, String oficio, double radioKm) {
-        List<Map<String, Object>> todosProfesionales = buscarProfesionalesConUbicacion(oficio, null);
+        List<Map<String, Object>> todosProfesionales = buscarProfesionalesConUbicacion(oficio, null, null);
         List<Map<String, Object>> profesionalesCercanos = new ArrayList<>();
 
         for (Map<String, Object> prof : todosProfesionales) {
@@ -146,7 +150,7 @@ public class BusquedaServiceImpl implements BusquedaService {
     }
 
     private double calcularDistancia(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371; // Radio de la Tierra en km
+        final int R = 6371;
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)

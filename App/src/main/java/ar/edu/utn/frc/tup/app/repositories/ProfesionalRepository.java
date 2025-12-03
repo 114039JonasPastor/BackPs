@@ -59,4 +59,6 @@ public interface ProfesionalRepository extends JpaRepository<Profesionale, Integ
     // Obtener profesionales por oficio
     @Query("SELECT p FROM Profesionale p WHERE p.idoficio.id = :idOficio")
     List<Profesionale> findByIdOficio(@Param("idOficio") Integer idOficio);
+
+    List<Profesionale> findByIdusuario_Idauth_NameContainingIgnoreCaseOrIdusuario_Idauth_LastnameContainingIgnoreCase(String name, String lastname);
 }

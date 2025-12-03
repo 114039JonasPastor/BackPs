@@ -3,6 +3,7 @@ package ar.edu.utn.frc.tup.app.services.impl;
 import ar.edu.utn.frc.tup.app.dtos.request.resenia.ReseniaRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.resenia.PuntuacionProfesional;
 import ar.edu.utn.frc.tup.app.dtos.response.resenia.ReseniaResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.resenia.ReseniaUser;
 import ar.edu.utn.frc.tup.app.dtos.response.resenia.TopProfesionales;
 import ar.edu.utn.frc.tup.app.entities.Oficio;
 import ar.edu.utn.frc.tup.app.entities.Profesionale;
@@ -40,6 +41,11 @@ public class ReseniaServiceImpl implements ReseniaService {
         Profesionale profesional = profesionalRepository.findById(reseniaRequest.getIdProfesional()).orElse(null);
         if (profesional == null) {
             throw new RuntimeException("Profesional no encontrado");
+        }
+
+        Long yaPuntuo = reseniaRepository.countByUsuarioAndProfesional(usuario.getId(), profesional.getId());
+        if (yaPuntuo != null && yaPuntuo > 0) {
+            throw new RuntimeException("No puedes puntuar dos veces el mismo trabajo");
         }
 
         Resenia resenia = new Resenia();
@@ -88,6 +94,30 @@ public class ReseniaServiceImpl implements ReseniaService {
                         profesional.getIdusuario().getIdauth().getLastname())
                 .puntuacion(promedio)
                 .build();
+    }
+
+    @Override
+    public List<ReseniaUser> getReseniasDeProfesional(Integer idProfesional) {
+
+        List<Resenia> resenias = reseniaRepository.findByIdprofesional_Id(idProfesional);
+        if (resenias.isEmpty()) {
+            throw new RuntimeException("El profesional no tiene reseñas");
+        }
+
+        List<ReseniaUser> reseniaUsers = new ArrayList<>();
+
+        for (Resenia r : resenias) {
+            ReseniaUser reseniaUser = ReseniaUser.builder()
+                    .nombreUsuario(r.getIdusuario().getIdauth().getName() + " " +
+                            r.getIdusuario().getIdauth().getLastname())
+                    .fecha(r.getFecha())
+                    .puntuacion(r.getPuntuacion())
+                    .comentario(r.getComentario())
+                    .build();
+            reseniaUsers.add(reseniaUser);
+        }
+
+        return reseniaUsers;
     }
 
     @Override
