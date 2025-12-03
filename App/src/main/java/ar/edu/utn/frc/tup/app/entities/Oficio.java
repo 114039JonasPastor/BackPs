@@ -25,6 +25,10 @@ public class Oficio {
     @Column(name = "oficio", nullable = false, length = 100)
     private String oficio;
 
+    @Size(max = 255)
+    @Column(name = "descripcion", length = 255)
+    private String descripcion;
+
     @NotNull
     @ColumnDefault("true")
     @Column(name = "activo", nullable = false)

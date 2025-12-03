@@ -82,4 +82,15 @@ public class OficioController {
         }
         return ResponseEntity.ok(oficios);
     }
+
+    @PostMapping("/crear/{idAdmin}")
+    public ResponseEntity<?> crearOficio(@RequestBody ar.edu.utn.frc.tup.app.dtos.request.oficio.OficioRequest oficioRequest,
+                                         @PathVariable Integer idAdmin) {
+        try {
+            Oficio nuevoOficio = oficioService.crearOficio(oficioRequest, idAdmin);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoOficio);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

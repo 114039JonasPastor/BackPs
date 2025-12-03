@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
+import ar.edu.utn.frc.tup.app.dtos.request.oficio.OficioRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.oficio.OficioXSolicitud;
 import ar.edu.utn.frc.tup.app.entities.Oficio;
 import ar.edu.utn.frc.tup.app.repositories.OficioRepository;
@@ -47,5 +48,12 @@ public class OficioServiceImpl implements OficioService {
     @Override
     public List<OficioXSolicitud> getOficiosMasDemandados() {
         return oficioRepository.findOficiosMasDemandados();
+    }
+
+    @Override
+    public Oficio crearOficio(OficioRequest oficioRequest, Integer idAdmin) {
+        Oficio oficio = new Oficio();
+        oficio.setOficio(oficioRequest.getNombre());
+        return oficioRepository.save(oficio);
     }
 }
