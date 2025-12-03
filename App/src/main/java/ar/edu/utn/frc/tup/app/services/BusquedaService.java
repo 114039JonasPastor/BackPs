@@ -8,8 +8,8 @@ import java.util.Map;
 
 @Service
 public interface BusquedaService {
-    List<Profesionale> buscarProfesionalesPorFiltros(String oficio, String zona);
-    List<Map<String, Object>> buscarProfesionalesConUbicacion(String oficio, String zona);
+    List<Profesionale> buscarProfesionalesPorFiltros(String oficio, String zona, String nombre);
+    List<Map<String, Object>> buscarProfesionalesConUbicacion(String oficio, String zona, String nombre);
     List<Map<String, Object>> buscarProfesionalesCercanos(double lat, double lon, String oficio, double radioKm);
 
 }

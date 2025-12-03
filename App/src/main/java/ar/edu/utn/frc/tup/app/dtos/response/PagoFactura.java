@@ -13,5 +13,5 @@ import java.time.Instant;
 public class PagoFactura {
     private Instant fecha;
     private BigDecimal monto;
-    private String medioPago;
+    private String cliente;
 }

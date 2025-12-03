@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -308,20 +309,21 @@ public class FacturaServiceImpl implements FacturaService {
             log.info("Buscando todos los ingresos sin filtro de profesional");
         }
 
-        if(facturas.isEmpty()) {
+        if (facturas.isEmpty()) {
             throw new RuntimeException("No existen pagos en este rango de fechas");
-        } else {
-            List<PagoFactura> pagos = new ArrayList<>();
-            for(Factura factura : facturas) {
-                PagoFactura pago = PagoFactura.builder()
-                        .fecha(factura.getFecha())
-                        .monto(factura.getImporte())
-                        .medioPago(factura.getIdmediopago().getDescripcion())
-                        .build();
-                pagos.add(pago);
-            }
-            return pagos;
         }
+
+        List<PagoFactura> pagos = new ArrayList<>();
+        for (Factura factura : facturas) {
+            PagoFactura pago = PagoFactura.builder()
+                    .fecha(factura.getFecha())
+                    .monto(factura.getImporte())
+                    .cliente(factura.getIdusuario().getIdauth().getName() + " "
+                            + factura.getIdusuario().getIdauth().getLastname())
+                    .build();
+            pagos.add(pago);
+        }
+        return pagos;
     }
 }
 

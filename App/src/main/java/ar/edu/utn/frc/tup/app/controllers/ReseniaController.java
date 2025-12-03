@@ -4,6 +4,7 @@ import ar.edu.utn.frc.tup.app.dtos.DomicilioDto;
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.resenia.ReseniaRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.resenia.PuntuacionProfesional;
+import ar.edu.utn.frc.tup.app.dtos.response.resenia.ReseniaUser;
 import ar.edu.utn.frc.tup.app.dtos.response.resenia.TopProfesionales;
 import ar.edu.utn.frc.tup.app.services.ReseniaService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -48,7 +50,16 @@ public class ReseniaController {
                     .build();
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
-        return ResponseEntity.ok(puntuacion);
+        return ResponseEntity.ok(puntuacion.getPuntuacion());
+    }
+
+    @GetMapping("/resenas/{idProfesional}")
+    public ResponseEntity<?> getReseniasDeProfesional(@PathVariable Integer idProfesional){
+        List<ReseniaUser> resenias = reseniaService.getReseniasDeProfesional(idProfesional);
+        if (resenias.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+        return ResponseEntity.ok(resenias);
     }
 
     @GetMapping("/top-profesionales")
