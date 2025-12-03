@@ -17,4 +17,5 @@ public class TrabajoClienteResponse {
     private String montoFinal;
     private Instant fechaFinalizacion;
     private String estadoPago;
+    private Boolean tieneResenia;
 }
