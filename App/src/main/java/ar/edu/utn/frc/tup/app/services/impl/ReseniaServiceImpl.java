@@ -43,6 +43,11 @@ public class ReseniaServiceImpl implements ReseniaService {
             throw new RuntimeException("Profesional no encontrado");
         }
 
+        Long yaPuntuo = reseniaRepository.countByUsuarioAndProfesional(usuario.getId(), profesional.getId());
+        if (yaPuntuo != null && yaPuntuo > 0) {
+            throw new RuntimeException("No puedes puntuar dos veces el mismo trabajo");
+        }
+
         Resenia resenia = new Resenia();
         resenia.setIdusuario(usuario);
         resenia.setIdprofesional(profesional);
