@@ -7,6 +7,8 @@ import ar.edu.utn.frc.tup.app.entities.Solicitude;
 import ar.edu.utn.frc.tup.app.entities.Trabajo;
 import ar.edu.utn.frc.tup.app.repositories.SolicitudeRepository;
 import ar.edu.utn.frc.tup.app.repositories.TrabajoRepository;
+import ar.edu.utn.frc.tup.app.repositories.FacturaRepository;
+import ar.edu.utn.frc.tup.app.repositories.ReseniaRepository;
 import ar.edu.utn.frc.tup.app.services.TrabajoService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,8 @@ public class TrabajoServiceImpl implements TrabajoService {
 
     private final TrabajoRepository trabajoRepository;
     private final SolicitudeRepository solicitudRepository;
+    private final FacturaRepository facturaRepository;
+    private final ReseniaRepository reseniaRepository;
 
     @Override
     @Transactional
@@ -270,6 +274,10 @@ public class TrabajoServiceImpl implements TrabajoService {
                     String nombreProfesional = solicitud.getIdprofesional().getIdusuario().getIdauth().getName() + " " +
                             solicitud.getIdprofesional().getIdusuario().getIdauth().getLastname();
 
+                    // Verificar si el trabajo ya fue reseñado
+                    Long cantidadResenias = reseniaRepository.countByTrabajo(trabajo.getId());
+                    Boolean tieneResenia = cantidadResenias != null && cantidadResenias > 0;
+
                     return TrabajoClienteResponse.builder()
                             .idTrabajo(trabajo.getId())
                             .idSolicitud(solicitud.getId())
@@ -279,7 +287,8 @@ public class TrabajoServiceImpl implements TrabajoService {
                             .estado(trabajo.getEstado())
                             .montoFinal(trabajo.getMontoFinal() != null ? trabajo.getMontoFinal().toString() : null)
                             .fechaFinalizacion(trabajo.getFechaFinalizacion())
-                            .estadoPago(trabajo.getFactura() != null ? trabajo.getFactura().getEstadopago() : "PENDIENTE") // ⭐ AGREGAR
+                            .estadoPago(trabajo.getFactura() != null ? trabajo.getFactura().getEstadopago() : "PENDIENTE")
+                            .tieneResenia(tieneResenia)
                             .build();
                 })
                 .sorted((t1, t2) -> {
