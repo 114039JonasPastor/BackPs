@@ -1,6 +1,7 @@
 package ar.edu.utn.frc.tup.app.controllers;
 
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
+import ar.edu.utn.frc.tup.app.dtos.request.oficio.OficioRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.oficio.OficioXSolicitud;
 import ar.edu.utn.frc.tup.app.entities.Oficio;
 import ar.edu.utn.frc.tup.app.services.OficioService;
@@ -84,7 +85,7 @@ public class OficioController {
     }
 
     @PostMapping("/crear/{idAdmin}")
-    public ResponseEntity<?> crearOficio(@RequestBody ar.edu.utn.frc.tup.app.dtos.request.oficio.OficioRequest oficioRequest,
+    public ResponseEntity<?> crearOficio(@RequestBody OficioRequest oficioRequest,
                                          @PathVariable Integer idAdmin) {
         try {
             Oficio nuevoOficio = oficioService.crearOficio(oficioRequest, idAdmin);
