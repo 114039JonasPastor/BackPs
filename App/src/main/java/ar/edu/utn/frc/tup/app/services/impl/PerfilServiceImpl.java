@@ -63,6 +63,7 @@ public class PerfilServiceImpl implements PerfilService {
             var tipoDocumento = usuario.getIdtipodoc() != null ? usuario.getIdtipodoc().getTipo() : null;
 
             PerfilCliente perfil = PerfilCliente.builder()
+                    .avatar(usuario.getIdauth().getAvatar())
                     .name(usuario.getIdauth().getName())
                     .lastName(usuario.getIdauth().getLastname())
                     .telefono(usuario.getTelefono())
@@ -197,20 +198,37 @@ public class PerfilServiceImpl implements PerfilService {
 
     @Override
     public void updateAvatar(Integer idAuth, String avatarUrl) {
-        Auth auth = authRepository.findById(idAuth).orElse(null);
-        Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null);
+        Auth auth = authRepository.findById(idAuth)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        usuario.setAvatar(avatarUrl);
+        auth.setAvatar(avatarUrl);
+        authRepository.save(auth);
+    }
 
-        usuarioRepository.save(usuario);
+    @Override
+    public void updateAvatarByUsuarioId(Integer idUsuario, String avatarUrl) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        Auth auth = usuario.getIdauth();
+        auth.setAvatar(avatarUrl);
+        authRepository.save(auth);
     }
 
     @Override
     public String getAvatar(Integer idAuth) {
-        Auth auth = authRepository.findById(idAuth).orElse(null);
-        Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null);
+        Auth auth = authRepository.findById(idAuth)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        return usuario.getAvatar();
+        return auth.getAvatar();
+    }
+
+    @Override
+    public String getAvatarByUsuarioId(Integer idUsuario) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        return usuario.getIdauth().getAvatar();
     }
 
     @Override
