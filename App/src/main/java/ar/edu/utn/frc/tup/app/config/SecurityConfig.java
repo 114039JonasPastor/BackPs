@@ -42,7 +42,7 @@ public class SecurityConfig {
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
                                         "/api/v1/registro/**",
-                                        "/api/v1/pagos/**", // TODO: quitar en producción
+                                        "/api/v1/pagos/**", // Temporalmente público para debugging
                                         "/api/v1/password/**",
                                         "/api/v1/resenias/**",
                                         "/api/v1/domicilios/departamentos/all",
