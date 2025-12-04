@@ -39,6 +39,7 @@ public class PerfilServiceImpl implements PerfilService {
     private final OficioRepository oficioRepository;
 
     private final ReseniaService reseniaService;
+    private final ReseniaRepository reseniaRepository;
     private final TrabajoService trabajoService;
 
     @Override
@@ -128,6 +129,10 @@ public class PerfilServiceImpl implements PerfilService {
 
         String rangoPrecio = calcularRangoPrecio(monto, profesional);
         List<String> especialidadesList = obtenerEspecialidades(profesional);
+        
+        // Obtener puntuación promedio y cantidad de reseñas
+        Double puntuacionPromedio = reseniaRepository.getPromedioPuntuacionByProfesional(profesional.getId());
+        Long cantidadResenias = reseniaRepository.countReseniasByProfesional(profesional.getId());
 
         return PerfilProfesional.builder()
                 .idProfesional(profesional.getId())
@@ -137,6 +142,8 @@ public class PerfilServiceImpl implements PerfilService {
                 .telefono(profesional.getIdusuario().getTelefono())
                 .rangoPrecio(rangoPrecio)
                 .especialidades(especialidadesList)
+                .puntuacionPromedio(puntuacionPromedio != null ? Math.round(puntuacionPromedio * 10.0) / 10.0 : null)
+                .cantidadResenias(cantidadResenias)
                 .build();
     }
 
@@ -331,6 +338,10 @@ public class PerfilServiceImpl implements PerfilService {
 
         String rangoPrecio = calcularRangoPrecio(monto, profesional);
         List<String> especialidadesList = obtenerEspecialidades(profesional);
+        
+        // Obtener puntuación promedio y cantidad de reseñas
+        Double puntuacionPromedio = reseniaRepository.getPromedioPuntuacionByProfesional(profesional.getId());
+        Long cantidadResenias = reseniaRepository.countReseniasByProfesional(profesional.getId());
 
         return PerfilProfesional.builder()
                 .idProfesional(profesional.getId())
@@ -340,6 +351,8 @@ public class PerfilServiceImpl implements PerfilService {
                 .telefono(profesional.getIdusuario().getTelefono())
                 .rangoPrecio(rangoPrecio)
                 .especialidades(especialidadesList)
+                .puntuacionPromedio(puntuacionPromedio != null ? Math.round(puntuacionPromedio * 10.0) / 10.0 : null)
+                .cantidadResenias(cantidadResenias)
                 .build();
     }
 
