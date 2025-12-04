@@ -2,6 +2,7 @@ package ar.edu.utn.frc.tup.app.services;
 
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.ReprogramarRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.TurnoDisponibleDTO;
@@ -34,11 +35,11 @@ public interface SolicitudService {
 
     boolean tieneSolicitudPendiente(Integer idUsuario, Integer idProfesional);
 
-    // ✅ Métodos para el mapa
     Map<String, Object> getSolicitudConUbicacion(Integer idSolicitud);
 
     List<Map<String, Object>> getSolicitudesByProfesionalConUbicacion(Integer idProfesional);
 
-    // ✅ Método para obtener solicitud por ID
     Solicitude getSolicitudById(Integer idSolicitud);
+
+    List<PerfilProfesional> getProfesionalesMasSolicitadosUltimoMes();
 }

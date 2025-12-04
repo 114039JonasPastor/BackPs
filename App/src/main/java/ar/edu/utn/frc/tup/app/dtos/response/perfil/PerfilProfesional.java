@@ -17,4 +17,6 @@ public class PerfilProfesional {
     private String telefono;
     private String rangoPrecio;
     private List<String> especialidades;
+    private Double puntuacionPromedio;
+    private Long cantidadResenias;
 }

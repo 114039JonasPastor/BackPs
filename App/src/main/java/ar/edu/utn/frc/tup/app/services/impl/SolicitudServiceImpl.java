@@ -2,6 +2,7 @@ package ar.edu.utn.frc.tup.app.services.impl;
 
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.ReprogramarRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.TurnoDisponibleDTO;
@@ -14,6 +15,7 @@ import ar.edu.utn.frc.tup.app.repositories.ProfesionalRepository;
 import ar.edu.utn.frc.tup.app.repositories.SolicitudeRepository;
 import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
 import ar.edu.utn.frc.tup.app.services.OpenStreetMapService;
+import ar.edu.utn.frc.tup.app.services.PerfilService;
 import ar.edu.utn.frc.tup.app.services.SolicitudService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,7 @@ public class SolicitudServiceImpl implements SolicitudService {
     private final UsuarioRepository usuarioRepository;
     private final ProfesionalRepository profesionalRepository;
     private final OpenStreetMapService openStreetMapService;
+    private final PerfilService perfilService;
 
     @Override
     public SolicitudResponse enviarSolicitud(SolicitudRequest solicitud) {
@@ -432,6 +435,21 @@ public class SolicitudServiceImpl implements SolicitudService {
     public Solicitude getSolicitudById(Integer idSolicitud) {
         return solicitudRepository.findById(idSolicitud)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+    }
+
+    @Override
+    public List<PerfilProfesional> getProfesionalesMasSolicitadosUltimoMes() {
+        LocalDate fechaHaceUnMes = LocalDate.now().minusMonths(1);
+        Instant instantHaceUnMes = fechaHaceUnMes.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        List<Object[]> resultados = solicitudRepository.findTop3ProfesionalesMasSolicitados(instantHaceUnMes);
+
+        return resultados.stream()
+                .map(resultado -> {
+                    Integer idProfesional = (Integer) resultado[0];
+                    return perfilService.getPerfilProfesional(idProfesional);
+                })
+                .collect(Collectors.toList());
     }
 
     private Map<String, Object> procesarSolicitudConUbicacion(Map<String, Object> solicitudData) {

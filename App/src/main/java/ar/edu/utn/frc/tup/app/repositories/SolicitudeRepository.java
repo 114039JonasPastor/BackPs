@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -112,4 +113,12 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
         ORDER BY s.fechasolicitud DESC
         """)
     List<Map<String, Object>> findSolicitudesByProfesionalConDireccion(@Param("idProfesional") Integer idProfesional);
+
+    @Query(value = "SELECT idprofesional, COUNT(*) as total " +
+            "FROM solicitudes " +
+            "WHERE fechasolicitud >= :fechaDesde " +
+            "GROUP BY idprofesional " +
+            "ORDER BY total DESC " +
+            "LIMIT 3", nativeQuery = true)
+    List<Object[]> findTop3ProfesionalesMasSolicitados(@Param("fechaDesde") Instant fechaDesde);
 }

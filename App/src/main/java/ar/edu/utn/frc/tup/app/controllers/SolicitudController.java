@@ -3,6 +3,7 @@ package ar.edu.utn.frc.tup.app.controllers;
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.ReprogramarRequest;
 import ar.edu.utn.frc.tup.app.dtos.request.solicitud.SolicitudRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudDetalleResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudResponse;
 import ar.edu.utn.frc.tup.app.dtos.response.solicitud.SolicitudUsuarioResponse;
@@ -286,6 +287,33 @@ public class SolicitudController {
                     .message(e.getMessage())
                     .build();
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+    }
+
+    @GetMapping("/profesionales/mas-solicitados")
+    public ResponseEntity<?> getProfesionalesMasSolicitados() {
+        try {
+            List<PerfilProfesional> profesionales = solicitudService.getProfesionalesMasSolicitadosUltimoMes();
+
+            if (profesionales.isEmpty()) {
+                ErrorApi error = ErrorApi.builder()
+                        .timestamp(Instant.now().toString())
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .error("Not Found")
+                        .message("No se encontraron profesionales solicitados en el último mes")
+                        .build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            }
+
+            return ResponseEntity.ok(profesionales);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
         }
     }
 }
