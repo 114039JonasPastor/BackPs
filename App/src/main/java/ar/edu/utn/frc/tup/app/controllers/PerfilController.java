@@ -47,8 +47,10 @@ public class PerfilController {
     }
 
     @PutMapping("/cliente")
-    public ResponseEntity<PerfilCliente> updatePerfilCliente(@RequestBody ModificarCliente cliente) {
-        return ResponseEntity.ok(perfilService.updatePerfilCliente(cliente));
+    public ResponseEntity<PerfilCliente> updatePerfilCliente(
+            @RequestBody ModificarCliente cliente,
+            @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(perfilService.updatePerfilCliente(cliente, authHeader));
     }
 
     @GetMapping("/profesional/{idProfesional}")

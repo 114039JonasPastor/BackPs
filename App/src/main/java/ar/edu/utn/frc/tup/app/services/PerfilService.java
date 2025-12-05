@@ -13,7 +13,7 @@ import java.util.List;
 @Service
 public interface PerfilService {
     PerfilCliente getPerfilCliente(Integer idCliente);
-    PerfilCliente updatePerfilCliente(ModificarCliente cliente);
+    PerfilCliente updatePerfilCliente(ModificarCliente cliente, String authHeader);
     PerfilProfesional getPerfilProfesional(Integer idProfesional);
     PerfilProfesional updatePerfilProfesional(ModificarProfesional profesional);
     void updateAvatar(Integer idAuth, String avatarUrl);
