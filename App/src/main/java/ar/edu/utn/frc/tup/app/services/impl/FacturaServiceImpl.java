@@ -3,6 +3,7 @@ package ar.edu.utn.frc.tup.app.services.impl;
 import ar.edu.utn.frc.tup.app.dtos.request.factura.FacturaRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.PagoFactura;
 import ar.edu.utn.frc.tup.app.dtos.response.PreferenceResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.factura.FacturaPDFDto;
 import ar.edu.utn.frc.tup.app.entities.Factura;
 import ar.edu.utn.frc.tup.app.entities.Mediosdepago;
 import ar.edu.utn.frc.tup.app.entities.Solicitude;
@@ -75,7 +76,19 @@ public class FacturaServiceImpl implements FacturaService {
 
             // ⭐ VALIDAR que no tenga factura ya
             if (trabajo.getFactura() != null) {
-                throw new RuntimeException("Este trabajo ya tiene una factura asociada");
+                log.info("El trabajo {} ya tiene una factura asociada (ID: {}). Retornando factura existente.", 
+                    trabajo.getId(), trabajo.getFactura().getId());
+                
+                // En lugar de lanzar error, retornar la preferencia existente si hay idpago
+                if (trabajo.getIdpago() != null && !trabajo.getIdpago().isEmpty()) {
+                    return PreferenceResponse.builder()
+                            .initPoint(trabajo.getIdpago())
+                            .sandboxInitPoint(trabajo.getIdpago())
+                            .build();
+                } else {
+                    // Si no tiene idpago pero tiene factura, es porque ya fue pagada
+                    throw new RuntimeException("Este trabajo ya fue facturado y no tiene pago pendiente");
+                }
             }
 
             Solicitude solicitud = trabajo.getSolicitud();
@@ -316,6 +329,7 @@ public class FacturaServiceImpl implements FacturaService {
         List<PagoFactura> pagos = new ArrayList<>();
         for (Factura factura : facturas) {
             PagoFactura pago = PagoFactura.builder()
+                    .nroFactura(factura.getId())
                     .fecha(factura.getFecha())
                     .monto(factura.getImporte())
                     .cliente(factura.getIdusuario().getIdauth().getName() + " "
@@ -325,6 +339,39 @@ public class FacturaServiceImpl implements FacturaService {
         }
         return pagos;
     }
+
+    @Override
+    public FacturaPDFDto obtenerDatosFacturaPDF(Integer nroFactura) {
+        Factura factura = facturaRepository.findById(nroFactura)
+                .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
+
+        Trabajo trabajo = factura.getTrabajo();
+        if (trabajo == null) {
+            throw new RuntimeException("No se encontró el trabajo asociado a la factura");
+        }
+
+        String nombreCliente = factura.getIdusuario().getIdauth().getName() + " " +
+                              factura.getIdusuario().getIdauth().getLastname();
+        
+        String nombreProfesional = factura.getIdprofesional().getIdusuario().getIdauth().getName() + " " +
+                                   factura.getIdprofesional().getIdusuario().getIdauth().getLastname();
+        
+//        String descripcionServicio = trabajo.getSolicitud().getOficio().getNombre();
+        String descripcionServicio = trabajo.getSolicitud().getIdoficio().getOficio();
+
+        return FacturaPDFDto.builder()
+                .nroFactura(factura.getId())
+                .nombreCliente(nombreCliente)
+                .nombreProfesional(nombreProfesional)
+                .descripcionServicio(descripcionServicio)
+                .importe(factura.getImporte())
+                .fecha(factura.getFecha())
+                .estadoPago(factura.getEstadopago())
+                .medioPago("Mercado Pago")
+                .build();
+    }
 }
+
+
 
 

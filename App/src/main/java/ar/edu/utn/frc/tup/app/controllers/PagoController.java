@@ -4,6 +4,8 @@ import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.factura.FacturaRequest;
 import ar.edu.utn.frc.tup.app.dtos.response.PagoFactura;
 import ar.edu.utn.frc.tup.app.dtos.response.PreferenceResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.factura.FacturaPDFDto;
+import ar.edu.utn.frc.tup.app.entities.Departamento;
 import ar.edu.utn.frc.tup.app.entities.Factura;
 import ar.edu.utn.frc.tup.app.entities.Trabajo;
 import ar.edu.utn.frc.tup.app.repositories.TrabajoRepository;
@@ -177,5 +179,20 @@ public class PagoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
-}
 
+    @GetMapping("/factura/{nroFactura}/pdf")
+    public ResponseEntity<?> obtenerDatosFacturaPDF(@PathVariable Integer nroFactura) {
+        try {
+            FacturaPDFDto facturaPDF = facturaService.obtenerDatosFacturaPDF(nroFactura);
+            return ResponseEntity.ok(facturaPDF);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .error("Not Found")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+    }
+}
