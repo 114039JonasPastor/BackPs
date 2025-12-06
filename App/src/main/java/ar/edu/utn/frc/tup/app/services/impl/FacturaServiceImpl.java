@@ -313,10 +313,13 @@ public class FacturaServiceImpl implements FacturaService {
     public List<PagoFactura> historialDeIngresos(Instant desde, Instant hasta, Integer idProfesional) {
         List<Factura> facturas;
 
-        if (desde == null || hasta == null) {
-            facturas = facturaRepository.findByEstadopagoAndIdprofesional_Id("APROBADO", idProfesional);
+        // Filtrar por idProfesional si no es null
+        if (idProfesional != null) {
+            facturas = facturaRepository.findByFechaBetweenAndEstadopagoAndIdprofesionalId(desde, hasta, "APROBADO", idProfesional);
+            log.info("Buscando ingresos para profesional ID: {}", idProfesional);
         } else {
-            facturas = facturaRepository.findByFechaBetweenAndEstadopagoAndIdprofesional_Id(desde, hasta, "APROBADO", idProfesional);
+            facturas = facturaRepository.findByFechaBetweenAndEstadopago(desde, hasta, "APROBADO");
+            log.info("Buscando todos los ingresos sin filtro de profesional");
         }
 
         if (facturas.isEmpty()) {
