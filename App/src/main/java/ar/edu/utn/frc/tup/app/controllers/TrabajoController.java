@@ -2,7 +2,9 @@ package ar.edu.utn.frc.tup.app.controllers;
 
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.trabajo.FinalizarTrabajoRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoCanceladoNotificacionDTO;
 import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoClienteResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoFinalizadoNotificacionDTO;
 import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoResponse;
 import ar.edu.utn.frc.tup.app.entities.Trabajo;
 import ar.edu.utn.frc.tup.app.services.TrabajoService;
@@ -325,4 +327,49 @@ public class TrabajoController {
             return ResponseEntity.badRequest().body(error);
         }
     }
+
+    // Obtener trabajos cancelados por cliente (para notificaciones)
+    @GetMapping("/cliente/cancelados/{idUsuario}")
+    public ResponseEntity<?> obtenerTrabajosCanceladosPorCliente(
+            @PathVariable Integer idUsuario) {
+        try {
+            List<TrabajoCanceladoNotificacionDTO> trabajos =
+                    trabajoService.obtenerTrabajosCanceladosPorCliente(idUsuario);
+
+            // No retornar 404 si está vacío, solo array vacío
+            return ResponseEntity.ok(trabajos);
+        } catch (RuntimeException e) {
+            log.error("Error al obtener trabajos cancelados del cliente", e);
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    // Obtener trabajos finalizados para notificar al cliente
+    @GetMapping("/cliente/finalizados/notificaciones/{idUsuario}")
+    public ResponseEntity<?> obtenerTrabajosFinalizadosParaNotificar(
+            @PathVariable Integer idUsuario) {
+        try {
+            List<TrabajoFinalizadoNotificacionDTO> trabajos =
+                    trabajoService.obtenerTrabajosFinalizadosParaNotificar(idUsuario);
+
+            return ResponseEntity.ok(trabajos);
+        } catch (RuntimeException e) {
+            log.error("Error al obtener trabajos finalizados para notificar", e);
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
 }
+
+

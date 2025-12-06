@@ -29,6 +29,10 @@ public class Resenia {
     @JoinColumn(name = "idprofesional", nullable = false)
     private Profesionale idprofesional;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "idtrabajo")
+    private Trabajo trabajo;
+
     @Column(name = "puntuacion")
     private Integer puntuacion;
 

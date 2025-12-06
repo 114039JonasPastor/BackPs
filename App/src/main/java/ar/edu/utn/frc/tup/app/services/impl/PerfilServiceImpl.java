@@ -13,6 +13,7 @@ import ar.edu.utn.frc.tup.app.repositories.*;
 import ar.edu.utn.frc.tup.app.services.PerfilService;
 import ar.edu.utn.frc.tup.app.services.ReseniaService;
 import ar.edu.utn.frc.tup.app.services.TrabajoService;
+import ar.edu.utn.frc.tup.app.auth.services.JwtService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,9 @@ public class PerfilServiceImpl implements PerfilService {
     private final OficioRepository oficioRepository;
 
     private final ReseniaService reseniaService;
+    private final ReseniaRepository reseniaRepository;
     private final TrabajoService trabajoService;
+    private final JwtService jwtService;
 
     @Override
     public PerfilCliente getPerfilCliente(Integer idCliente) {
@@ -64,6 +67,7 @@ public class PerfilServiceImpl implements PerfilService {
             var tipoDocumento = usuario.getIdtipodoc() != null ? usuario.getIdtipodoc().getTipo() : null;
 
             PerfilCliente perfil = PerfilCliente.builder()
+                    .avatar(usuario.getIdauth().getAvatar())
                     .name(usuario.getIdauth().getName())
                     .lastName(usuario.getIdauth().getLastname())
                     .telefono(usuario.getTelefono())
@@ -80,40 +84,61 @@ public class PerfilServiceImpl implements PerfilService {
     }
 
     @Override
-    public PerfilCliente updatePerfilCliente(ModificarCliente cliente) {
-        Auth auth = authRepository.findByMail(cliente.getMail()).orElse(null);
-        Direccione direccion = direccionRepository.findById(cliente.getAdress().getId()).orElse(null);
+    public PerfilCliente updatePerfilCliente(ModificarCliente cliente, String authHeader) {
+        // Extraer token del header
+        String token = authHeader.replace("Bearer ", "");
+        String email = jwtService.getUsernameFromToken(token);
+        
+        // Buscar por mail extraído del JWT
+        Auth auth = authRepository.findByMail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el email: " + email));
 
-        if(auth == null){
-            throw new RuntimeException("Usuario no encontrado");
-        }
-
+        // Actualizar datos del Auth
         auth.setName(cliente.getName());
         auth.setLastname(cliente.getLastName());
         authRepository.save(auth);
 
-        direccion.setIdbarrio(cliente.getAdress().getIdbarrio());
-        direccion.setCalle(cliente.getAdress().getCalle());
-        direccion.setNumero(cliente.getAdress().getNumero());
-        direccion.setPiso(cliente.getAdress().getPiso());
-        direccion.setDepto(cliente.getAdress().getDepto());
-        direccion.setObservaciones(cliente.getAdress().getObservaciones());
+        // Buscar el usuario asociado
+        Usuario usuario = usuarioRepository.findByIdauth(auth)
+                .orElseThrow(() -> new RuntimeException("No se encontró un usuario asociado a la autenticación"));
 
-        direccionRepository.save(direccion);
+        // Actualizar dirección si existe
+        if (cliente.getAdress() != null && cliente.getAdress().getId() != null) {
+            try {
+                Direccione direccion = direccionRepository.findById(cliente.getAdress().getId())
+                        .orElseThrow(() -> new RuntimeException("Dirección no encontrada"));
 
-        Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null);
-        if(usuario == null) {
-            throw new RuntimeException("Usuario no encontrado");
+                if (cliente.getAdress().getIdbarrio() != null) {
+                    direccion.setIdbarrio(cliente.getAdress().getIdbarrio());
+                }
+                if (cliente.getAdress().getCalle() != null) {
+                    direccion.setCalle(cliente.getAdress().getCalle());
+                }
+                if (cliente.getAdress().getNumero() != null) {
+                    direccion.setNumero(cliente.getAdress().getNumero());
+                }
+                direccion.setPiso(cliente.getAdress().getPiso());
+                direccion.setDepto(cliente.getAdress().getDepto());
+                direccion.setObservaciones(cliente.getAdress().getObservaciones());
+
+                direccionRepository.save(direccion);
+            } catch (Exception e) {
+                System.err.println("Error al actualizar dirección: " + e.getMessage());
+            }
         }
-        usuario.setTelefono(cliente.getPhone());
-        usuario.setIddireccion(direccion);
+
+        // Actualizar teléfono si se proporciona
+        if (cliente.getPhone() != null && !cliente.getPhone().isEmpty()) {
+            usuario.setTelefono(cliente.getPhone());
+        }
 
         usuarioRepository.save(usuario);
 
         return PerfilCliente.builder()
                 .name(auth.getName())
                 .lastName(auth.getLastname())
-                .email(auth.getUsername())
+                .email(auth.getMail())
+                .telefono(usuario.getTelefono())
                 .build();
     }
 
@@ -128,6 +153,10 @@ public class PerfilServiceImpl implements PerfilService {
 
         String rangoPrecio = calcularRangoPrecio(monto, profesional);
         List<String> especialidadesList = obtenerEspecialidades(profesional);
+        
+        // Obtener puntuación promedio y cantidad de reseñas
+        Double puntuacionPromedio = reseniaRepository.getPromedioPuntuacionByProfesional(profesional.getId());
+        Long cantidadResenias = reseniaRepository.countReseniasByProfesional(profesional.getId());
 
         return PerfilProfesional.builder()
                 .idProfesional(profesional.getId())
@@ -137,6 +166,8 @@ public class PerfilServiceImpl implements PerfilService {
                 .telefono(profesional.getIdusuario().getTelefono())
                 .rangoPrecio(rangoPrecio)
                 .especialidades(especialidadesList)
+                .puntuacionPromedio(puntuacionPromedio != null ? Math.round(puntuacionPromedio * 10.0) / 10.0 : null)
+                .cantidadResenias(cantidadResenias)
                 .build();
     }
 
@@ -198,20 +229,37 @@ public class PerfilServiceImpl implements PerfilService {
 
     @Override
     public void updateAvatar(Integer idAuth, String avatarUrl) {
-        Auth auth = authRepository.findById(idAuth).orElse(null);
-        Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null);
+        Auth auth = authRepository.findById(idAuth)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        usuario.setAvatar(avatarUrl);
+        auth.setAvatar(avatarUrl);
+        authRepository.save(auth);
+    }
 
-        usuarioRepository.save(usuario);
+    @Override
+    public void updateAvatarByUsuarioId(Integer idUsuario, String avatarUrl) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        Auth auth = usuario.getIdauth();
+        auth.setAvatar(avatarUrl);
+        authRepository.save(auth);
     }
 
     @Override
     public String getAvatar(Integer idAuth) {
-        Auth auth = authRepository.findById(idAuth).orElse(null);
-        Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null);
+        Auth auth = authRepository.findById(idAuth)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        return usuario.getAvatar();
+        return auth.getAvatar();
+    }
+
+    @Override
+    public String getAvatarByUsuarioId(Integer idUsuario) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        return usuario.getIdauth().getAvatar();
     }
 
     @Override
@@ -336,6 +384,10 @@ public class PerfilServiceImpl implements PerfilService {
 
         String rangoPrecio = calcularRangoPrecio(monto, profesional);
         List<String> especialidadesList = obtenerEspecialidades(profesional);
+        
+        // Obtener puntuación promedio y cantidad de reseñas
+        Double puntuacionPromedio = reseniaRepository.getPromedioPuntuacionByProfesional(profesional.getId());
+        Long cantidadResenias = reseniaRepository.countReseniasByProfesional(profesional.getId());
 
         return PerfilProfesional.builder()
                 .idProfesional(profesional.getId())
@@ -345,6 +397,8 @@ public class PerfilServiceImpl implements PerfilService {
                 .telefono(profesional.getIdusuario().getTelefono())
                 .rangoPrecio(rangoPrecio)
                 .especialidades(especialidadesList)
+                .puntuacionPromedio(puntuacionPromedio != null ? Math.round(puntuacionPromedio * 10.0) / 10.0 : null)
+                .cantidadResenias(cantidadResenias)
                 .build();
     }
 

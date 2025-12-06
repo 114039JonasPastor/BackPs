@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @Setter
 @Builder
 public class PerfilCliente {
+    private String avatar;
     private String name;
     private String lastName;
     private String email;

@@ -20,4 +20,7 @@ public interface ReseniaRepository extends JpaRepository<Resenia,Integer> {
 
     @Query("SELECT COUNT(r) FROM Resenia r WHERE r.idusuario.id = :idUsuario AND r.idprofesional.id = :idProfesional")
     Long countByUsuarioAndProfesional(@Param("idUsuario") Integer idUsuario, @Param("idProfesional") Integer idProfesional);
+
+    @Query("SELECT COUNT(r) FROM Resenia r WHERE r.trabajo.id = :idTrabajo")
+    Long countByTrabajo(@Param("idTrabajo") Integer idTrabajo);
 }

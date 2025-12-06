@@ -47,6 +47,10 @@ public class Auth implements UserDetails {
     @Email
     private String mail;
 
+    @Size(max = 500)
+    @Column(name = "avatar", length = 500)
+    private String avatar;
+
     @NotNull
     @Column(name = "active", nullable = false)
     private Boolean active = true;

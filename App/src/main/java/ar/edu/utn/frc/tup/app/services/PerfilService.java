@@ -14,11 +14,13 @@ import java.util.List;
 @Service
 public interface PerfilService {
     PerfilCliente getPerfilCliente(Integer idCliente);
-    PerfilCliente updatePerfilCliente(ModificarCliente cliente);
+    PerfilCliente updatePerfilCliente(ModificarCliente cliente, String authHeader);
     PerfilProfesional getPerfilProfesional(Integer idProfesional);
     PerfilProfesional updatePerfilProfesional(ModificarProfesional profesional);
     void updateAvatar(Integer idAuth, String avatarUrl);
+    void updateAvatarByUsuarioId(Integer idUsuario, String avatarUrl);
     String getAvatar(Integer idAuth);
+    String getAvatarByUsuarioId(Integer idUsuario);
     List<PerfilProfesional> getProfesionalesByOficio(String oficio);
     void agregarStrike(Integer idUsuario, String motivo);
     List<UsuarioMetrica> getUsuariosMetrica(Integer limit);

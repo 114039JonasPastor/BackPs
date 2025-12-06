@@ -114,6 +114,14 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
         """)
     List<Map<String, Object>> findSolicitudesByProfesionalConDireccion(@Param("idProfesional") Integer idProfesional);
 
+    @Query(value = "SELECT idprofesional, COUNT(*) as total " +
+            "FROM solicitudes " +
+            "WHERE fechasolicitud >= :fechaDesde " +
+            "GROUP BY idprofesional " +
+            "ORDER BY total DESC " +
+            "LIMIT 3", nativeQuery = true)
+    List<Object[]> findTop3ProfesionalesMasSolicitados(@Param("fechaDesde") Instant fechaDesde);
+
     /**
      * Obtiene los oficios más solicitados con opción de filtrar por fecha
      * Si fechaInicio y fechaFin son null, retorna todas las solicitudes

@@ -48,8 +48,10 @@ public class PerfilController {
     }
 
     @PutMapping("/cliente")
-    public ResponseEntity<PerfilCliente> updatePerfilCliente(@RequestBody ModificarCliente cliente) {
-        return ResponseEntity.ok(perfilService.updatePerfilCliente(cliente));
+    public ResponseEntity<PerfilCliente> updatePerfilCliente(
+            @RequestBody ModificarCliente cliente,
+            @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(perfilService.updatePerfilCliente(cliente, authHeader));
     }
 
     @GetMapping("/profesional/{idProfesional}")
@@ -72,9 +74,9 @@ public class PerfilController {
         return ResponseEntity.ok(perfilService.updatePerfilProfesional(profesional));
     }
 
-    @PutMapping("/avatar/{idAuth}")
-    public ResponseEntity<String> updateAvatar(@PathVariable Integer idAuth, @RequestBody String avatarUrl) {
-        perfilService.updateAvatar(idAuth, avatarUrl);
+    @PutMapping("/avatar/{idUsuario}")
+    public ResponseEntity<String> updateAvatar(@PathVariable Integer idUsuario, @RequestBody String avatarUrl) {
+        perfilService.updateAvatarByUsuarioId(idUsuario, avatarUrl);
         return ResponseEntity.ok("Avatar updated successfully");
     }
 
@@ -84,9 +86,9 @@ public class PerfilController {
         return ResponseEntity.ok("Strike agregado correctamente");
     }
 
-    @GetMapping("/avatar/{idAuth}")
-    public ResponseEntity<?> getAvatar(@PathVariable Integer idAuth) {
-        String avatar = perfilService.getAvatar(idAuth);
+    @GetMapping("/avatar/{idUsuario}")
+    public ResponseEntity<?> getAvatar(@PathVariable Integer idUsuario) {
+        String avatar = perfilService.getAvatarByUsuarioId(idUsuario);
         if (avatar == null) {
             ErrorApi error = ErrorApi.builder()
                     .timestamp(java.time.Instant.now().toString())

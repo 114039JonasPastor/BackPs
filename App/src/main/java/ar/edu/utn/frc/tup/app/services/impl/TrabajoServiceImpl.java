@@ -1,12 +1,16 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
 import ar.edu.utn.frc.tup.app.dtos.request.trabajo.FinalizarTrabajoRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoCanceladoNotificacionDTO;
 import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoClienteResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoFinalizadoNotificacionDTO;
 import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoResponse;
 import ar.edu.utn.frc.tup.app.entities.Solicitude;
 import ar.edu.utn.frc.tup.app.entities.Trabajo;
 import ar.edu.utn.frc.tup.app.repositories.SolicitudeRepository;
 import ar.edu.utn.frc.tup.app.repositories.TrabajoRepository;
+import ar.edu.utn.frc.tup.app.repositories.FacturaRepository;
+import ar.edu.utn.frc.tup.app.repositories.ReseniaRepository;
 import ar.edu.utn.frc.tup.app.services.TrabajoService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,8 @@ public class TrabajoServiceImpl implements TrabajoService {
 
     private final TrabajoRepository trabajoRepository;
     private final SolicitudeRepository solicitudRepository;
+    private final FacturaRepository facturaRepository;
+    private final ReseniaRepository reseniaRepository;
 
     @Override
     @Transactional
@@ -270,6 +276,10 @@ public class TrabajoServiceImpl implements TrabajoService {
                     String nombreProfesional = solicitud.getIdprofesional().getIdusuario().getIdauth().getName() + " " +
                             solicitud.getIdprofesional().getIdusuario().getIdauth().getLastname();
 
+                    // Verificar si el trabajo ya fue reseñado
+                    Long cantidadResenias = reseniaRepository.countByTrabajo(trabajo.getId());
+                    Boolean tieneResenia = cantidadResenias != null && cantidadResenias > 0;
+
                     return TrabajoClienteResponse.builder()
                             .idTrabajo(trabajo.getId())
                             .idSolicitud(solicitud.getId())
@@ -279,7 +289,9 @@ public class TrabajoServiceImpl implements TrabajoService {
                             .estado(trabajo.getEstado())
                             .montoFinal(trabajo.getMontoFinal() != null ? trabajo.getMontoFinal().toString() : null)
                             .fechaFinalizacion(trabajo.getFechaFinalizacion())
-                            .estadoPago(trabajo.getFactura() != null ? trabajo.getFactura().getEstadopago() : "PENDIENTE") // ⭐ AGREGAR
+                            .estadoPago(trabajo.getFactura() != null ? trabajo.getFactura().getEstadopago() : "PENDIENTE")
+                            .nroFactura(trabajo.getFactura() != null ? trabajo.getFactura().getId() : null)
+                            .tieneResenia(tieneResenia)
                             .build();
                 })
                 .sorted((t1, t2) -> {
@@ -316,4 +328,69 @@ public class TrabajoServiceImpl implements TrabajoService {
                 .estadoPago(trabajo.getFactura() != null ? trabajo.getFactura().getEstadopago() : null)
                 .build();
     }
+
+
+    @Override
+    public List<TrabajoCanceladoNotificacionDTO> obtenerTrabajosCanceladosPorCliente(Integer idUsuario) {
+        log.info("Obteniendo trabajos cancelados para el cliente: {}", idUsuario);
+
+        List<Trabajo> trabajosCancelados = trabajoRepository.findByUsuarioAndEstado(idUsuario, "CANCELADO");
+
+        return trabajosCancelados.stream()
+                .map(trabajo -> {
+                    Solicitude solicitud = trabajo.getSolicitud();
+                    String nombreProfesional = solicitud.getIdprofesional().getIdusuario().getIdauth().getName() + " " +
+                            solicitud.getIdprofesional().getIdusuario().getIdauth().getLastname();
+
+                    return TrabajoCanceladoNotificacionDTO.builder()
+                            .idTrabajo(trabajo.getId())
+                            .nombreProfesional(nombreProfesional)
+                            .oficio(solicitud.getIdoficio().getOficio())
+                            .fechaCancelacion(trabajo.getFechaCancelacion())
+                            .motivoCancelacion(trabajo.getObservacionesCancelacion())
+                            .descripcionServicio(solicitud.getObservacion())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TrabajoFinalizadoNotificacionDTO> obtenerTrabajosFinalizadosParaNotificar(Integer idUsuario) {
+        log.info("Obteniendo trabajos finalizados para notificar al cliente: {}", idUsuario);
+
+        List<Trabajo> trabajosFinalizados = trabajoRepository.findByUsuarioAndEstado(idUsuario, "FINALIZADO");
+        
+        log.info("Se encontraron {} trabajos finalizados para el usuario {}", trabajosFinalizados.size(), idUsuario);
+
+        return trabajosFinalizados.stream()
+                .map(trabajo -> {
+                    Solicitude solicitud = trabajo.getSolicitud();
+                    String nombreProfesional = solicitud.getIdprofesional().getIdusuario().getIdauth().getName() + " " +
+                            solicitud.getIdprofesional().getIdusuario().getIdauth().getLastname();
+
+                    // Verificar si ya fue pagado - debe tener factura Y estado de pago aprobado
+                    boolean pagado = trabajo.getFactura() != null && 
+                                    trabajo.getFactura().getEstadopago() != null &&
+                                    trabajo.getFactura().getEstadopago().equalsIgnoreCase("approved");
+                    
+                    log.info("Trabajo {}: tiene factura={}, estado pago={}, considerado pagado={}",
+                            trabajo.getId(),
+                            trabajo.getFactura() != null,
+                            trabajo.getFactura() != null ? trabajo.getFactura().getEstadopago() : "null",
+                            pagado);
+
+                    return TrabajoFinalizadoNotificacionDTO.builder()
+                            .idTrabajo(trabajo.getId())
+                            .nombreProfesional(nombreProfesional)
+                            .oficio(solicitud.getIdoficio().getOficio())
+                            .fechaFinalizacion(trabajo.getFechaFinalizacion())
+                            .montoFinal(trabajo.getMontoFinal())
+                            .descripcionServicio(solicitud.getObservacion())
+                            .pagado(pagado)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
 }
+
+

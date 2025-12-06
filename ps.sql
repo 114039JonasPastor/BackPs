@@ -481,3 +481,19 @@ ALTER TABLE rolxusuario DROP CONSTRAINT rolxusuario_idauth_fkey;
 -- Crea la restricción correcta apuntando a auth
 ALTER TABLE rolxusuario
     ADD CONSTRAINT fk_rolxusuario_idauth FOREIGN KEY (idauth) REFERENCES auth(idauth);
+
+-- Agregar la columna idtrabajo como nullable
+ALTER TABLE resenias
+    ADD COLUMN idtrabajo INTEGER;
+
+-- Agregar la foreign key constraint
+ALTER TABLE resenias
+    ADD CONSTRAINT fk_resenias_trabajo
+        FOREIGN KEY (idtrabajo)
+            REFERENCES trabajos(idtrabajo);
+
+-- Crear índice para mejorar el rendimiento de las consultas
+CREATE INDEX idx_resenias_idtrabajo ON resenias(idtrabajo);
+
+-- Comentario en la columna
+COMMENT ON COLUMN resenias.idtrabajo IS 'ID del trabajo asociado a la reseña';
