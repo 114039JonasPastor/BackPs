@@ -11,7 +11,6 @@ import ar.edu.utn.frc.tup.app.services.FacturaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -141,31 +140,22 @@ public class PagoController {
 
     @GetMapping("/historial-ingresos")
     public ResponseEntity<?> historialDeIngresos(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam String desde,
+            @RequestParam String hasta,
             @RequestParam(required = false) Integer idProfesional) {
         try {
             log.info("📊 Consultando historial de ingresos desde {} hasta {}, profesional: {}",
                     desde, hasta, idProfesional != null ? idProfesional : "todos");
 
-            // Convertir LocalDate a Instant (inicio del día y fin del día)
-            Instant desdeInstant = desde.atStartOfDay(ZoneId.systemDefault()).toInstant();
-            Instant hastaInstant = hasta.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+            // Parsear fechas - aceptar tanto LocalDate como ISO DateTime
+            Instant desdeInstant = parseToInstant(desde, true);
+            Instant hastaInstant = parseToInstant(hasta, false);
 
             log.info("🕐 Rango de tiempo: {} a {}", desdeInstant, hastaInstant);
 
             List<PagoFactura> pagos = facturaService.historialDeIngresos(desdeInstant, hastaInstant, idProfesional);
             log.info("✅ Encontrados {} pagos", pagos.size());
             return ResponseEntity.ok(pagos);
-        } catch (RuntimeException e) {
-            log.error("❌ Error al consultar historial: {}", e.getMessage());
-            ErrorApi error = ErrorApi.builder()
-                    .timestamp(Instant.now().toString())
-                    .status(HttpStatus.NOT_FOUND.value())
-                    .error("Not Found")
-                    .message(e.getMessage())
-                    .build();
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         } catch (Exception e) {
             log.error("❌ Error inesperado al consultar historial", e);
             ErrorApi error = ErrorApi.builder()
@@ -175,6 +165,25 @@ public class PagoController {
                     .message("Error al procesar la solicitud: " + e.getMessage())
                     .build();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    private Instant parseToInstant(String fecha, boolean inicioDelDia) {
+        try {
+            // Intentar parsear como Instant (formato ISO con Z)
+            return Instant.parse(fecha);
+        } catch (Exception e1) {
+            try {
+                // Intentar parsear como LocalDate
+                LocalDate localDate = LocalDate.parse(fecha);
+                if (inicioDelDia) {
+                    return localDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+                } else {
+                    return localDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
+                }
+            } catch (Exception e2) {
+                throw new RuntimeException("Formato de fecha inválido: " + fecha + ". Use formato ISO (2025-11-06T00:00:00Z) o LocalDate (2025-11-06)");
+            }
         }
     }
 }

@@ -310,7 +310,8 @@ public class FacturaServiceImpl implements FacturaService {
         }
 
         if (facturas.isEmpty()) {
-            throw new RuntimeException("No existen pagos en este rango de fechas");
+            log.info("No se encontraron pagos en el rango de fechas especificado");
+            return new ArrayList<>();
         }
 
         List<PagoFactura> pagos = new ArrayList<>();
