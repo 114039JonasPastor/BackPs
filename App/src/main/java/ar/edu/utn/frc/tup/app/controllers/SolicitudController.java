@@ -288,5 +288,31 @@ public class SolicitudController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
+
+    @GetMapping("/estadisticas/oficios-mas-solicitados")
+    public ResponseEntity<?> getOficiosMasSolicitados(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+        try {
+            List<Map<String, Object>> oficios = solicitudService.getOficiosMasSolicitados(fechaInicio, fechaFin);
+
+            // Si no hay registros, retornar null en lugar de error
+            if (oficios == null || oficios.isEmpty()) {
+                return ResponseEntity.ok(null);
+            }
+
+            return ResponseEntity.ok(oficios);
+        } catch (Exception e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+
 }
 

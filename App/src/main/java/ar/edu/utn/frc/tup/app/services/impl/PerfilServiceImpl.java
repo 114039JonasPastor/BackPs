@@ -3,6 +3,7 @@ package ar.edu.utn.frc.tup.app.services.impl;
 import ar.edu.utn.frc.tup.app.dtos.DomicilioDto;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarCliente;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarProfesional;
+import ar.edu.utn.frc.tup.app.dtos.response.UsuariosRegistradosDto;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilCliente;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.metrica.ProfesionalMetrica;
@@ -251,7 +252,7 @@ public class PerfilServiceImpl implements PerfilService {
     }
 
     @Override
-    public List<UsuarioMetrica> getUsuariosMetrica() {
+    public List<UsuarioMetrica> getUsuariosMetrica(Integer limit) {
         List<Usuario> usuarios = usuarioRepository.findAll();
 
         List<UsuarioMetrica> usuarioMetricas = new ArrayList<>();
@@ -266,11 +267,16 @@ public class PerfilServiceImpl implements PerfilService {
             usuarioMetricas.add(metrica);
         }
 
+        // Aplicar límite si se proporciona
+        if (limit != null && limit > 0 && limit < usuarioMetricas.size()) {
+            return usuarioMetricas.subList(0, limit);
+        }
+
         return usuarioMetricas;
     }
 
     @Override
-    public List<ProfesionalMetrica> getProfesionalesMetrica() {
+    public List<ProfesionalMetrica> getProfesionalesMetrica(Integer limit) {
         List<Profesionale> profesionales = professionelleRepository.findAll();
 
         List<ProfesionalMetrica> profesionalMetricas = new ArrayList<>();
@@ -300,7 +306,24 @@ public class PerfilServiceImpl implements PerfilService {
             profesionalMetricas.add(metrica);
         }
 
+        // Aplicar límite si se proporciona
+        if (limit != null && limit > 0 && limit < profesionalMetricas.size()) {
+            return profesionalMetricas.subList(0, limit);
+        }
+
         return profesionalMetricas;
+    }
+
+    @Override
+    public UsuariosRegistradosDto getUsuariosRegistrados() {
+        long totalUsuarios = usuarioRepository.count();
+        long totalProfesionales = professionelleRepository.count();
+
+        UsuariosRegistradosDto dto = new UsuariosRegistradosDto();
+        dto.setCantClientes((int) totalUsuarios);
+        dto.setCantProfesionales((int) totalProfesionales);
+
+        return dto;
     }
 
     // ==================== MÉTODOS PRIVADOS DE APOYO ====================

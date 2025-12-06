@@ -41,4 +41,7 @@ public interface SolicitudService {
 
     // ✅ Método para obtener solicitud por ID
     Solicitude getSolicitudById(Integer idSolicitud);
+
+    // Método para obtener oficios más solicitados con filtro opcional de fecha
+    List<Map<String, Object>> getOficiosMasSolicitados(LocalDate fechaInicio, LocalDate fechaFin);
 }

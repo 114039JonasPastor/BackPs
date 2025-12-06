@@ -2,6 +2,7 @@ package ar.edu.utn.frc.tup.app.services;
 
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarCliente;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarProfesional;
+import ar.edu.utn.frc.tup.app.dtos.response.UsuariosRegistradosDto;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilCliente;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.metrica.ProfesionalMetrica;
@@ -20,6 +21,7 @@ public interface PerfilService {
     String getAvatar(Integer idAuth);
     List<PerfilProfesional> getProfesionalesByOficio(String oficio);
     void agregarStrike(Integer idUsuario, String motivo);
-    List<UsuarioMetrica> getUsuariosMetrica();
-    List<ProfesionalMetrica> getProfesionalesMetrica();
+    List<UsuarioMetrica> getUsuariosMetrica(Integer limit);
+    List<ProfesionalMetrica> getProfesionalesMetrica(Integer limit);
+    UsuariosRegistradosDto getUsuariosRegistrados();
 }

@@ -31,6 +31,7 @@ public class SolicitudServiceImpl implements SolicitudService {
     private final UsuarioRepository usuarioRepository;
     private final ProfesionalRepository profesionalRepository;
     private final OpenStreetMapService openStreetMapService;
+    private final ar.edu.utn.frc.tup.app.repositories.OficioRepository oficioRepository;
 
     @Override
     public SolicitudResponse enviarSolicitud(SolicitudRequest solicitud) {
@@ -488,5 +489,29 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .append(data.get("ciudad"));
 
         return direccion.toString();
+    }
+
+    @Override
+    public List<Map<String, Object>> getOficiosMasSolicitados(LocalDate fechaInicio, LocalDate fechaFin) {
+        // Convertir LocalDate a Instant (inicio del día para fechaInicio, fin del día para fechaFin)
+        Instant instantInicio = fechaInicio != null
+            ? fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant()
+            : null;
+        Instant instantFin = fechaFin != null
+            ? fechaFin.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant()
+            : null;
+
+        // Usar OficioRepository para obtener TODOS los oficios con su cantidad de solicitudes
+        var resultados = oficioRepository.findAllOficiosConCantidadSolicitudes(instantInicio, instantFin);
+
+        // Convertir los DTOs a una lista de mapas
+        return resultados.stream()
+                .map(dto -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("oficio", dto.getOficio());
+                    map.put("cantidadDeSolicitudes", dto.getCantidadDeSolicitudes());
+                    return map;
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -112,4 +113,22 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
         ORDER BY s.fechasolicitud DESC
         """)
     List<Map<String, Object>> findSolicitudesByProfesionalConDireccion(@Param("idProfesional") Integer idProfesional);
+
+    /**
+     * Obtiene los oficios más solicitados con opción de filtrar por fecha
+     * Si fechaInicio y fechaFin son null, retorna todas las solicitudes
+     */
+    @Query("""
+        SELECT o.oficio, COUNT(s.id)
+        FROM Solicitude s
+        JOIN s.idoficio o
+        WHERE s.fechasolicitud >= COALESCE(:fechaInicio, s.fechasolicitud)
+        AND s.fechasolicitud <= COALESCE(:fechaFin, s.fechasolicitud)
+        GROUP BY o.oficio
+        ORDER BY COUNT(s.id) DESC
+        """)
+    List<Object[]> findOficiosMasSolicitados(
+            @Param("fechaInicio") Instant fechaInicio,
+            @Param("fechaFin") Instant fechaFin
+    );
 }

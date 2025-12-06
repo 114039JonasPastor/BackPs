@@ -68,15 +68,6 @@ public class ReseniaController {
             List<TopProfesionales> topProfesionales =
                     reseniaService.getPosicionamientoSegunPuntuacion();
 
-            if (topProfesionales.isEmpty()) {
-                ErrorApi error = ErrorApi.builder()
-                        .timestamp(Instant.now().toString())
-                        .status(HttpStatus.NOT_FOUND.value())
-                        .error("Not Found")
-                        .message("No se encontraron profesionales con reseñas")
-                        .build();
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-            }
             return ResponseEntity.ok(topProfesionales);
         } catch (RuntimeException e) {
             ErrorApi error = ErrorApi.builder()

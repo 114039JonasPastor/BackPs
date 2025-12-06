@@ -79,7 +79,11 @@ public class ReseniaServiceImpl implements ReseniaService {
 
         List<Resenia> resenias = reseniaRepository.findByIdprofesional_Id(idProfesional);
         if (resenias.isEmpty()) {
-            throw new RuntimeException("El profesional no tiene reseñas");
+            return PuntuacionProfesional.builder()
+                    .nombreProfesional(profesional.getIdusuario().getIdauth().getName() + " " +
+                            profesional.getIdusuario().getIdauth().getLastname())
+                    .puntuacion(0.0)
+                    .build();
         }
 
         Double total = 0.0;
@@ -101,7 +105,7 @@ public class ReseniaServiceImpl implements ReseniaService {
 
         List<Resenia> resenias = reseniaRepository.findByIdprofesional_Id(idProfesional);
         if (resenias.isEmpty()) {
-            throw new RuntimeException("El profesional no tiene reseñas");
+            return new ArrayList<>();
         }
 
         List<ReseniaUser> reseniaUsers = new ArrayList<>();

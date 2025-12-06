@@ -3,6 +3,7 @@ package ar.edu.utn.frc.tup.app.controllers;
 import ar.edu.utn.frc.tup.app.dtos.common.ErrorApi;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarCliente;
 import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarProfesional;
+import ar.edu.utn.frc.tup.app.dtos.response.UsuariosRegistradosDto;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilCliente;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
 import ar.edu.utn.frc.tup.app.services.ConfirmationTokenService;
@@ -66,21 +67,6 @@ public class PerfilController {
         return ResponseEntity.ok(perfil);
     }
 
-//    @GetMapping("/profesional/oficio/{oficio}")
-//    public ResponseEntity<?> getProfesionalesByOficio(@PathVariable String oficio) {
-//        var profesionales = perfilService.getProfesionalesByOficio(oficio);
-//        if (profesionales.isEmpty()) {
-//            ErrorApi error = ErrorApi.builder()
-//                    .timestamp(java.time.Instant.now().toString())
-//                    .status(HttpStatus.NOT_FOUND.value())
-//                    .error("Not Found")
-//                    .message("No se encontraron profesionales para el oficio especificado")
-//                    .build();
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-//        }
-//        return ResponseEntity.ok(profesionales);
-//    }
-
     @PutMapping("/profesional")
     public ResponseEntity<PerfilProfesional> updatePerfilProfesional(@RequestBody ModificarProfesional profesional) {
         return ResponseEntity.ok(perfilService.updatePerfilProfesional(profesional));
@@ -141,12 +127,17 @@ public class PerfilController {
     }
 
     @GetMapping("/metrica/usuarios")
-    public ResponseEntity<List<?>> getUsuariosMetrica() {
-        return ResponseEntity.ok(perfilService.getUsuariosMetrica());
+    public ResponseEntity<List<?>> getUsuariosMetrica(@RequestParam(required = false) Integer limit) {
+        return ResponseEntity.ok(perfilService.getUsuariosMetrica(limit));
     }
 
     @GetMapping("/metrica/profesionales")
-    public ResponseEntity<List<?>> getProfesionalesMetrica() {
-        return ResponseEntity.ok(perfilService.getProfesionalesMetrica());
+    public ResponseEntity<List<?>> getProfesionalesMetrica(@RequestParam(required = false) Integer limit) {
+        return ResponseEntity.ok(perfilService.getProfesionalesMetrica(limit));
+    }
+
+    @GetMapping("/metrica/usuarios-registrados")
+    public ResponseEntity<UsuariosRegistradosDto> getUsuariosRegistrados() {
+        return ResponseEntity.ok(perfilService.getUsuariosRegistrados());
     }
 }

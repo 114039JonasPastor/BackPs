@@ -30,4 +30,22 @@ public interface OficioRepository extends JpaRepository<Oficio,Integer> {
     ORDER BY COUNT(s.id) DESC
     """)
     List<OficioXSolicitud> findOficiosMasDemandados();
+
+    @Query("""
+    SELECT new ar.edu.utn.frc.tup.app.dtos.response.oficio.OficioXSolicitud(
+        o.oficio,
+        COUNT(s.id)
+    )
+    FROM Oficio o
+    LEFT JOIN Solicitude s ON s.idoficio = o
+        AND s.fechasolicitud >= COALESCE(:fechaInicio, s.fechasolicitud)
+        AND s.fechasolicitud <= COALESCE(:fechaFin, s.fechasolicitud)
+    WHERE o.activo = TRUE
+    GROUP BY o.oficio
+    ORDER BY COUNT(s.id) DESC
+    """)
+    List<OficioXSolicitud> findAllOficiosConCantidadSolicitudes(
+            @org.springframework.data.repository.query.Param("fechaInicio") java.time.Instant fechaInicio,
+            @org.springframework.data.repository.query.Param("fechaFin") java.time.Instant fechaFin
+    );
 }
