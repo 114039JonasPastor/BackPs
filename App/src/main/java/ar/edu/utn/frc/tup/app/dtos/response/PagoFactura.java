@@ -11,6 +11,7 @@ import java.time.Instant;
 @Setter
 @Builder
 public class PagoFactura {
+    private Integer nroFactura;
     private Instant fecha;
     private BigDecimal monto;
     private String cliente;

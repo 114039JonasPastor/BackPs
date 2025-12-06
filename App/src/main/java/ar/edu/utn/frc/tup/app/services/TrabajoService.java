@@ -1,7 +1,9 @@
 package ar.edu.utn.frc.tup.app.services;
 
 import ar.edu.utn.frc.tup.app.dtos.request.trabajo.FinalizarTrabajoRequest;
+import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoCanceladoNotificacionDTO;
 import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoClienteResponse;
+import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoFinalizadoNotificacionDTO;
 import ar.edu.utn.frc.tup.app.dtos.response.trabajo.TrabajoResponse;
 import ar.edu.utn.frc.tup.app.entities.Factura;
 import ar.edu.utn.frc.tup.app.entities.Trabajo;
@@ -22,4 +24,6 @@ public interface TrabajoService {
     List<TrabajoResponse> obtenerTrabajosPorUsuario(Integer idUsuario, String estado);
     List<TrabajoResponse> obtenerTrabajosSinFactura();
     List<TrabajoClienteResponse> obtenerTrabajosFinalizadosPorCliente(Integer idUsuario);
+    List<TrabajoCanceladoNotificacionDTO> obtenerTrabajosCanceladosPorCliente(Integer idUsuario);
+    List<TrabajoFinalizadoNotificacionDTO> obtenerTrabajosFinalizadosParaNotificar(Integer idUsuario);
 }
