@@ -497,3 +497,5 @@ CREATE INDEX idx_resenias_idtrabajo ON resenias(idtrabajo);
 
 -- Comentario en la columna
 COMMENT ON COLUMN resenias.idtrabajo IS 'ID del trabajo asociado a la reseña';
+
+update oficios set oficio = 'SERVICIO DE LIMPIEZA' where idOficio = 6;
