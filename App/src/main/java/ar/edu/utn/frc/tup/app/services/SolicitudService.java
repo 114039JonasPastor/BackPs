@@ -39,6 +39,8 @@ public interface SolicitudService {
 
     List<Map<String, Object>> getSolicitudesByProfesionalConUbicacion(Integer idProfesional);
 
+    Map<String, Object> getSolicitudesByProfesionalConUbicacionPaginado(Integer idProfesional, int pagina, int tamanio);
+
     Solicitude getSolicitudById(Integer idSolicitud);
 
     List<PerfilProfesional> getProfesionalesMasSolicitadosUltimoMes();
