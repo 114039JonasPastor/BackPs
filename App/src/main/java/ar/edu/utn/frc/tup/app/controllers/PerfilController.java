@@ -129,13 +129,17 @@ public class PerfilController {
     }
 
     @GetMapping("/metrica/usuarios")
-    public ResponseEntity<List<?>> getUsuariosMetrica(@RequestParam(required = false) Integer limit) {
-        return ResponseEntity.ok(perfilService.getUsuariosMetrica(limit));
+    public ResponseEntity<List<?>> getUsuariosMetrica(
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Integer offset) {
+        return ResponseEntity.ok(perfilService.getUsuariosMetrica(limit, offset));
     }
 
     @GetMapping("/metrica/profesionales")
-    public ResponseEntity<List<?>> getProfesionalesMetrica(@RequestParam(required = false) Integer limit) {
-        return ResponseEntity.ok(perfilService.getProfesionalesMetrica(limit));
+    public ResponseEntity<List<?>> getProfesionalesMetrica(
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Integer offset) {
+        return ResponseEntity.ok(perfilService.getProfesionalesMetrica(limit, offset));
     }
 
     @GetMapping("/metrica/usuarios-registrados")

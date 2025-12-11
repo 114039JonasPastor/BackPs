@@ -20,4 +20,6 @@ public class PerfilCliente {
     private String tipoDocumento;
     private LocalDate nacimiento;
     private DomicilioDto domicilio;
+    private Integer strikes;
+    private Boolean estado;
 }

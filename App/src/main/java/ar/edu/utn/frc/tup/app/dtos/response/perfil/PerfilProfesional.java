@@ -20,4 +20,5 @@ public class PerfilProfesional {
     private List<String> especialidades;
     private Double puntuacionPromedio;
     private Long cantidadResenias;
+    private Integer serviciosCompletados;
 }

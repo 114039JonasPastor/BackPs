@@ -77,6 +77,8 @@ public class PerfilServiceImpl implements PerfilService {
                     .nacimiento(usuario.getNacimiento())
                     .email(usuario.getIdauth().getUsername())
                     .domicilio(domicilioDto)
+                    .strikes(usuario.getStrike())
+                    .estado(usuario.getIdauth().getActive())
                     .build();
             return perfil;
         } else {
@@ -287,7 +289,7 @@ public class PerfilServiceImpl implements PerfilService {
     }
 
     @Override
-    public List<UsuarioMetrica> getUsuariosMetrica(Integer limit) {
+    public List<UsuarioMetrica> getUsuariosMetrica(Integer limit, Integer offset) {
         List<Usuario> usuarios = usuarioRepository.findAll();
 
         List<UsuarioMetrica> usuarioMetricas = new ArrayList<>();
@@ -302,15 +304,23 @@ public class PerfilServiceImpl implements PerfilService {
             usuarioMetricas.add(metrica);
         }
 
-        if (limit != null && limit > 0 && limit < usuarioMetricas.size()) {
-            return usuarioMetricas.subList(0, limit);
+        // Aplicar offset
+        int startIndex = (offset != null && offset >= 0) ? offset : 0;
+        if (startIndex >= usuarioMetricas.size()) {
+            return new ArrayList<>();
         }
 
-        return usuarioMetricas;
+        // Aplicar limit
+        int endIndex = usuarioMetricas.size();
+        if (limit != null && limit > 0) {
+            endIndex = Math.min(startIndex + limit, usuarioMetricas.size());
+        }
+
+        return usuarioMetricas.subList(startIndex, endIndex);
     }
 
     @Override
-    public List<ProfesionalMetrica> getProfesionalesMetrica(Integer limit) {
+    public List<ProfesionalMetrica> getProfesionalesMetrica(Integer limit, Integer offset) {
         List<Profesionale> profesionales = professionelleRepository.findAll();
 
         List<ProfesionalMetrica> profesionalMetricas = new ArrayList<>();
@@ -324,7 +334,7 @@ public class PerfilServiceImpl implements PerfilService {
 
                 calificacionTexto = calificacionNumerica.toString();
 
-                serviciosCompletados = trabajoService.obtenerTrabajosPorUsuario(profesional.getIdusuario().getId(),"FINALIZADO").size();
+                serviciosCompletados = trabajoService.obtenerTrabajosPorProfesionalyEstado(profesional.getId(),"FINALIZADO").size();
 
             } catch (Exception e) {
                 System.err.println("Error al obtener promedio o trabajos para el profesional " + profesional.getId() + ": " + e.getMessage());
@@ -340,11 +350,19 @@ public class PerfilServiceImpl implements PerfilService {
             profesionalMetricas.add(metrica);
         }
 
-        if (limit != null && limit > 0 && limit < profesionalMetricas.size()) {
-            return profesionalMetricas.subList(0, limit);
+        // Aplicar offset
+        int startIndex = (offset != null && offset >= 0) ? offset : 0;
+        if (startIndex >= profesionalMetricas.size()) {
+            return new ArrayList<>();
         }
 
-        return profesionalMetricas;
+        // Aplicar limit
+        int endIndex = profesionalMetricas.size();
+        if (limit != null && limit > 0) {
+            endIndex = Math.min(startIndex + limit, profesionalMetricas.size());
+        }
+
+        return profesionalMetricas.subList(startIndex, endIndex);
     }
 
     @Override
@@ -367,6 +385,14 @@ public class PerfilServiceImpl implements PerfilService {
 
         Double puntuacionPromedio = reseniaRepository.getPromedioPuntuacionByProfesional(profesional.getId());
         Long cantidadResenias = reseniaRepository.countReseniasByProfesional(profesional.getId());
+        
+        // Calcular servicios completados
+        Integer serviciosCompletados = 0;
+        try {
+            serviciosCompletados = trabajoService.obtenerTrabajosPorProfesionalyEstado(profesional.getId(), "FINALIZADO").size();
+        } catch (Exception e) {
+            System.err.println("Error al obtener trabajos finalizados para el profesional " + profesional.getId() + ": " + e.getMessage());
+        }
 
         return PerfilProfesional.builder()
                 .idProfesional(profesional.getId())
@@ -379,6 +405,7 @@ public class PerfilServiceImpl implements PerfilService {
                 .especialidades(especialidadesList)
                 .puntuacionPromedio(puntuacionPromedio != null ? Math.round(puntuacionPromedio * 10.0) / 10.0 : null)
                 .cantidadResenias(cantidadResenias)
+                .serviciosCompletados(serviciosCompletados)
                 .build();
     }
 
@@ -438,6 +465,8 @@ public class PerfilServiceImpl implements PerfilService {
                         .nacimiento(usuario.getNacimiento())
                         .email(usuario.getIdauth().getUsername())
                         .domicilio(domicilioDto)
+                        .strikes(usuario.getStrike())
+                        .estado(usuario.getIdauth().getActive())
                         .build();
                 perfiles.add(perfil);
             } catch (Exception e) {
