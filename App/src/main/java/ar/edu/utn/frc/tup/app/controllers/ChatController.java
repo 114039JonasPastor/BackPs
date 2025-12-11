@@ -99,6 +99,13 @@ public class ChatController {
 
         String token = streamChatService.createUserToken(userId);
         String fullName = streamChatService.getUserFullName(userId);
+        
+        log.info("Usuario {} inicializado con nombre: '{}'", userId, fullName);
+        
+        // ✅ Crear/actualizar el usuario en Stream Chat con su nombre correcto
+        if (!fullName.isEmpty()) {
+            streamChatService.createOrUpdateUser(userId, fullName, null, null);
+        }
 
         return ResponseEntity.ok(Map.of(
                 "apiKey", streamChatService.getApiKey(),
@@ -177,6 +184,20 @@ public class ChatController {
         String professionalId = request.get("professionalId");
 
         log.info("Iniciando conversación entre usuario {} y profesional {}", userId, professionalId);
+
+        // ✅ Asegurarse de que ambos usuarios existan en Stream con sus nombres correctos
+        String userFullName = streamChatService.getUserFullName(userId);
+        String professionalFullName = streamChatService.getUserFullName(professionalId);
+        
+        log.info("Nombres obtenidos - Usuario: '{}', Profesional: '{}'", userFullName, professionalFullName);
+        
+        // Crear/actualizar ambos usuarios en Stream Chat con sus nombres correctos
+        if (!userFullName.isEmpty()) {
+            streamChatService.createOrUpdateUser(userId, userFullName, null, null);
+        }
+        if (!professionalFullName.isEmpty()) {
+            streamChatService.createOrUpdateUser(professionalId, professionalFullName, null, null);
+        }
 
         String channelId = "support-" +
                 Math.min(Integer.parseInt(userId), Integer.parseInt(professionalId)) +

@@ -1,6 +1,8 @@
 package ar.edu.utn.frc.tup.app.services.impl;
 
+import ar.edu.utn.frc.tup.app.entities.Profesionale;
 import ar.edu.utn.frc.tup.app.entities.Usuario;
+import ar.edu.utn.frc.tup.app.repositories.ProfesionalRepository;
 import ar.edu.utn.frc.tup.app.repositories.UsuarioRepository;
 import ar.edu.utn.frc.tup.app.services.StreamChatService;
 import io.jsonwebtoken.Jwts;
@@ -28,6 +30,7 @@ public class StreamChatServiceImpl implements StreamChatService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final UsuarioRepository usuarioRepository;
+    private final ProfesionalRepository profesionalRepository;
 
     @Override
     public String createUserToken(String userId) {
@@ -219,7 +222,7 @@ public class StreamChatServiceImpl implements StreamChatService {
                     "members", Map.of("$in", List.of(userId))
             ));
             requestBody.put("sort", List.of(Map.of("last_message_at", -1)));
-            requestBody.put("limit", 30);
+            requestBody.put("limit", 100);
 
             HttpHeaders headers = createServerAuthHeaders();
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
@@ -260,13 +263,30 @@ public class StreamChatServiceImpl implements StreamChatService {
     public String getUserFullName(String userId) {
         try {
             Integer id = Integer.parseInt(userId);
-            Optional<Usuario> opt = usuarioRepository.findById(id);
-            if (opt.isPresent()) {
-                Usuario u = opt.get();
+            
+            // Primero intentar buscar como usuario normal
+            Optional<Usuario> optUsuario = usuarioRepository.findById(id);
+            if (optUsuario.isPresent()) {
+                Usuario u = optUsuario.get();
                 String nombre = u.getIdauth().getName() != null ? u.getIdauth().getName() : "";
                 String apellido = u.getIdauth().getLastname() != null ? u.getIdauth().getLastname() : "";
-                return (nombre + " " + apellido).trim();
+                String fullName = (nombre + " " + apellido).trim();
+                log.info("Nombre encontrado para usuario {}: {}", userId, fullName);
+                return fullName;
             }
+            
+            // Si no se encuentra como usuario, buscar como profesional
+            Optional<Profesionale> optProfesional = profesionalRepository.findById(id);
+            if (optProfesional.isPresent()) {
+                Profesionale p = optProfesional.get();
+                String nombre = p.getIdusuario().getIdauth().getName() != null ? p.getIdusuario().getIdauth().getName() : "";
+                String apellido = p.getIdusuario().getIdauth().getLastname() != null ? p.getIdusuario().getIdauth().getLastname() : "";
+                String fullName = (nombre + " " + apellido).trim();
+                log.info("Nombre encontrado para profesional {}: {}", userId, fullName);
+                return fullName;
+            }
+            
+            log.warn("No se encontró usuario ni profesional con ID: {}", userId);
         } catch (Exception e) {
             log.warn("No se pudo obtener nombre completo para userId={}: {}", userId, e.getMessage());
         }
