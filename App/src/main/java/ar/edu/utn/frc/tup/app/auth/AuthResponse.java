@@ -23,4 +23,5 @@ public class AuthResponse {
     private Integer idDireccion;
     private Integer idProfesional;
     private List<String> roles;
+    private String avatar;
 }

@@ -11,5 +11,5 @@ import java.time.LocalTime;
 public class ReprogramarRequest {
     private LocalDate nuevaFecha;
     private LocalTime nuevaHora;
-    private Integer duracion; // opcional, usa la duración original si no se provee
+    private Integer duracion;
 }

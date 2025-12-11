@@ -65,13 +65,11 @@ public class PasswordResetController {
         }
     }
 
-    // Nuevo endpoint GET para mostrar la página HTML de reset
     @GetMapping("/reset-password")
     public ResponseEntity<String> mostrarPaginaReset(
             @RequestParam("token") String token,
             @RequestParam("email") String email) {
         try {
-            // Verificar si el token es válido antes de mostrar la página
             if (!passwordResetService.isValidToken(email, token)) {
                 String errorHtml = loadPasswordResetPage(email, token, true, "Token inválido o expirado", false, null);
                 return ResponseEntity.badRequest()
@@ -79,7 +77,6 @@ public class PasswordResetController {
                         .body(errorHtml);
             }
 
-            // Mostrar página de reset con formulario
             String htmlContent = loadPasswordResetPage(email, token, false, null, true, null);
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
@@ -94,7 +91,6 @@ public class PasswordResetController {
         }
     }
 
-    // Nuevo endpoint POST para procesar el formulario HTML
     @PostMapping("/reset-password-form")
     public ResponseEntity<String> procesarFormularioReset(
             @RequestParam("token") String token,
@@ -102,7 +98,6 @@ public class PasswordResetController {
             @RequestParam("newPassword") String newPassword,
             @RequestParam("confirmPassword") String confirmPassword) {
         try {
-            // Validar que las contraseñas coincidan
             if (!newPassword.equals(confirmPassword)) {
                 String errorHtml = loadPasswordResetPage(email, token, true, "Las contraseñas no coinciden", true, null);
                 return ResponseEntity.badRequest()
@@ -110,10 +105,8 @@ public class PasswordResetController {
                         .body(errorHtml);
             }
 
-            // Cambiar la contraseña usando el token
             passwordResetService.cambiarPassword(email, token, newPassword);
 
-            // Mostrar página de éxito
             String successHtml = loadPasswordResetPage(email, token, false, null, false, "Contraseña cambiada exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.");
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
@@ -133,7 +126,6 @@ public class PasswordResetController {
             ClassPathResource resource = new ClassPathResource("templates/password-reset.html");
             String htmlTemplate = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 
-            // Reemplazar placeholders
             return htmlTemplate
                     .replace("{{formAction}}", "/auth/reset-password-form")
                     .replace("{{resetToken}}", token != null ? token : "")

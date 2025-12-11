@@ -32,20 +32,11 @@ public class AuthServiceImpl implements AuthService {
     private final ProfesionalRepository profesionalRepository;
     private final RolxusuarioRepository rolxusuarioRepository;
 
-//    @Override
-//    public AuthResponse login(LoginRequest request) {
-//        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-//        UserDetails user = authRepository.findByMail(request.getEmail()).orElseThrow();
-//        String token = jwtService.getToken(user);
-//        return AuthResponse.builder()
-//                .token(token)
-//                .build();
-//    }
     @Override
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         Auth auth = authRepository.findByMail(request.getEmail()).orElseThrow();
-        Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null); // Debes tener este método
+        Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null);
 
         Integer idProfesional = null;
         if (usuario != null) {
@@ -54,7 +45,6 @@ public class AuthServiceImpl implements AuthService {
                     .orElse(null);
         }
 
-        // Obtener roles del usuario desde rolxusuario
         List<String> roles = rolxusuarioRepository.findByIdauth(auth).stream()
                 .map(rolxusuario -> rolxusuario.getIdrol().getDescripcion())
                 .collect(Collectors.toList());
@@ -71,12 +61,12 @@ public class AuthServiceImpl implements AuthService {
                 .idDireccion(usuario != null ? usuario.getIddireccion().getId() : null)
                 .idProfesional(idProfesional)
                 .roles(roles)
+                .avatar(usuario != null ? usuario.getAvatar() : null)
              .build();
     }
     @Override
     public AuthResponse register(RegisterRequest request) {
-        Auth usuario = Auth.builder() //error
-//                .username(request.getUsername())
+        Auth usuario = Auth.builder()
                 .password(passwordEncoder.encode(request.getPassword()))
                 .mail(request.getEmail())
                 .name(request.getName())

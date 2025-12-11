@@ -34,7 +34,7 @@ public class ReseniaServiceImpl implements ReseniaService {
     @Override
     public ReseniaResponse puntuarResenia(ReseniaRequest reseniaRequest) {
 
-        System.out.println("🔍 Request recibido - idTrabajo: " + reseniaRequest.getIdTrabajo());
+        System.out.println("Request recibido - idTrabajo: " + reseniaRequest.getIdTrabajo());
 
         Usuario usuario = usuarioRepository.findById(reseniaRequest.getIdUsuario()).orElse(null);
         if(usuario == null){
@@ -46,27 +46,25 @@ public class ReseniaServiceImpl implements ReseniaService {
             throw new RuntimeException("Profesional no encontrado");
         }
 
-        // Verificar si el trabajo ya fue reseñado
         if (reseniaRequest.getIdTrabajo() != null) {
             Long yaReseniado = reseniaRepository.countByTrabajo(reseniaRequest.getIdTrabajo());
-            System.out.println("🔍 Ya reseñado count: " + yaReseniado + " para trabajo: " + reseniaRequest.getIdTrabajo());
+            System.out.println("Ya reseñado count: " + yaReseniado + " para trabajo: " + reseniaRequest.getIdTrabajo());
             if (yaReseniado != null && yaReseniado > 0) {
                 throw new RuntimeException("Este trabajo ya fue reseñado");
             }
         } else {
-            System.out.println("⚠️ ADVERTENCIA: idTrabajo es null en el request");
+            System.out.println("ADVERTENCIA: idTrabajo es null en el request");
         }
 
         Resenia resenia = new Resenia();
         resenia.setIdusuario(usuario);
         resenia.setIdprofesional(profesional);
-        
-        // Asociar el trabajo si se proporciona
+
         if (reseniaRequest.getIdTrabajo() != null) {
             ar.edu.utn.frc.tup.app.entities.Trabajo trabajo = trabajoRepository.findById(reseniaRequest.getIdTrabajo())
                     .orElseThrow(() -> new RuntimeException("Trabajo no encontrado"));
             resenia.setTrabajo(trabajo);
-            System.out.println("✅ Trabajo asignado a reseña: " + trabajo.getId());
+            System.out.println("Trabajo asignado a reseña: " + trabajo.getId());
         }
         
         if(reseniaRequest.getPuntuacion() < 1 || reseniaRequest.getPuntuacion() > 5){
@@ -77,7 +75,7 @@ public class ReseniaServiceImpl implements ReseniaService {
         resenia.setFecha(Instant.now());
 
         Resenia saved = reseniaRepository.save(resenia);
-        System.out.println("✅ Reseña guardada con ID: " + saved.getId() + ", idTrabajo: " + (saved.getTrabajo() != null ? saved.getTrabajo().getId() : "null"));
+        System.out.println("Reseña guardada con ID: " + saved.getId() + ", idTrabajo: " + (saved.getTrabajo() != null ? saved.getTrabajo().getId() : "null"));
 
         ReseniaResponse response = ReseniaResponse.builder().
                 nombreUsuario(resenia.getIdusuario().getIdauth().getName() + " " + resenia.getIdusuario().getIdauth().getLastname())

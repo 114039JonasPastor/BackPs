@@ -56,6 +56,7 @@ public class PerfilServiceImpl implements PerfilService {
                 var ciudad = ciudadRepository.findById(barrio.getIdciudad().getId()).orElse(null);
                 var departamento = departamentoRepository.findById(ciudad.getIddepartamento().getId()).orElse(null);
 
+                domicilioDto.setId(direccion.getId()); // Agregar el ID de la direcci\u00f3n
                 domicilioDto.setCalle(direccion.getCalle());
                 domicilioDto.setNumero(direccion.getNumero());
                 domicilioDto.setPiso(direccion.getPiso());
@@ -85,24 +86,19 @@ public class PerfilServiceImpl implements PerfilService {
 
     @Override
     public PerfilCliente updatePerfilCliente(ModificarCliente cliente, String authHeader) {
-        // Extraer token del header
         String token = authHeader.replace("Bearer ", "");
         String email = jwtService.getUsernameFromToken(token);
-        
-        // Buscar por mail extraído del JWT
+
         Auth auth = authRepository.findByMail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el email: " + email));
 
-        // Actualizar datos del Auth
         auth.setName(cliente.getName());
         auth.setLastname(cliente.getLastName());
         authRepository.save(auth);
 
-        // Buscar el usuario asociado
         Usuario usuario = usuarioRepository.findByIdauth(auth)
                 .orElseThrow(() -> new RuntimeException("No se encontró un usuario asociado a la autenticación"));
 
-        // Actualizar dirección si existe
         if (cliente.getAdress() != null && cliente.getAdress().getId() != null) {
             try {
                 Direccione direccion = direccionRepository.findById(cliente.getAdress().getId())
@@ -127,7 +123,6 @@ public class PerfilServiceImpl implements PerfilService {
             }
         }
 
-        // Actualizar teléfono si se proporciona
         if (cliente.getPhone() != null && !cliente.getPhone().isEmpty()) {
             usuario.setTelefono(cliente.getPhone());
         }
@@ -153,8 +148,7 @@ public class PerfilServiceImpl implements PerfilService {
 
         String rangoPrecio = calcularRangoPrecio(monto, profesional);
         List<String> especialidadesList = obtenerEspecialidades(profesional);
-        
-        // Obtener puntuación promedio y cantidad de reseñas
+
         Double puntuacionPromedio = reseniaRepository.getPromedioPuntuacionByProfesional(profesional.getId());
         Long cantidadResenias = reseniaRepository.countReseniasByProfesional(profesional.getId());
 
@@ -162,6 +156,7 @@ public class PerfilServiceImpl implements PerfilService {
                 .idProfesional(profesional.getId())
                 .nombre(profesional.getIdusuario().getIdauth().getName())
                 .apellido(profesional.getIdusuario().getIdauth().getLastname())
+                .avatar(profesional.getIdusuario().getIdauth().getAvatar())
                 .oficio(profesional.getIdoficio().getOficio())
                 .telefono(profesional.getIdusuario().getTelefono())
                 .rangoPrecio(rangoPrecio)
@@ -173,18 +168,15 @@ public class PerfilServiceImpl implements PerfilService {
 
     @Override
     public PerfilProfesional updatePerfilProfesional(ModificarProfesional request) {
-        // Buscar el profesional por ID
         Profesionale profesional = professionelleRepository.findById(request.getIdProfesional())
                 .orElseThrow(() -> new RuntimeException("Profesional no encontrado"));
 
-        // Actualizar oficio si se proporciona
         if (request.getIdOficio() != null) {
             Oficio oficio = oficioRepository.findById(request.getIdOficio())
                     .orElseThrow(() -> new RuntimeException("Oficio no encontrado"));
             profesional.setIdoficio(oficio);
         }
 
-        // Actualizar fechas de vigencia
         if (request.getFechaDesde() != null) {
             profesional.setFechadesde(request.getFechaDesde());
         }
@@ -192,7 +184,6 @@ public class PerfilServiceImpl implements PerfilService {
             profesional.setFechahasta(request.getFechaHasta());
         }
 
-        // Actualizar precios
         if (request.getPrecioMin() != null) {
             profesional.setPrecioMin(request.getPrecioMin());
         }
@@ -202,14 +193,11 @@ public class PerfilServiceImpl implements PerfilService {
 
         professionelleRepository.save(profesional);
 
-        // Actualizar las especialidades
         if (request.getEspecialidades() != null) {
-            // Eliminar las especialidades existentes
             if (profesional.getEspecialidades() != null && !profesional.getEspecialidades().isEmpty()) {
                 especialidadRepository.deleteAll(profesional.getEspecialidades());
             }
 
-            // Agregar las nuevas especialidades
             final Profesionale profesionalFinal = profesional;
             request.getEspecialidades().forEach(especialidadNombre -> {
                 Especialidad especialidad = Especialidad.builder()
@@ -220,7 +208,6 @@ public class PerfilServiceImpl implements PerfilService {
             });
         }
 
-        // Recargar el profesional con las especialidades actualizadas
         profesional = professionelleRepository.findById(request.getIdProfesional())
                 .orElseThrow(() -> new RuntimeException("Profesional no encontrado"));
 
@@ -268,10 +255,9 @@ public class PerfilServiceImpl implements PerfilService {
         try {
             List<Profesionale> profesionales = professionelleRepository.findByOficioSimple(oficio);
 
-            // Forzar la carga de especialidades dentro de la transacción
             profesionales.forEach(p -> {
                 if (p.getEspecialidades() != null) {
-                    p.getEspecialidades().size(); // Esto fuerza la carga lazy
+                    p.getEspecialidades().size();
                 }
             });
 
@@ -291,10 +277,8 @@ public class PerfilServiceImpl implements PerfilService {
         Integer strikesActuales = usuario.getStrike() != null ? usuario.getStrike() : 0;
         usuario.setStrike(strikesActuales + 1);
 
-        // Si llega a 3 strikes, suspender usuario
         if (usuario.getStrike() >= 3) {
             usuario.getIdauth().setActive(false);
-            // Enviar notificación, etc.
         }
         usuarioRepository.save(usuario);
     }
@@ -315,7 +299,6 @@ public class PerfilServiceImpl implements PerfilService {
             usuarioMetricas.add(metrica);
         }
 
-        // Aplicar límite si se proporciona
         if (limit != null && limit > 0 && limit < usuarioMetricas.size()) {
             return usuarioMetricas.subList(0, limit);
         }
@@ -354,7 +337,6 @@ public class PerfilServiceImpl implements PerfilService {
             profesionalMetricas.add(metrica);
         }
 
-        // Aplicar límite si se proporciona
         if (limit != null && limit > 0 && limit < profesionalMetricas.size()) {
             return profesionalMetricas.subList(0, limit);
         }
@@ -374,18 +356,12 @@ public class PerfilServiceImpl implements PerfilService {
         return dto;
     }
 
-    // ==================== MÉTODOS PRIVADOS DE APOYO ====================
-
-    /**
-     * Mapea un Profesionale a PerfilProfesional
-     */
     private PerfilProfesional mapToPerfilProfesional(Profesionale profesional) {
         Monto monto = montoRepository.findByIdprofesional_Id(profesional.getId()).orElse(null);
 
         String rangoPrecio = calcularRangoPrecio(monto, profesional);
         List<String> especialidadesList = obtenerEspecialidades(profesional);
-        
-        // Obtener puntuación promedio y cantidad de reseñas
+
         Double puntuacionPromedio = reseniaRepository.getPromedioPuntuacionByProfesional(profesional.getId());
         Long cantidadResenias = reseniaRepository.countReseniasByProfesional(profesional.getId());
 
@@ -393,6 +369,7 @@ public class PerfilServiceImpl implements PerfilService {
                 .idProfesional(profesional.getId())
                 .nombre(profesional.getIdusuario().getIdauth().getName())
                 .apellido(profesional.getIdusuario().getIdauth().getLastname())
+                .avatar(profesional.getIdusuario().getIdauth().getAvatar())
                 .oficio(profesional.getIdoficio().getOficio())
                 .telefono(profesional.getIdusuario().getTelefono())
                 .rangoPrecio(rangoPrecio)
@@ -402,9 +379,6 @@ public class PerfilServiceImpl implements PerfilService {
                 .build();
     }
 
-    /**
-     * Calcula el rango de precio del profesional
-     */
     private String calcularRangoPrecio(Monto monto, Profesionale profesional) {
         if (monto != null && monto.getPreciomin() != null && monto.getPreciomax() != null) {
             return monto.getPreciomin() + " - " + monto.getPreciomax();
@@ -414,9 +388,6 @@ public class PerfilServiceImpl implements PerfilService {
         return "No especificado";
     }
 
-    /**
-     * Obtiene la lista de especialidades del profesional
-     */
     private List<String> obtenerEspecialidades(Profesionale profesional) {
         if (profesional.getEspecialidades() != null) {
             try {
@@ -424,7 +395,6 @@ public class PerfilServiceImpl implements PerfilService {
                         .map(Especialidad::getEspecialidad)
                         .toList();
             } catch (Exception e) {
-                // Si falla la carga lazy, retornar lista vacía
                 return List.of();
             }
         }

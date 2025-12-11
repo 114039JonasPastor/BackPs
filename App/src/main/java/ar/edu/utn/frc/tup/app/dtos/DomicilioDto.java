@@ -6,6 +6,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class DomicilioDto {
+    private Integer id; // ID de la direcci\u00f3n
     private String calle;
     private String numero;
     private String piso;

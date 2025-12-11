@@ -131,7 +131,6 @@ public class SolicitudController {
             @RequestParam(defaultValue = "60") Integer duracion,
             @RequestParam(required = false) String observacion) {
         try {
-            // Convertir String a LocalTime
             LocalTime horaTime = LocalTime.parse(hora);
 
             SolicitudResponse response = solicitudService
@@ -179,7 +178,6 @@ public class SolicitudController {
         }
     }
 
-    // Endpoint adicional: Verificar disponibilidad antes de reprogramar
     @GetMapping("/verificar-disponibilidad/{idProfesional}")
     public ResponseEntity<?> verificarDisponibilidad(
             @PathVariable Integer idProfesional,
@@ -189,11 +187,9 @@ public class SolicitudController {
         try {
             LocalTime horaTime = LocalTime.parse(hora);
 
-            // Obtener turnos disponibles
             List<TurnoDisponibleDTO> turnosDisponibles = solicitudService
                     .obtenerTurnosDisponiblesSemana(idProfesional, fecha, duracion);
 
-            // Verificar si el horario solicitado está disponible
             boolean disponible = turnosDisponibles.stream()
                     .anyMatch(t -> t.getFecha().equals(fecha) &&
                             t.getHoraInicio().equals(horaTime));
@@ -235,7 +231,6 @@ public class SolicitudController {
         }
     }
 
-    //Mapa
     @GetMapping("/profesional/{idProfesional}/con-ubicacion")
     public ResponseEntity<List<Map<String, Object>>> getSolicitudesByProfesionalConUbicacion(
             @PathVariable Integer idProfesional) {
@@ -344,7 +339,6 @@ public class SolicitudController {
         try {
             List<Map<String, Object>> oficios = solicitudService.getOficiosMasSolicitados(fechaInicio, fechaFin);
 
-            // Si no hay registros, retornar null en lugar de error
             if (oficios == null || oficios.isEmpty()) {
                 return ResponseEntity.ok(null);
             }

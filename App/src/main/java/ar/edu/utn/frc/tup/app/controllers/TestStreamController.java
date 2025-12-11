@@ -23,7 +23,7 @@ public class TestStreamController {
                     "test@example.com",
                     null
             );
-            return ResponseEntity.ok("✅ Stream Chat funciona correctamente");
+            return ResponseEntity.ok("Stream Chat funciona correctamente");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("❌ Error: " + e.getMessage());
         }

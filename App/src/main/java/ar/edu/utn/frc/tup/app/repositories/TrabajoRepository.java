@@ -17,7 +17,6 @@ public interface TrabajoRepository extends JpaRepository<Trabajo, Integer> {
     @Query("SELECT t FROM Trabajo t JOIN t.solicitud s WHERE s.idprofesional.id = :idProfesional")
     List<Trabajo> findByProfesional_Id(@Param("idProfesional") Integer idProfesional);
 
-    // Buscar trabajos por profesional y estado
     @Query("SELECT t FROM Trabajo t " +
             "JOIN t.solicitud s " +
             "WHERE s.idprofesional.id = :idProfesional AND t.estado = :estado")
@@ -26,18 +25,15 @@ public interface TrabajoRepository extends JpaRepository<Trabajo, Integer> {
             @Param("estado") String estado
     );
 
-    // Buscar trabajos finalizados sin factura
     @Query("SELECT t FROM Trabajo t " +
             "WHERE t.estado = 'FINALIZADO' AND t.factura IS NULL")
     List<Trabajo> findTrabajosFinalizadosSinFactura();
 
-    // Buscar trabajos por usuario
     @Query("SELECT t FROM Trabajo t " +
             "JOIN t.solicitud s " +
             "WHERE s.idusuario.id = :idUsuario")
     List<Trabajo> findByUsuario(@Param("idUsuario") Integer idUsuario);
 
-    // Buscar trabajos por usuario y estado
     @Query("SELECT t FROM Trabajo t " +
             "JOIN t.solicitud s " +
             "WHERE s.idusuario.id = :idUsuario AND t.estado = :estado")
@@ -46,7 +42,6 @@ public interface TrabajoRepository extends JpaRepository<Trabajo, Integer> {
             @Param("estado") String estado
     );
 
-    // Contar trabajos por estado
     @Query("SELECT COUNT(t) FROM Trabajo t " +
             "JOIN t.solicitud s " +
             "WHERE s.idprofesional.id = :idProfesional AND t.estado = :estado")

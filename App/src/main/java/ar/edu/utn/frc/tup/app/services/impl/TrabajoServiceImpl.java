@@ -41,12 +41,10 @@ public class TrabajoServiceImpl implements TrabajoService {
         Solicitude solicitud = solicitudRepository.findById(idSolicitud)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-        // Verificar que la solicitud esté aceptada
         if (!"ACEPTADA".equals(solicitud.getEstado())) {
             throw new RuntimeException("Solo se pueden crear trabajos de solicitudes aceptadas");
         }
 
-        // Verificar que no exista ya un trabajo para esta solicitud
         if (trabajoRepository.findBySolicitud_Id(idSolicitud).isPresent()) {
             throw new RuntimeException("Ya existe un trabajo para esta solicitud");
         }
@@ -133,7 +131,6 @@ public class TrabajoServiceImpl implements TrabajoService {
             throw new RuntimeException("Solo se pueden finalizar trabajos en curso o pausados");
         }
 
-        // Validar que tenga monto
         if (request.getMontoFinal() == null || request.getMontoFinal().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Debe especificar un monto válido");
         }
@@ -165,7 +162,6 @@ public class TrabajoServiceImpl implements TrabajoService {
             throw new RuntimeException("No se puede cancelar un trabajo finalizado o ya cancelado");
         }
 
-        // No se puede cancelar si ya tiene factura
         if (trabajo.getFactura() != null) {
             throw new RuntimeException("No se puede cancelar un trabajo que ya tiene factura asociada");
         }
@@ -276,7 +272,6 @@ public class TrabajoServiceImpl implements TrabajoService {
                     String nombreProfesional = solicitud.getIdprofesional().getIdusuario().getIdauth().getName() + " " +
                             solicitud.getIdprofesional().getIdusuario().getIdauth().getLastname();
 
-                    // Verificar si el trabajo ya fue reseñado
                     Long cantidadResenias = reseniaRepository.countByTrabajo(trabajo.getId());
                     Boolean tieneResenia = cantidadResenias != null && cantidadResenias > 0;
 
@@ -303,7 +298,6 @@ public class TrabajoServiceImpl implements TrabajoService {
                 .collect(Collectors.toList());
     }
 
-    // Método helper para mapear entidad a DTO
     private TrabajoResponse mapearATrabajoResponse(Trabajo trabajo) {
         Solicitude solicitud = trabajo.getSolicitud();
 
@@ -368,7 +362,6 @@ public class TrabajoServiceImpl implements TrabajoService {
                     String nombreProfesional = solicitud.getIdprofesional().getIdusuario().getIdauth().getName() + " " +
                             solicitud.getIdprofesional().getIdusuario().getIdauth().getLastname();
 
-                    // Verificar si ya fue pagado - debe tener factura Y estado de pago aprobado
                     boolean pagado = trabajo.getFactura() != null && 
                                     trabajo.getFactura().getEstadopago() != null &&
                                     trabajo.getFactura().getEstadopago().equalsIgnoreCase("approved");

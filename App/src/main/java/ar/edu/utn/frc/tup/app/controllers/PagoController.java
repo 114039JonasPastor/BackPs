@@ -46,7 +46,6 @@ public class PagoController {
             log.info("📝 Solicitud de creación de preferencia recibida");
             log.info("ID Trabajo: {}", request.getIdTrabajo());
 
-            // ⭐ VERIFICAR SI YA EXISTE UNA FACTURA PARA ESTE TRABAJO
             if (request.getIdTrabajo() == null) {
                 throw new RuntimeException("Debe proporcionar el ID del trabajo");
             }
@@ -54,19 +53,16 @@ public class PagoController {
             Trabajo trabajo = trabajoRepository.findById(request.getIdTrabajo())
                     .orElseThrow(() -> new RuntimeException("Trabajo no encontrado"));
 
-            // Si ya tiene factura, verificar el estado
             if (trabajo.getFactura() != null) {
                 Factura facturaExistente = trabajo.getFactura();
 
-                // Si ya está aprobada, no permitir crear otra preferencia
                 if ("APROBADO".equals(facturaExistente.getEstadopago())) {
-                    log.warn("❌ Intento de crear preferencia para trabajo ya pagado: {}", trabajo.getId());
+                    log.warn("Intento de crear preferencia para trabajo ya pagado: {}", trabajo.getId());
                     throw new RuntimeException("Este trabajo ya ha sido pagado");
                 }
 
-                // Si está pendiente, retornar el link existente
                 if (trabajo.getIdpago() != null && !trabajo.getIdpago().isEmpty()) {
-                    log.info("✅ Retornando preferencia existente para trabajo {}", trabajo.getId());
+                    log.info("Retornando preferencia existente para trabajo {}", trabajo.getId());
                     return ResponseEntity.ok(PreferenceResponse.builder()
                             .initPoint(trabajo.getIdpago())
                             .sandboxInitPoint(trabajo.getIdpago())
@@ -74,16 +70,15 @@ public class PagoController {
                 }
             }
 
-            // Si no existe factura o no tiene link de pago, crear nueva preferencia
             PreferenceResponse response = facturaService.crearPreferenciaPago(request);
             return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {
-            log.error("❌ Error al crear preferencia: {}", e.getMessage());
+            log.error("Error al crear preferencia: {}", e.getMessage());
             return ResponseEntity.badRequest()
                     .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            log.error("❌ Error inesperado al crear preferencia", e);
+            log.error("Error inesperado al crear preferencia", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Error interno del servidor"));
         }
@@ -101,7 +96,7 @@ public class PagoController {
             log.info("📤 Configuración MercadoPago enviada - Sandbox: {}", isSandbox);
             return ResponseEntity.ok(config);
         } catch (Exception e) {
-            log.error("❌ Error obteniendo configuración MercadoPago", e);
+            log.error("Error obteniendo configuración MercadoPago", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -125,17 +120,17 @@ public class PagoController {
                 if (dataObj instanceof Map) {
                     Map<String, Object> data = (Map<String, Object>) dataObj;
                     String paymentId = (String) data.get("id");
-                    log.info("💰 Payment ID recibido: {}", paymentId);
+                    log.info("Payment ID recibido: {}", paymentId);
 
                     if (action != null && action.startsWith("payment")) {
                         facturaService.procesarPagoAprobado(data);
-                        log.info("🔄 Procesando acción: {}", action);
+                        log.info("Procesando acción: {}", action);
                     }
                 }
             }
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            log.error("❌ Error procesando webhook", e);
+            log.error("Error procesando webhook", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -146,20 +141,19 @@ public class PagoController {
             @RequestParam String hasta,
             @RequestParam(required = false) Integer idProfesional) {
         try {
-            log.info("📊 Consultando historial de ingresos desde {} hasta {}, profesional: {}",
+            log.info("Consultando historial de ingresos desde {} hasta {}, profesional: {}",
                     desde, hasta, idProfesional != null ? idProfesional : "todos");
 
-            // Parsear fechas - aceptar tanto LocalDate como ISO DateTime
             Instant desdeInstant = parseToInstant(desde, true);
             Instant hastaInstant = parseToInstant(hasta, false);
 
-            log.info("🕐 Rango de tiempo: {} a {}", desdeInstant, hastaInstant);
+            log.info("Rango de tiempo: {} a {}", desdeInstant, hastaInstant);
 
             List<PagoFactura> pagos = facturaService.historialDeIngresos(desdeInstant, hastaInstant, idProfesional);
-            log.info("✅ Encontrados {} pagos", pagos.size());
+            log.info("Encontrados {} pagos", pagos.size());
             return ResponseEntity.ok(pagos);
         } catch (Exception e) {
-            log.error("❌ Error inesperado al consultar historial", e);
+            log.error("Error inesperado al consultar historial", e);
             ErrorApi error = ErrorApi.builder()
                     .timestamp(Instant.now().toString())
                     .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -172,11 +166,9 @@ public class PagoController {
 
     private Instant parseToInstant(String fecha, boolean inicioDelDia) {
         try {
-            // Intentar parsear como Instant (formato ISO con Z)
             return Instant.parse(fecha);
         } catch (Exception e1) {
             try {
-                // Intentar parsear como LocalDate
                 LocalDate localDate = LocalDate.parse(fecha);
                 if (inicioDelDia) {
                     return localDate.atStartOfDay(ZoneId.systemDefault()).toInstant();

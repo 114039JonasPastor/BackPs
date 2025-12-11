@@ -51,7 +51,6 @@ public class RegistroServiceImpl implements RegistroService {
             Barrio barrio = barrioRepository.findById(usuario.getIdBarrio())
                 .orElseThrow(() -> new RuntimeException("Barrio no encontrado"));
 
-            // Crear y guardar la autenticación pero inactiva hasta confirmar
             Auth auth = Auth.builder()
                     .password(passwordEncoder.encode(usuario.getPassword()))
                     .mail(usuario.getMail())
@@ -61,7 +60,6 @@ public class RegistroServiceImpl implements RegistroService {
                     .build();
             authRepository.save(auth);
 
-            // Crear y guardar la dirección
             Direccione direccion = new Direccione();
             direccion.setIdbarrio(barrio);
             direccion.setCalle(usuario.getCalle());
@@ -72,7 +70,6 @@ public class RegistroServiceImpl implements RegistroService {
 
             Direccione direccionSaved = direccioneRepository.save(direccion);
 
-            // Crear y guardar el usuario
             Usuario nuevo = new Usuario();
             nuevo.setIdauth(auth);
             nuevo.setIdtipodoc(tipo);
@@ -83,7 +80,6 @@ public class RegistroServiceImpl implements RegistroService {
 
             usuarioRepository.save(nuevo);
 
-            // ASIGNAR ROL CLIENTE AL NUEVO USUARIO
             Role rolCliente = roleRepository.findByDescripcion("CLIENTE")
                     .orElseThrow(() -> new RuntimeException("Rol CLIENTE no encontrado"));
 
@@ -94,20 +90,17 @@ public class RegistroServiceImpl implements RegistroService {
                 rolxusuarioRepository.save(rolxusuario);
             }
 
-            // ✅ REGISTRAR USUARIO EN STREAM CHAT
             try {
                 String userId = String.valueOf(nuevo.getId());
                 String nombre = auth.getName() + " " + auth.getLastname();
                 String email = auth.getMail();
 
                 streamChatService.createOrUpdateUser(userId, nombre, email, null);
-                log.info("✅ Usuario registrado en Stream Chat: {}", userId);
+                log.info("Usuario registrado en Stream Chat: {}", userId);
             } catch (Exception e) {
-                log.error("⚠️ Error al registrar usuario en Stream Chat (continuando): {}", e.getMessage());
-                // No lanzar excepción para no interrumpir el registro
+                log.error("Error al registrar usuario en Stream Chat (continuando): {}", e.getMessage());
             }
 
-            // Generar token de confirmación y enviar mail
             String token = confirmationTokenService.createTokenForAuth(auth.getId());
             String confirmationLink = "http://localhost:8081/api/v1/registro/confirm?token=" + token;
 
@@ -150,7 +143,6 @@ public class RegistroServiceImpl implements RegistroService {
             if(profesionalRepository.findByIdusuario_Id(usuario.getId()).isEmpty()){
                 profesionalRepository.save(profesional);
 
-                // ASIGNAR ROL PROFESIONAL AL USUARIO ASOCIADO
                 Auth auth = usuario.getIdauth();
                 Role rolProfesional = roleRepository.findByDescripcion("PROFESIONAL")
                         .orElseThrow(() -> new RuntimeException("Rol PROFESIONAL no encontrado"));
@@ -162,16 +154,15 @@ public class RegistroServiceImpl implements RegistroService {
                     rolxusuarioRepository.save(rolxusuario);
                 }
 
-                // ✅ ACTUALIZAR USUARIO EN STREAM CHAT COMO PROFESIONAL
                 try {
                     String userId = String.valueOf(usuario.getId());
                     String nombre = usuario.getIdauth().getName() + " " + usuario.getIdauth().getLastname() + " (Profesional)";
                     String email = usuario.getIdauth().getMail();
 
                     streamChatService.createOrUpdateUser(userId, nombre, email, null);
-                    log.info("✅ Profesional actualizado en Stream Chat: {}", userId);
+                    log.info("Profesional actualizado en Stream Chat: {}", userId);
                 } catch (Exception e) {
-                    log.error("⚠️ Error al actualizar profesional en Stream Chat (continuando): {}", e.getMessage());
+                    log.error("Error al actualizar profesional en Stream Chat (continuando): {}", e.getMessage());
                 }
 
                 return profesional;
@@ -193,7 +184,6 @@ public class RegistroServiceImpl implements RegistroService {
             Barrio barrio = barrioRepository.findById(adminRequest.getIdBarrio())
                     .orElseThrow(() -> new RuntimeException("Barrio no encontrado"));
 
-            // Crear solo Auth para el administrador (sin entrada en Usuario)
             Auth auth = Auth.builder()
                     .password(passwordEncoder.encode(adminRequest.getPassword()))
                     .mail(adminRequest.getMail())
@@ -203,7 +193,6 @@ public class RegistroServiceImpl implements RegistroService {
                     .build();
             authRepository.save(auth);
 
-            // Asignar rol ADMINISTRADOR al Auth creado
             Role rolAdmin = roleRepository.findByDescripcion("ADMINISTRADOR")
                     .orElseThrow(() -> new RuntimeException("Rol ADMINISTRADOR no encontrado"));
 
@@ -214,15 +203,12 @@ public class RegistroServiceImpl implements RegistroService {
                 rolxusuarioRepository.save(rolxusuario);
             }
 
-            // Generar JWT para el admin usando JwtService
             String jwtToken = jwtService.getToken(auth);
 
-            // Obtener roles del administrador
             List<String> roles = rolxusuarioRepository.findByIdauth(auth).stream()
                     .map(rolxusuario -> rolxusuario.getIdrol().getDescripcion())
                     .collect(Collectors.toList());
 
-            // Devolver AuthResponse sin datos de Usuario (no se creó Usuario para admins)
             return AuthResponse.builder()
                     .token(jwtToken)
                     .nombre(auth.getName())

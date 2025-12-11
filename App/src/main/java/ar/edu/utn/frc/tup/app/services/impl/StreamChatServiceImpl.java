@@ -53,7 +53,6 @@ public class StreamChatServiceImpl implements StreamChatService {
         try {
             log.info("Creando/actualizando usuario en Stream: {}", userId);
 
-            // URL correcta con api_key
             String url = String.format("https://chat.stream-io-api.com/users?api_key=%s", apiKey);
 
             Map<String, Object> user = new HashMap<>();
@@ -96,7 +95,6 @@ public class StreamChatServiceImpl implements StreamChatService {
             channelData.put("disabled", false);
             channelData.put("invite_only", true);
 
-            // Crear copia mutable antes de filtrar
             if (additionalData != null && !additionalData.isEmpty()) {
                 Map<String, Object> mutableData = new HashMap<>(additionalData);
                 mutableData.remove("member_count");
@@ -232,7 +230,6 @@ public class StreamChatServiceImpl implements StreamChatService {
                 List<Map<String, Object>> channels = (List<Map<String, Object>>) response.getBody().get("channels");
                 log.info("Canales obtenidos: {}", channels.size());
 
-                // Transformar la respuesta para el frontend
                 return channels.stream()
                         .map(channel -> {
                             Map<String, Object> channelInfo = new HashMap<>();
@@ -280,7 +277,6 @@ public class StreamChatServiceImpl implements StreamChatService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Autenticación de servidor con JWT
         String serverToken = Jwts.builder()
                 .claim("server", true)
                 .signWith(SignatureAlgorithm.HS256, apiSecret.getBytes(StandardCharsets.UTF_8))

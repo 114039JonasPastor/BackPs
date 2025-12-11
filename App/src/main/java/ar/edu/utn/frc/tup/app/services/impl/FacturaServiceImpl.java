@@ -60,21 +60,17 @@ public class FacturaServiceImpl implements FacturaService {
             log.info("Access Token configurado: {}...", accessToken.substring(0, 20));
             log.info("Frontend URL base: {}", frontendUrl);
 
-            // ⭐ CAMBIO: Validar que venga idTrabajo
             if (request.getIdTrabajo() == null) {
                 throw new RuntimeException("Debe proporcionar el ID del trabajo");
             }
 
-            // ⭐ CAMBIO: Obtener el trabajo en lugar de la solicitud directamente
             Trabajo trabajo = trabajoRepository.findById(request.getIdTrabajo())
                     .orElseThrow(() -> new RuntimeException("Trabajo no encontrado"));
 
-            // ⭐ VALIDAR que el trabajo esté finalizado
             if (!"FINALIZADO".equals(trabajo.getEstado())) {
                 throw new RuntimeException("Solo se pueden facturar trabajos finalizados");
             }
 
-            // ⭐ VALIDAR que no tenga factura ya
             if (trabajo.getFactura() != null) {
                 log.info("El trabajo {} ya tiene una factura asociada (ID: {}). Retornando factura existente.",
                     trabajo.getId(), trabajo.getFactura().getId());
@@ -86,7 +82,6 @@ public class FacturaServiceImpl implements FacturaService {
                             .sandboxInitPoint(trabajo.getIdpago())
                             .build();
                 } else {
-                    // Si no tiene idpago pero tiene factura, es porque ya fue pagada
                     throw new RuntimeException("Este trabajo ya fue facturado y no tiene pago pendiente");
                 }
             }
@@ -95,14 +90,12 @@ public class FacturaServiceImpl implements FacturaService {
             log.info("ID Trabajo: {}", trabajo.getId());
             log.info("ID Solicitud: {}", solicitud.getId());
 
-            // ⭐ CAMBIO: Pasar el trabajo al crear la factura
             Factura factura = crearFacturaPendiente(trabajo, request.getMonto());
 
             log.info("Factura creada con ID: {}", factura.getId());
             log.info("Título: {}", request.getTitulo());
             log.info("Monto: {}", request.getMonto());
 
-            // Crear item
             PreferenceItemRequest item = PreferenceItemRequest.builder()
                     .id(String.valueOf(factura.getId()))
                     .title(request.getTitulo())
@@ -115,7 +108,6 @@ public class FacturaServiceImpl implements FacturaService {
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(item);
 
-            // URLs de retorno
             String baseUrl = frontendUrl.endsWith("/") ?
                     frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
 
@@ -186,7 +178,6 @@ public class FacturaServiceImpl implements FacturaService {
                 log.error("Cause: {}", e.getCause().getMessage());
             }
 
-            // Mensaje más detallado
             String errorDetail = e.getApiResponse() != null ?
                     e.getApiResponse().getContent() : e.getMessage();
             throw new RuntimeException("Error MercadoPago API: " + errorDetail, e);
@@ -205,7 +196,6 @@ public class FacturaServiceImpl implements FacturaService {
         }
     }
 
-    // ⭐ CAMBIO: Método modificado para recibir Trabajo en lugar de Solicitud
     @Transactional
     protected Factura crearFacturaPendiente(Trabajo trabajo, BigDecimal monto) {
         try {
@@ -224,12 +214,11 @@ public class FacturaServiceImpl implements FacturaService {
             factura.setImporte(monto);
             factura.setEstadopago("PENDIENTE");
             factura.setFecha(Instant.now());
-            factura.setTrabajo(trabajo); // ⭐ NUEVO: Asociar el trabajo
+            factura.setTrabajo(trabajo);
 
             Factura facturaSaved = facturaRepository.save(factura);
             log.info("Factura pendiente creada con ID: {}", facturaSaved.getId());
 
-            // ⭐ NUEVO: Actualizar trabajo con la factura (relación bidireccional)
             trabajo.setFactura(facturaSaved);
             trabajoRepository.save(trabajo);
             log.info("Trabajo actualizado con factura ID: {}", facturaSaved.getId());
@@ -264,7 +253,6 @@ public class FacturaServiceImpl implements FacturaService {
                 Factura facturaSaved = facturaRepository.save(factura);
                 log.info("Factura actualizada a APROBADO con ID: {}", facturaSaved.getId());
 
-                // ⭐ NUEVO: No necesitas hacer nada más, la relación bidireccional ya existe
                 log.info("Trabajo asociado ID: {}", facturaSaved.getTrabajo().getId());
 
                 return facturaSaved;
@@ -313,7 +301,6 @@ public class FacturaServiceImpl implements FacturaService {
     public List<PagoFactura> historialDeIngresos(Instant desde, Instant hasta, Integer idProfesional) {
         List<Factura> facturas;
 
-        // Filtrar por idProfesional si no es null
         if (idProfesional != null) {
             facturas = facturaRepository.findByFechaBetweenAndEstadopagoAndIdprofesionalId(desde, hasta, "APROBADO", idProfesional);
             log.info("Buscando ingresos para profesional ID: {}", idProfesional);

@@ -33,9 +33,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authRequest ->
                         authRequest
-                                // Preflight CORS
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                // Endpoints públicos
                                 .requestMatchers(
                                         "/api/v1/auth/**",
                                         "/v3/api-docs/**",
@@ -69,7 +67,6 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Orígenes permitidos (localhost + ngrok)
         List<String> origins = Arrays.asList(
                 "http://localhost:*",
                 "http://127.0.0.1:*",

@@ -20,7 +20,6 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
     List<Solicitude> findByIdprofesionalAndEstado(Profesionale idProfesional, String estado);
     List<Solicitude> findByIdusuario_Id(Integer idUsuario);
 
-    // Query original (solo turnos)
     @Query("SELECT s FROM Solicitude s WHERE s.idprofesional.id = :idProfesional " +
             "AND s.esTurno = true AND DATE(s.fechaservicio) = :fecha " +
             "ORDER BY s.fechaservicio")
@@ -29,7 +28,6 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
             @Param("fecha") LocalDate fecha
     );
 
-    // Nueva query: Busca TODAS las solicitudes ACEPTADAS (no solo turnos)
     @Query("SELECT s FROM Solicitude s WHERE s.idprofesional.id = :idProfesional " +
             "AND s.estado = 'ACEPTADA' AND DATE(s.fechaservicio) = :fecha " +
             "ORDER BY s.fechaservicio")
@@ -38,14 +36,12 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
             @Param("fecha") LocalDate fecha
     );
 
-    // Verificar si existe una solicitud pendiente entre usuario y profesional
     boolean existsByIdusuario_IdAndIdprofesional_IdAndEstado(
             Integer idUsuario,
             Integer idProfesional,
             String estado
     );
-    
-    //Mapa para solicitudes
+
     @Query("""
         SELECT new map(
             s.id as idSolicitud,
@@ -79,9 +75,6 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
         """)
     Map<String, Object> findSolicitudConDireccion(@Param("idSolicitud") Integer idSolicitud);
 
-    /**
-     * Obtiene todas las solicitudes de un profesional con información de dirección
-     */
     @Query("""
         SELECT new map(
             s.id as idSolicitud,
@@ -162,10 +155,6 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
             "LIMIT 3", nativeQuery = true)
     List<Object[]> findTop3ProfesionalesMasSolicitados(@Param("fechaDesde") Instant fechaDesde);
 
-    /**
-     * Obtiene los oficios más solicitados con opción de filtrar por fecha
-     * Si fechaInicio y fechaFin son null, retorna todas las solicitudes
-     */
     @Query("""
         SELECT o.oficio, COUNT(s.id)
         FROM Solicitude s

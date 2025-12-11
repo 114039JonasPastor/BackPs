@@ -46,27 +46,21 @@ public class BusquedaServiceImpl implements BusquedaService {
         for (Profesionale prof : profesionales) {
             Map<String, Object> profesionalConUbicacion = new HashMap<>();
 
-            // Información básica del profesional
             profesionalConUbicacion.put("id", prof.getId());
             profesionalConUbicacion.put("fechaDesde", prof.getFechadesde());
             profesionalConUbicacion.put("fechaHasta", prof.getFechahasta());
 
-            // Información del usuario
             profesionalConUbicacion.put("nombre", prof.getIdusuario().getIdauth().getName());
             profesionalConUbicacion.put("apellido", prof.getIdusuario().getIdauth().getLastname());
             profesionalConUbicacion.put("email", prof.getIdusuario().getIdauth().getMail());
             profesionalConUbicacion.put("telefono", prof.getIdusuario().getTelefono());
-
-            // Información del oficio
             profesionalConUbicacion.put("oficio", prof.getIdoficio().getOficio());
 
-            // Información de ubicación
             String direccionCompleta = construirDireccionCompleta(prof);
             profesionalConUbicacion.put("direccion", direccionCompleta);
             profesionalConUbicacion.put("barrio", prof.getIdusuario().getIddireccion().getIdbarrio().getBarrio());
             profesionalConUbicacion.put("ciudad", prof.getIdusuario().getIddireccion().getIdbarrio().getIdciudad().getCiudad());
 
-            // Obtener coordenadas usando OpenStreetMap
             try {
                 Map<String, Double> coordenadas = obtenerCoordenadasOSM(direccionCompleta);
                 profesionalConUbicacion.put("latitud", coordenadas.get("lat"));
@@ -142,7 +136,6 @@ public class BusquedaServiceImpl implements BusquedaService {
             }
         }
 
-        // Ordenar por distancia
         profesionalesCercanos.sort((p1, p2) ->
                 Double.compare((Double) p1.get("distancia"), (Double) p2.get("distancia")));
 

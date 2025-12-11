@@ -56,14 +56,12 @@ public class RegistroController {
         try {
             confirmationTokenService.confirmToken(token);
 
-            // Cargar y procesar la página HTML de confirmación exitosa
             String htmlContent = loadConfirmationSuccessPage();
 
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
                     .body(htmlContent);
         } catch (Exception e) {
-            // Mostrar página de error
             String errorHtml = createErrorPage("Token inválido o expirado: " + e.getMessage());
             return ResponseEntity.badRequest()
                     .contentType(MediaType.TEXT_HTML)
@@ -76,9 +74,8 @@ public class RegistroController {
             ClassPathResource resource = new ClassPathResource("templates/email-confirmed.html");
             String htmlTemplate = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 
-            // Reemplazar los placeholders con URLs reales
-            String loginUrl = "http://localhost:4200/login"; // URL de tu frontend Angular
-            String homeUrl = "http://localhost:4200/"; // URL home de tu frontend
+            String loginUrl = "http://localhost:4200/login";
+            String homeUrl = "http://localhost:4200/";
 
             return htmlTemplate
                     .replace("{{loginUrl}}", loginUrl)
