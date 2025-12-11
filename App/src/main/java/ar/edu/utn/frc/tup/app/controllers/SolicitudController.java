@@ -253,6 +253,26 @@ public class SolicitudController {
         }
     }
 
+    @GetMapping("/profesional/{idProfesional}/con-ubicacion/paginado")
+    public ResponseEntity<?> getSolicitudesByProfesionalConUbicacionPaginado(
+            @PathVariable Integer idProfesional,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "5") int tamanio) {
+        try {
+            Map<String, Object> resultado = solicitudService
+                    .getSolicitudesByProfesionalConUbicacionPaginado(idProfesional, pagina, tamanio);
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
     @GetMapping("/{idSolicitud}/ubicacion")
     public ResponseEntity<Map<String, Object>> getSolicitudConUbicacion(
             @PathVariable Integer idSolicitud) {
