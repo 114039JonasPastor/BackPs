@@ -26,4 +26,6 @@ public interface PerfilService {
     List<UsuarioMetrica> getUsuariosMetrica(Integer limit);
     List<ProfesionalMetrica> getProfesionalesMetrica(Integer limit);
     UsuariosRegistradosDto getUsuariosRegistrados();
+    List<PerfilCliente> getClientesByNombre(String nombre);
+    List<PerfilProfesional> getProfesionalesByNombre(String nombre);
 }
