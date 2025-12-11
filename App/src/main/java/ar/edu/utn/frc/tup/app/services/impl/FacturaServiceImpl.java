@@ -72,9 +72,10 @@ public class FacturaServiceImpl implements FacturaService {
             }
 
             if (trabajo.getFactura() != null) {
-                log.info("El trabajo {} ya tiene una factura asociada (ID: {}). Retornando factura existente.", 
+                log.info("El trabajo {} ya tiene una factura asociada (ID: {}). Retornando factura existente.",
                     trabajo.getId(), trabajo.getFactura().getId());
 
+                // En lugar de lanzar error, retornar la preferencia existente si hay idpago
                 if (trabajo.getIdpago() != null && !trabajo.getIdpago().isEmpty()) {
                     return PreferenceResponse.builder()
                             .initPoint(trabajo.getIdpago())
@@ -339,10 +340,11 @@ public class FacturaServiceImpl implements FacturaService {
 
         String nombreCliente = factura.getIdusuario().getIdauth().getName() + " " +
                               factura.getIdusuario().getIdauth().getLastname();
-        
+
         String nombreProfesional = factura.getIdprofesional().getIdusuario().getIdauth().getName() + " " +
                                    factura.getIdprofesional().getIdusuario().getIdauth().getLastname();
 
+//        String descripcionServicio = trabajo.getSolicitud().getOficio().getNombre();
         String descripcionServicio = trabajo.getSolicitud().getIdoficio().getOficio();
 
         return FacturaPDFDto.builder()

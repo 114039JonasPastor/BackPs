@@ -61,4 +61,7 @@ public interface ProfesionalRepository extends JpaRepository<Profesionale, Integ
     long count();
 
     List<Profesionale> findByIdusuario_Idauth_NameContainingIgnoreCaseOrIdusuario_Idauth_LastnameContainingIgnoreCase(String name, String lastname);
+
+    @Query("SELECT p FROM Profesionale p JOIN p.idusuario u JOIN u.idauth a WHERE LOWER(CONCAT(a.name, ' ', a.lastname)) LIKE LOWER(CONCAT('%', :nombreCompleto, '%'))")
+    List<Profesionale> findByNombreCompleto(@Param("nombreCompleto") String nombreCompleto);
 }

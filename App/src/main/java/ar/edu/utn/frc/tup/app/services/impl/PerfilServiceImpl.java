@@ -400,4 +400,64 @@ public class PerfilServiceImpl implements PerfilService {
         }
         return List.of();
     }
+
+    @Override
+    public List<PerfilCliente> getClientesByNombre(String nombre) {
+        List<Usuario> usuarios = usuarioRepository.findByNombreCompleto(nombre);
+
+        List<PerfilCliente> perfiles = new ArrayList<>();
+        for (Usuario usuario : usuarios) {
+            try {
+                Direccione direccion = usuario.getIddireccion();
+                DomicilioDto domicilioDto = new DomicilioDto();
+                if (direccion != null) {
+                    var barrio = barrioRepository.findById(direccion.getIdbarrio().getId()).orElse(null);
+                    var ciudad = barrio != null ? ciudadRepository.findById(barrio.getIdciudad().getId()).orElse(null) : null;
+                    var departamento = ciudad != null ? departamentoRepository.findById(ciudad.getIddepartamento().getId()).orElse(null) : null;
+
+                    domicilioDto.setCalle(direccion.getCalle());
+                    domicilioDto.setNumero(direccion.getNumero());
+                    domicilioDto.setPiso(direccion.getPiso());
+                    domicilioDto.setDepto(direccion.getDepto());
+                    domicilioDto.setBarrio(barrio != null ? barrio.getBarrio() : null);
+                    domicilioDto.setCiudad(ciudad != null ? ciudad.getCiudad() : null);
+                    domicilioDto.setDepartamento(departamento != null ? departamento.getDepartamento() : null);
+                }
+                var tipoDocumento = usuario.getIdtipodoc() != null ? usuario.getIdtipodoc().getTipo() : null;
+
+                PerfilCliente perfil = PerfilCliente.builder()
+                        .avatar(usuario.getIdauth().getAvatar())
+                        .name(usuario.getIdauth().getName())
+                        .lastName(usuario.getIdauth().getLastname())
+                        .telefono(usuario.getTelefono())
+                        .tipoDocumento(tipoDocumento)
+                        .documento(usuario.getDocumento())
+                        .nacimiento(usuario.getNacimiento())
+                        .email(usuario.getIdauth().getUsername())
+                        .domicilio(domicilioDto)
+                        .build();
+                perfiles.add(perfil);
+            } catch (Exception e) {
+                System.err.println("Error al mapear cliente: " + e.getMessage());
+            }
+        }
+        return perfiles;
+    }
+
+    @Override
+    @Transactional
+    public List<PerfilProfesional> getProfesionalesByNombre(String nombre) {
+        List<Profesionale> profesionales = professionelleRepository.findByNombreCompleto(nombre);
+
+        // Forzar la carga de especialidades dentro de la transacción
+        profesionales.forEach(p -> {
+            if (p.getEspecialidades() != null) {
+                p.getEspecialidades().size(); // Esto fuerza la carga lazy
+            }
+        });
+
+        return profesionales.stream()
+                .map(this::mapToPerfilProfesional)
+                .toList();
+    }
 }

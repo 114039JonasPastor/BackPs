@@ -142,4 +142,58 @@ public class PerfilController {
     public ResponseEntity<UsuariosRegistradosDto> getUsuariosRegistrados() {
         return ResponseEntity.ok(perfilService.getUsuariosRegistrados());
     }
+
+    @GetMapping("/clientes/nombre")
+    public ResponseEntity<?> getClientesByNombre(@RequestParam String nombre) {
+        try {
+            List<PerfilCliente> clientes = perfilService.getClientesByNombre(nombre);
+
+            if (clientes.isEmpty()) {
+                ErrorApi error = ErrorApi.builder()
+                        .timestamp(Instant.now().toString())
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .error("Not Found")
+                        .message("No se encontraron clientes con el nombre: " + nombre)
+                        .build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            }
+
+            return ResponseEntity.ok(clientes);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .error("Internal Server Error")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @GetMapping("/profesionales/nombre")
+    public ResponseEntity<?> getProfesionalesByNombre(@RequestParam String nombre) {
+        try {
+            List<PerfilProfesional> profesionales = perfilService.getProfesionalesByNombre(nombre);
+
+            if (profesionales.isEmpty()) {
+                ErrorApi error = ErrorApi.builder()
+                        .timestamp(Instant.now().toString())
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .error("Not Found")
+                        .message("No se encontraron profesionales con el nombre: " + nombre)
+                        .build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            }
+
+            return ResponseEntity.ok(profesionales);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(Instant.now().toString())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .error("Internal Server Error")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
 }
