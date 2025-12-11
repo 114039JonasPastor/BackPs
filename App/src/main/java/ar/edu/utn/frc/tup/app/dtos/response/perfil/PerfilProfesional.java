@@ -13,6 +13,7 @@ public class PerfilProfesional {
     private Integer idProfesional;
     private String nombre;
     private String apellido;
+    private String avatar;
     private String oficio;
     private String telefono;
     private String rangoPrecio;
