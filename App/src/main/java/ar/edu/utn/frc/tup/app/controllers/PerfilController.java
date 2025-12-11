@@ -80,9 +80,9 @@ public class PerfilController {
         return ResponseEntity.ok("Avatar updated successfully");
     }
 
-    @PutMapping("/strike/{idUsuario}")
-    public ResponseEntity<String> agregarStrike(@PathVariable Integer idUsuario, @RequestBody String motivo) {
-        perfilService.agregarStrike(idUsuario, motivo);
+    @PutMapping("/strike/{email}")
+    public ResponseEntity<String> agregarStrike(@PathVariable String email, @RequestBody String motivo) {
+        perfilService.agregarStrike(email, motivo);
         return ResponseEntity.ok("Strike agregado correctamente");
     }
 

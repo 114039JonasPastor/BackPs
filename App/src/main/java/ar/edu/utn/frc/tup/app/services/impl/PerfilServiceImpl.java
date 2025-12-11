@@ -270,8 +270,11 @@ public class PerfilServiceImpl implements PerfilService {
     }
 
     @Override
-    public void agregarStrike(Integer idUsuario, String motivo) {
-        Usuario usuario = usuarioRepository.findById(idUsuario)
+    public void agregarStrike(String email, String motivo) {
+        Auth auth = authRepository.findByMail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con email: " + email));
+        
+        Usuario usuario = usuarioRepository.findByIdauth(auth)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         Integer strikesActuales = usuario.getStrike() != null ? usuario.getStrike() : 0;

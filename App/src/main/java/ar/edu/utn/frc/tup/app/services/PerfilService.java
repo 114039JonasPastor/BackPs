@@ -22,7 +22,7 @@ public interface PerfilService {
     String getAvatar(Integer idAuth);
     String getAvatarByUsuarioId(Integer idUsuario);
     List<PerfilProfesional> getProfesionalesByOficio(String oficio);
-    void agregarStrike(Integer idUsuario, String motivo);
+    void agregarStrike(String email, String motivo);
     List<UsuarioMetrica> getUsuariosMetrica(Integer limit);
     List<ProfesionalMetrica> getProfesionalesMetrica(Integer limit);
     UsuariosRegistradosDto getUsuariosRegistrados();
