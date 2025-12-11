@@ -24,7 +24,7 @@ public class OficioServiceImpl implements OficioService {
 
     @Override
     public List<Oficio> getAllOficiosIncludingInactive() {
-        return oficioRepository.findByActivoFalse();
+        return oficioRepository.findAll();
     }
 
     @Override
