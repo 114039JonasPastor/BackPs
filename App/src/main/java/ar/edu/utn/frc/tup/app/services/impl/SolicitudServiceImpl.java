@@ -433,6 +433,32 @@ public class SolicitudServiceImpl implements SolicitudService {
     }
 
     @Override
+    public Map<String, Object> getSolicitudesByProfesionalConUbicacionPaginado(
+            Integer idProfesional, int pagina, int tamanio) {
+        
+        org.springframework.data.domain.Pageable pageable = 
+            org.springframework.data.domain.PageRequest.of(pagina, tamanio);
+        
+        org.springframework.data.domain.Page<Map<String, Object>> paginaSolicitudes = 
+            solicitudRepository.findSolicitudesByProfesionalConDireccionPaginado(idProfesional, pageable);
+        
+        List<Map<String, Object>> solicitudesProcesadas = paginaSolicitudes.getContent().stream()
+                .map(this::procesarSolicitudConUbicacion)
+                .collect(Collectors.toList());
+        
+        Map<String, Object> respuesta = new HashMap<>();
+        respuesta.put("solicitudes", solicitudesProcesadas);
+        respuesta.put("paginaActual", paginaSolicitudes.getNumber());
+        respuesta.put("tamanioPagina", paginaSolicitudes.getSize());
+        respuesta.put("totalElementos", paginaSolicitudes.getTotalElements());
+        respuesta.put("totalPaginas", paginaSolicitudes.getTotalPages());
+        respuesta.put("tieneSiguiente", paginaSolicitudes.hasNext());
+        respuesta.put("tieneAnterior", paginaSolicitudes.hasPrevious());
+        
+        return respuesta;
+    }
+
+    @Override
     public Solicitude getSolicitudById(Integer idSolicitud) {
         return solicitudRepository.findById(idSolicitud)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));

@@ -2,6 +2,8 @@ package ar.edu.utn.frc.tup.app.repositories;
 
 import ar.edu.utn.frc.tup.app.entities.Profesionale;
 import ar.edu.utn.frc.tup.app.entities.Solicitude;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -87,6 +89,7 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
             s.fechaservicio as fechaServicio,
             s.estado as estado,
             s.observacion as descripcion,
+            s.horaReserva as horaReserva,
             u.id as idUsuario,
             auth.name as nombreCliente,
             auth.lastname as apellidoCliente,
@@ -113,6 +116,43 @@ public interface SolicitudeRepository extends JpaRepository<Solicitude, Integer>
         ORDER BY s.fechasolicitud DESC
         """)
     List<Map<String, Object>> findSolicitudesByProfesionalConDireccion(@Param("idProfesional") Integer idProfesional);
+
+    @Query("""
+        SELECT new map(
+            s.id as idSolicitud,
+            s.fechasolicitud as fechaSolicitud,
+            s.fechaservicio as fechaServicio,
+            s.estado as estado,
+            s.observacion as descripcion,
+            s.horaReserva as horaReserva,
+            u.id as idUsuario,
+            auth.name as nombreCliente,
+            auth.lastname as apellidoCliente,
+            auth.mail as emailCliente,
+            u.telefono as telefonoCliente,
+            d.calle as calle,
+            d.numero as numero,
+            d.piso as piso,
+            d.depto as depto,
+            b.barrio as barrio,
+            c.ciudad as ciudad,
+            p.id as idProfesional,
+            o.oficio as oficio
+        )
+        FROM Solicitude s
+        JOIN s.idusuario u
+        JOIN u.idauth auth
+        JOIN u.iddireccion d
+        JOIN d.idbarrio b
+        JOIN b.idciudad c
+        JOIN s.idprofesional p
+        JOIN p.idoficio o
+        WHERE p.id = :idProfesional
+        ORDER BY s.fechasolicitud DESC
+        """)
+    Page<Map<String, Object>> findSolicitudesByProfesionalConDireccionPaginado(
+        @Param("idProfesional") Integer idProfesional,
+        Pageable pageable);
 
     @Query(value = "SELECT idprofesional, COUNT(*) as total " +
             "FROM solicitudes " +
