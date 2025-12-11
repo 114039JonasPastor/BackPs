@@ -56,6 +56,7 @@ public class PerfilServiceImpl implements PerfilService {
                 var ciudad = ciudadRepository.findById(barrio.getIdciudad().getId()).orElse(null);
                 var departamento = departamentoRepository.findById(ciudad.getIddepartamento().getId()).orElse(null);
 
+                domicilioDto.setId(direccion.getId()); // Agregar el ID de la direcci\u00f3n
                 domicilioDto.setCalle(direccion.getCalle());
                 domicilioDto.setNumero(direccion.getNumero());
                 domicilioDto.setPiso(direccion.getPiso());

@@ -61,6 +61,7 @@ public class AuthServiceImpl implements AuthService {
                 .idDireccion(usuario != null ? usuario.getIddireccion().getId() : null)
                 .idProfesional(idProfesional)
                 .roles(roles)
+                .avatar(usuario != null ? usuario.getAvatar() : null)
              .build();
     }
     @Override
