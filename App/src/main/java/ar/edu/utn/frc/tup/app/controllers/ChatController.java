@@ -124,7 +124,6 @@ public class ChatController {
         String userId1 = (String) request.get("userId1");
         String userId2 = (String) request.get("userId2");
 
-        // ✅ Validar que sean solo 2 usuarios diferentes
         if (userId1.equals(userId2)) {
             return ResponseEntity.badRequest().body(Map.of(
                     "error", "No puedes crear una conversación contigo mismo"
@@ -133,21 +132,18 @@ public class ChatController {
 
         log.info("Creando conversación privada entre {} y {}", userId1, userId2);
 
-        // ✅ ID único ordenado para evitar duplicados
         String channelId = "dm-" +
                 Math.min(Integer.parseInt(userId1), Integer.parseInt(userId2)) +
                 "-" +
                 Math.max(Integer.parseInt(userId1), Integer.parseInt(userId2));
 
-        // ✅ Lista exacta de 2 miembros
         List<String> members = List.of(userId1, userId2);
 
-        // ✅ Crear canal privado con configuración restrictiva
         streamChatService.createChannel("messaging", channelId, userId1, Map.of(
                 "name", "Chat Privado",
                 "members", members,
                 "member_count", 2,
-                "max_members", 2 // ⚠️ IMPORTANTE: Limitar a 2 miembros
+                "max_members", 2
         ));
 
         streamChatService.addMembersToChannel("messaging", channelId, members);
@@ -163,8 +159,6 @@ public class ChatController {
     @GetMapping("/professionals/available")
     @Operation(summary = "Obtener lista de profesionales disponibles")
     public ResponseEntity<List<Map<String, Object>>> getAvailableProfessionals() {
-        // ⚠️ Ajusta según tu modelo de datos
-        // Este es un ejemplo básico
         List<Map<String, Object>> professionals = List.of(
                 Map.of("id", "prof-1", "name", "Dr. Juan Pérez", "specialty", "Psicología"),
                 Map.of("id", "prof-2", "name", "Dra. María López", "specialty", "Nutrición"),
@@ -184,7 +178,6 @@ public class ChatController {
 
         log.info("Iniciando conversación entre usuario {} y profesional {}", userId, professionalId);
 
-        // ✅ ID único para evitar duplicados
         String channelId = "support-" +
                 Math.min(Integer.parseInt(userId), Integer.parseInt(professionalId)) +
                 "-" +
@@ -193,11 +186,10 @@ public class ChatController {
         List<String> members = List.of(userId, professionalId);
 
         try {
-            // ✅ ELIMINAR campos reservados: member_count, max_members, type
             streamChatService.createChannel("messaging", channelId, userId, Map.of(
                     "name", "Consulta Profesional",
                     "members", members,
-                    "invite_only", true  // ✅ Solo campos permitidos
+                    "invite_only", true
             ));
 
             streamChatService.addMembersToChannel("messaging", channelId, members);

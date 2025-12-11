@@ -75,11 +75,9 @@ public class OpenStreetMapServiceImpl implements OpenStreetMapService {
             Map<String, Object> resultado = new HashMap<>();
 
             if (resultados.isArray() && resultados.size() > 0) {
-                // Buscar el resultado que contenga la ciudad específica
                 for (JsonNode nodo : resultados) {
                     String displayName = nodo.get("display_name").asText();
 
-                    // Filtros específicos para encontrar la ciudad exacta
                     if (esLaCiudadCorrecta(displayName, ciudadBuscada)) {
                         resultado.put("latitud", nodo.get("lat").asDouble());
                         resultado.put("longitud", nodo.get("lon").asDouble());
@@ -89,7 +87,6 @@ public class OpenStreetMapServiceImpl implements OpenStreetMapService {
                     }
                 }
 
-                // Si no encuentra la ciudad específica, tomar el primer resultado
                 JsonNode primerResultado = resultados.get(0);
                 resultado.put("latitud", primerResultado.get("lat").asDouble());
                 resultado.put("longitud", primerResultado.get("lon").asDouble());
@@ -115,7 +112,6 @@ public class OpenStreetMapServiceImpl implements OpenStreetMapService {
         String displayLower = displayName.toLowerCase();
         String ciudadLower = ciudadBuscada.toLowerCase();
 
-        // Para Córdoba específicamente
         if (ciudadLower.equals("córdoba") || ciudadLower.equals("cordoba")) {
             return displayLower.contains("córdoba, provincia de córdoba") ||
                     displayLower.contains("ciudad de córdoba") ||
@@ -123,14 +119,12 @@ public class OpenStreetMapServiceImpl implements OpenStreetMapService {
                     (displayLower.contains("córdoba") && displayLower.contains("capital"));
         }
 
-        // Para Buenos Aires específicamente
         if (ciudadLower.equals("buenos aires")) {
             return displayLower.contains("ciudad autónoma de buenos aires") ||
                     displayLower.contains("capital federal") ||
                     displayLower.contains("caba");
         }
 
-        // Para otras ciudades, buscar coincidencia exacta
         return displayLower.contains(ciudadLower + ",") ||
                 displayLower.contains("ciudad de " + ciudadLower) ||
                 displayLower.contains(ciudadLower + " ciudad");

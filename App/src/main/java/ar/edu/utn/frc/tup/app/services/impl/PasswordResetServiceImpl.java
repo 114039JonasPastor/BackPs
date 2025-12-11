@@ -36,7 +36,6 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         try {
             log.info("Iniciando recuperación para email: {}", email);
 
-            // Verificar que el usuario existe
             Auth usuario = authRepository.findByMail(email)
                     .orElseThrow(() -> {
                         log.error("Usuario no encontrado: {}", email);
@@ -45,11 +44,9 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
             log.info("Usuario encontrado: {}", usuario.getId());
 
-            // Generar código de 6 dígitos
             String codigo = String.format("%06d", new Random().nextInt(999999));
             log.info("Código generado para {}: {}", email, codigo);
 
-            // Guardar token
             PasswordResetToken token = new PasswordResetToken();
             token.setToken(codigo);
             token.setEmail(email);
@@ -63,10 +60,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             PasswordResetToken savedToken = tokenRepository.save(token);
             log.info("Token guardado con ID: {}", savedToken.getId());
 
-            // Crear enlace de recuperación
             String resetLink = "http://localhost:8081/auth/reset-password?token=" + codigo + "&email=" + email;
 
-            // Cargar y procesar template HTML
             String htmlBody = loadPasswordResetEmailTemplate(codigo, resetLink);
             emailService.sendHtml(email, "Recuperación de Contraseña - Tu Oficio", htmlBody);
             log.info("Email HTML enviado exitosamente a: {}", email);
@@ -90,14 +85,12 @@ public class PasswordResetServiceImpl implements PasswordResetService {
                         return new RuntimeException("Código inválido o expirado");
                     });
 
-            // Cambiar contraseña
             Auth usuario = authRepository.findByMail(email)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
             usuario.setPassword(passwordEncoder.encode(nuevaPassword));
             authRepository.save(usuario);
 
-            // Marcar token como usado
             token.setUsed(true);
             tokenRepository.save(token);
 
@@ -127,18 +120,15 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
     private String loadPasswordResetEmailTemplate(String resetCode, String resetLink) {
         try {
-            // Cargar el template HTML desde resources
             ClassPathResource resource = new ClassPathResource("templates/email-password-reset.html");
             String htmlTemplate = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 
-            // Reemplazar los placeholders con los datos reales
             return htmlTemplate
                     .replace("{{resetCode}}", resetCode)
                     .replace("{{resetLink}}", resetLink);
 
         } catch (IOException e) {
             log.error("Error cargando template HTML, usando fallback: ", e);
-            // Fallback a template simple en caso de error
             return createFallbackEmailTemplate(resetCode, resetLink);
         }
     }

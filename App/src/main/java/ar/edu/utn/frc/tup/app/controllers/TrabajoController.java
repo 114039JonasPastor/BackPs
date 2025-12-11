@@ -25,7 +25,6 @@ public class TrabajoController {
 
     private final TrabajoService trabajoService;
 
-    // Crear trabajo a partir de una solicitud aceptada
     @PostMapping("/crear/{idSolicitud}")
     public ResponseEntity<?> crearTrabajo(@PathVariable Integer idSolicitud) {
         try {
@@ -43,7 +42,6 @@ public class TrabajoController {
         }
     }
 
-    // Iniciar trabajo
     @PutMapping("/iniciar/{idTrabajo}")
     public ResponseEntity<?> iniciarTrabajo(@PathVariable Integer idTrabajo) {
         try {
@@ -61,7 +59,6 @@ public class TrabajoController {
         }
     }
 
-    // Pausar trabajo
     @PutMapping("/pausar/{idTrabajo}")
     public ResponseEntity<?> pausarTrabajo(@PathVariable Integer idTrabajo) {
         try {
@@ -79,7 +76,6 @@ public class TrabajoController {
         }
     }
 
-    // Reanudar trabajo
     @PutMapping("/reanudar/{idTrabajo}")
     public ResponseEntity<?> reanudarTrabajo(@PathVariable Integer idTrabajo) {
         try {
@@ -97,7 +93,6 @@ public class TrabajoController {
         }
     }
 
-    // Finalizar trabajo
     @PutMapping("/finalizar/{idTrabajo}")
     public ResponseEntity<?> finalizarTrabajo(
             @PathVariable Integer idTrabajo,
@@ -117,7 +112,6 @@ public class TrabajoController {
         }
     }
 
-    // Cancelar trabajo
     @PutMapping("/cancelar/{idTrabajo}")
     public ResponseEntity<?> cancelarTrabajo(
             @PathVariable Integer idTrabajo,
@@ -137,7 +131,6 @@ public class TrabajoController {
         }
     }
 
-    // Obtener trabajo por ID
     @GetMapping("/{idTrabajo}")
     public ResponseEntity<?> obtenerTrabajo(@PathVariable Integer idTrabajo) {
         try {
@@ -155,7 +148,6 @@ public class TrabajoController {
         }
     }
 
-    // Obtener trabajo por solicitud
     @GetMapping("/solicitud/{idSolicitud}")
     public ResponseEntity<?> obtenerTrabajoPorSolicitud(@PathVariable Integer idSolicitud) {
         try {
@@ -173,7 +165,6 @@ public class TrabajoController {
         }
     }
 
-    // Obtener trabajos del profesional
     @GetMapping("/profesional/{idProfesional}")
     public ResponseEntity<?> obtenerTrabajosPorProfesional(
             @PathVariable Integer idProfesional) {
@@ -204,7 +195,6 @@ public class TrabajoController {
         }
     }
 
-    // Obtener trabajos del profesional y estado
     @GetMapping("/profesional/estado/{idProfesional}")
     public ResponseEntity<?> obtenerTrabajosPorProfesional(
             @PathVariable Integer idProfesional,
@@ -236,7 +226,6 @@ public class TrabajoController {
         }
     }
 
-    // Obtener trabajos del usuario
     @GetMapping("/usuario/{idUsuario}")
     public ResponseEntity<?> obtenerTrabajosPorUsuario(
             @PathVariable Integer idUsuario,
@@ -268,7 +257,6 @@ public class TrabajoController {
         }
     }
 
-    // Obtener trabajos finalizados sin factura
     @GetMapping("/sin-factura")
     public ResponseEntity<?> obtenerTrabajosSinFactura() {
         try {
@@ -297,7 +285,6 @@ public class TrabajoController {
         }
     }
 
-    // Obtener trabajos finalizados por cliente (usuario)
     @GetMapping("/cliente/finalizados/{idUsuario}")
     public ResponseEntity<?> obtenerTrabajosFinalizadosPorCliente(
             @PathVariable Integer idUsuario) {
@@ -328,7 +315,6 @@ public class TrabajoController {
         }
     }
 
-    // Obtener trabajos cancelados por cliente (para notificaciones)
     @GetMapping("/cliente/cancelados/{idUsuario}")
     public ResponseEntity<?> obtenerTrabajosCanceladosPorCliente(
             @PathVariable Integer idUsuario) {
@@ -336,7 +322,6 @@ public class TrabajoController {
             List<TrabajoCanceladoNotificacionDTO> trabajos =
                     trabajoService.obtenerTrabajosCanceladosPorCliente(idUsuario);
 
-            // No retornar 404 si está vacío, solo array vacío
             return ResponseEntity.ok(trabajos);
         } catch (RuntimeException e) {
             log.error("Error al obtener trabajos cancelados del cliente", e);
@@ -350,7 +335,6 @@ public class TrabajoController {
         }
     }
 
-    // Obtener trabajos finalizados para notificar al cliente
     @GetMapping("/cliente/finalizados/notificaciones/{idUsuario}")
     public ResponseEntity<?> obtenerTrabajosFinalizadosParaNotificar(
             @PathVariable Integer idUsuario) {

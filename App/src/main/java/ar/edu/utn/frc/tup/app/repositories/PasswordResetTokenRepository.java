@@ -13,6 +13,6 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
 
     Optional<PasswordResetToken> findByEmailAndTokenAndUsedFalseAndExpiryDateAfter(
             String email, String token, Instant expiryDate);
-    // Opcional: Para limpiar tokens expirados
+
     void deleteByExpiryDateBefore(LocalDateTime date);
 }

@@ -274,16 +274,13 @@ public class SolicitudServiceImpl implements SolicitudService {
 
     @Override
     public String reprogramarFecha(Integer idSolicitud, ReprogramarRequest request) {
-        // 1. Verificar que la solicitud existe
         Solicitude solicitud = solicitudRepository.findById(idSolicitud)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-        // 2. Verificar que la solicitud esté ACEPTADA
         if (!"ACEPTADA".equals(solicitud.getEstado())) {
             throw new RuntimeException("Solo se pueden reprogramar solicitudes aceptadas");
         }
 
-        // 3. Obtener datos necesarios
         Integer idProfesional = solicitud.getIdprofesional().getId();
         LocalDate nuevaFecha = request.getNuevaFecha();
         LocalTime nuevaHora = request.getNuevaHora();
@@ -291,7 +288,6 @@ public class SolicitudServiceImpl implements SolicitudService {
                 request.getDuracion() :
                 (solicitud.getDuracionEstimada() != null ? solicitud.getDuracionEstimada() : 60);
 
-        // 4. Validar que la nueva fecha sea futura
         LocalDateTime ahora = LocalDateTime.now();
         LocalDateTime nuevaFechaHora = LocalDateTime.of(nuevaFecha, nuevaHora);
 
@@ -299,13 +295,11 @@ public class SolicitudServiceImpl implements SolicitudService {
             throw new RuntimeException("La fecha de reprogramación debe ser futura");
         }
 
-        // 5. Validar que no sea fin de semana
         DayOfWeek diaSemana = nuevaFecha.getDayOfWeek();
         if (diaSemana == DayOfWeek.SATURDAY || diaSemana == DayOfWeek.SUNDAY) {
             throw new RuntimeException("No se pueden programar servicios en fines de semana");
         }
 
-        // 6. Validar horario laboral (8:00 - 18:00)
         LocalTime horaInicioLaboral = LocalTime.of(8, 0);
         LocalTime horaFinLaboral = LocalTime.of(18, 0);
         LocalTime horaFinTurno = nuevaHora.plusMinutes(duracion);
@@ -314,11 +308,9 @@ public class SolicitudServiceImpl implements SolicitudService {
             throw new RuntimeException("El horario debe estar entre las 08:00 y 18:00");
         }
 
-        // 7. Verificar disponibilidad del profesional
         List<Solicitude> turnosOcupados = solicitudRepository
                 .findSolicitudesAceptadasByProfesionalAndFecha(idProfesional, nuevaFecha);
 
-        // Excluir la solicitud actual de la verificación
         turnosOcupados = turnosOcupados.stream()
                 .filter(s -> !s.getId().equals(idSolicitud))
                 .collect(Collectors.toList());
@@ -335,7 +327,6 @@ public class SolicitudServiceImpl implements SolicitudService {
                     turnoExistente.getDuracionEstimada() : duracion;
             LocalTime horaFinExistente = horaInicioExistente.plusMinutes(duracionExistente);
 
-            // Verificar solapamiento
             boolean seSolapan = (nuevaHora.isBefore(horaFinExistente) &&
                     horaFinNuevoTurno.isAfter(horaInicioExistente));
 
@@ -347,7 +338,6 @@ public class SolicitudServiceImpl implements SolicitudService {
             }
         }
 
-        // 8. Actualizar la solicitud
         LocalDateTime fechaServicio = LocalDateTime.of(nuevaFecha, nuevaHora);
         Instant fechaServicioInstant = fechaServicio
                 .atZone(ZoneId.systemDefault())
@@ -358,14 +348,12 @@ public class SolicitudServiceImpl implements SolicitudService {
 
         solicitudRepository.save(solicitud);
 
-        // 9. Formatear fecha para respuesta
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm");
         String fechaFormateada = nuevaFechaHora.format(formatter);
 
         return "Solicitud reprogramada para el día " + fechaFormateada;
     }
 
-    // Método auxiliar para obtener turnos ocupados (reutilizable)
     private boolean verificarDisponibilidad(
             Integer idProfesional,
             LocalDate fecha,
@@ -376,7 +364,6 @@ public class SolicitudServiceImpl implements SolicitudService {
         List<Solicitude> turnosOcupados = solicitudRepository
                 .findSolicitudesAceptadasByProfesionalAndFecha(idProfesional, fecha);
 
-        // Excluir solicitud actual si se proporciona
         if (idSolicitudExcluir != null) {
             turnosOcupados = turnosOcupados.stream()
                     .filter(s -> !s.getId().equals(idSolicitudExcluir))
@@ -396,10 +383,10 @@ public class SolicitudServiceImpl implements SolicitudService {
             LocalTime horaFin = horaInicio.plusMinutes(duracionTurno);
 
             if (hora.isBefore(horaFin) && horaFinNuevo.isAfter(horaInicio)) {
-                return false; // Hay solapamiento
+                return false;
             }
         }
-        return true; // Está disponible
+        return true;
     }
 
     @Override
@@ -411,7 +398,6 @@ public class SolicitudServiceImpl implements SolicitudService {
         );
     }
 
-    //Para el mapa
     @Override
     public Map<String, Object> getSolicitudConUbicacion(Integer idSolicitud) {
         Map<String, Object> solicitudData = solicitudRepository.findSolicitudConDireccion(idSolicitud);
@@ -537,7 +523,6 @@ public class SolicitudServiceImpl implements SolicitudService {
 
     @Override
     public List<Map<String, Object>> getOficiosMasSolicitados(LocalDate fechaInicio, LocalDate fechaFin) {
-        // Convertir LocalDate a Instant (inicio del día para fechaInicio, fin del día para fechaFin)
         Instant instantInicio = fechaInicio != null
             ? fechaInicio.atStartOfDay(ZoneId.systemDefault()).toInstant()
             : null;
@@ -545,10 +530,8 @@ public class SolicitudServiceImpl implements SolicitudService {
             ? fechaFin.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant()
             : null;
 
-        // Usar OficioRepository para obtener TODOS los oficios con su cantidad de solicitudes
         var resultados = oficioRepository.findAllOficiosConCantidadSolicitudes(instantInicio, instantFin);
 
-        // Convertir los DTOs a una lista de mapas
         return resultados.stream()
                 .map(dto -> {
                     Map<String, Object> map = new HashMap<>();

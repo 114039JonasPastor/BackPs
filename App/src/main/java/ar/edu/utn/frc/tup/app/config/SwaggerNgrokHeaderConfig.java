@@ -16,7 +16,6 @@ public class SwaggerNgrokHeaderConfig {
 
             openApi.getPaths().values().forEach(pathItem ->
                     pathItem.readOperations().forEach(operation -> {
-                        // Evitar duplicados
                         boolean exists = operation.getParameters() != null &&
                                 operation.getParameters().stream().anyMatch(p ->
                                         "ngrok-skip-browser-warning".equalsIgnoreCase(p.getName()) &&
