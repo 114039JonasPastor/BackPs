@@ -6,6 +6,7 @@ import ar.edu.utn.frc.tup.app.dtos.request.perfil.ModificarProfesional;
 import ar.edu.utn.frc.tup.app.dtos.response.UsuariosRegistradosDto;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilCliente;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.PerfilProfesional;
+import ar.edu.utn.frc.tup.app.dtos.response.perfil.FotoGaleriaDto;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.metrica.ProfesionalMetrica;
 import ar.edu.utn.frc.tup.app.dtos.response.perfil.metrica.UsuarioMetrica;
 import ar.edu.utn.frc.tup.app.entities.*;
@@ -44,6 +45,7 @@ public class PerfilServiceImpl implements PerfilService {
     private final ReseniaRepository reseniaRepository;
     private final TrabajoService trabajoService;
     private final JwtService jwtService;
+    private final FotoGaleriaRepository fotoGaleriaRepository;
 
     @Override
     public PerfilCliente getPerfilCliente(Integer idCliente) {
@@ -154,10 +156,22 @@ public class PerfilServiceImpl implements PerfilService {
         Double puntuacionPromedio = reseniaRepository.getPromedioPuntuacionByProfesional(profesional.getId());
         Long cantidadResenias = reseniaRepository.countReseniasByProfesional(profesional.getId());
 
+        List<FotoGaleriaDto> fotosGaleria = fotoGaleriaRepository.findByProfesionalIdOrderByOrdenAsc(profesional.getId())
+                .stream()
+                .map(foto -> FotoGaleriaDto.builder()
+                        .id(foto.getId())
+                        .urlFoto(foto.getUrlFoto())
+                        .descripcion(foto.getDescripcion())
+                        .fechaSubida(foto.getFechaSubida())
+                        .orden(foto.getOrden())
+                        .build())
+                .toList();
+
         return PerfilProfesional.builder()
                 .idProfesional(profesional.getId())
                 .nombre(profesional.getIdusuario().getIdauth().getName())
                 .apellido(profesional.getIdusuario().getIdauth().getLastname())
+                .email(profesional.getIdusuario().getIdauth().getMail())
                 .avatar(profesional.getIdusuario().getIdauth().getAvatar())
                 .oficio(profesional.getIdoficio().getOficio())
                 .telefono(profesional.getIdusuario().getTelefono())
@@ -165,6 +179,7 @@ public class PerfilServiceImpl implements PerfilService {
                 .especialidades(especialidadesList)
                 .puntuacionPromedio(puntuacionPromedio != null ? Math.round(puntuacionPromedio * 10.0) / 10.0 : null)
                 .cantidadResenias(cantidadResenias)
+                .fotosGaleria(fotosGaleria)
                 .build();
     }
 
@@ -394,10 +409,22 @@ public class PerfilServiceImpl implements PerfilService {
             System.err.println("Error al obtener trabajos finalizados para el profesional " + profesional.getId() + ": " + e.getMessage());
         }
 
+        List<FotoGaleriaDto> fotosGaleria = fotoGaleriaRepository.findByProfesionalIdOrderByOrdenAsc(profesional.getId())
+                .stream()
+                .map(foto -> FotoGaleriaDto.builder()
+                        .id(foto.getId())
+                        .urlFoto(foto.getUrlFoto())
+                        .descripcion(foto.getDescripcion())
+                        .fechaSubida(foto.getFechaSubida())
+                        .orden(foto.getOrden())
+                        .build())
+                .toList();
+
         return PerfilProfesional.builder()
                 .idProfesional(profesional.getId())
                 .nombre(profesional.getIdusuario().getIdauth().getName())
                 .apellido(profesional.getIdusuario().getIdauth().getLastname())
+                .email(profesional.getIdusuario().getIdauth().getMail())
                 .avatar(profesional.getIdusuario().getIdauth().getAvatar())
                 .oficio(profesional.getIdoficio().getOficio())
                 .telefono(profesional.getIdusuario().getTelefono())
@@ -406,6 +433,7 @@ public class PerfilServiceImpl implements PerfilService {
                 .puntuacionPromedio(puntuacionPromedio != null ? Math.round(puntuacionPromedio * 10.0) / 10.0 : null)
                 .cantidadResenias(cantidadResenias)
                 .serviciosCompletados(serviciosCompletados)
+                .fotosGaleria(fotosGaleria)
                 .build();
     }
 

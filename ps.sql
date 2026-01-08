@@ -499,3 +499,38 @@ CREATE INDEX idx_resenias_idtrabajo ON resenias(idtrabajo);
 COMMENT ON COLUMN resenias.idtrabajo IS 'ID del trabajo asociado a la reseña';
 
 update oficios set oficio = 'SERVICIO DE LIMPIEZA' where idOficio = 6;
+
+-- Tabla para almacenar las fotos de galería de cada profesional
+CREATE TABLE foto_galeria (
+                              id SERIAL PRIMARY KEY,
+                              idprofesional INT NOT NULL,
+                              url_foto VARCHAR(500) NOT NULL,
+                              descripcion VARCHAR(255),
+                              fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                              orden INT DEFAULT 0,
+                              CONSTRAINT fk_foto_profesional FOREIGN KEY (idprofesional) REFERENCES profesionales(idprofesional) ON DELETE CASCADE
+);
+
+-- Índice para mejorar búsquedas por profesional
+CREATE INDEX idx_foto_galeria_profesional ON foto_galeria(idprofesional);
+
+CREATE TABLE IF NOT EXISTS reportes (
+                                        idreporte SERIAL PRIMARY KEY,
+                                        idprofesional INT NOT NULL,
+                                        reportado_por INT NULL,
+                                        razon VARCHAR(500) NOT NULL,
+    fecha_reporte TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atendido BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha_atencion TIMESTAMP NULL,
+    resolucion VARCHAR(1000) NULL,
+    CONSTRAINT fk_reporte_profesional FOREIGN KEY (idprofesional)
+    REFERENCES profesionales(idprofesional) ON DELETE CASCADE,
+    CONSTRAINT fk_reporte_usuario FOREIGN KEY (reportado_por)
+    REFERENCES usuarios(idusuario) ON DELETE SET NULL
+    );
+
+CREATE INDEX idx_reportes_profesional ON reportes(idprofesional);
+CREATE INDEX idx_reportes_atendido ON reportes(atendido);
+CREATE INDEX idx_reportes_fecha ON reportes(fecha_reporte);
+
+ALTER TABLE foto_galeria RENAME COLUMN id_profesional TO idprofesional;
