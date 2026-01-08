@@ -53,8 +53,11 @@ public class SecurityConfig {
                                         "/api/v1/domicilios/ciudad/departamento/*",
                                         "/api/v1/usuario/tipos-documento",
                                         "/api/v1/oficios/all",
-                                        "/api/v1/perfil/profesional/oficio/**"
+                                        "/api/v1/perfil/profesional/oficio/**",
+                                        "/api/v1/perfil/profesionales/**",
+                                        "/api/v1/solicitudes/profesionales/mas-solicitados"
                                 ).permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/galeria/profesional/*").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionManager -> sessionManager

@@ -13,6 +13,7 @@ public class PerfilProfesional {
     private Integer idProfesional;
     private String nombre;
     private String apellido;
+    private String email;
     private String avatar;
     private String oficio;
     private String telefono;
@@ -21,4 +22,5 @@ public class PerfilProfesional {
     private Double puntuacionPromedio;
     private Long cantidadResenias;
     private Integer serviciosCompletados;
+    private List<FotoGaleriaDto> fotosGaleria;
 }

@@ -69,6 +69,21 @@ public class PerfilController {
         return ResponseEntity.ok(perfil);
     }
 
+    @GetMapping("/profesionales/{idProfesional}")
+    public ResponseEntity<?> getPerfilProfesionalPublic(@PathVariable Integer idProfesional) {
+        PerfilProfesional perfil = perfilService.getPerfilProfesional(idProfesional);
+        if (perfil == null) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .error("Not Found")
+                    .message("Perfil no encontrado")
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+        return ResponseEntity.ok(perfil);
+    }
+
     @PutMapping("/profesional")
     public ResponseEntity<PerfilProfesional> updatePerfilProfesional(@RequestBody ModificarProfesional profesional) {
         return ResponseEntity.ok(perfilService.updatePerfilProfesional(profesional));
