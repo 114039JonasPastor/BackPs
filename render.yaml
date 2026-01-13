@@ -1,0 +1,49 @@
+services:
+  # Base de datos PostgreSQL
+  - type: pserv
+    name: tuoficio-db
+    env: docker
+    plan: free
+    ipAllowList: []
+
+  # Backend Spring Boot
+  - type: web
+    name: tuoficio-backend
+    env: java
+    runtime: java
+    buildCommand: cd App && chmod +x mvnw && ./mvnw clean package -DskipTests
+    startCommand: cd App && java -Dserver.port=$PORT -jar target/App-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tuoficio-db
+          property: connectionString
+      - key: DB_USERNAME
+        fromDatabase:
+          name: tuoficio-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: tuoficio-db
+          property: password
+      - key: JAVA_TOOL_OPTIONS
+        value: -Xmx512m
+      - key: JWT_SECRET
+        sync: false
+      - key: MERCADOPAGO_ACCESS_TOKEN
+        sync: false
+      - key: MERCADOPAGO_PUBLIC_KEY
+        sync: false
+      - key: MERCADOPAGO_WEBHOOK_SECRET
+        sync: false
+      - key: EMAIL_USERNAME
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: STREAM_CHAT_API_KEY
+        sync: false
+      - key: STREAM_CHAT_API_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+    healthCheckPath: /actuator/health
