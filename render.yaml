@@ -2,15 +2,12 @@ services:
   # Base de datos PostgreSQL
   - type: pserv
     name: tuoficio-db
-    env: docker
     plan: free
-    ipAllowList: []
 
   # Backend Spring Boot
   - type: web
     name: tuoficio-backend
     env: java
-    runtime: java
     buildCommand: cd App && chmod +x mvnw && ./mvnw clean package -DskipTests
     startCommand: cd App && java -Dserver.port=$PORT -jar target/App-0.0.1-SNAPSHOT.jar
     envVars:
