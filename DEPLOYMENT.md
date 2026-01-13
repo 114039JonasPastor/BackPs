@@ -60,9 +60,8 @@ git push origin main
 3. Configura:
    - **Name**: `tuoficio-backend`
    - **Root Directory**: `App`
-   - **Environment**: `Java`
-   - **Build Command**: `./mvnw clean package -DskipTests`
-   - **Start Command**: `java -Dserver.port=$PORT -jar target/App-0.0.1-SNAPSHOT.jar`
+   - **Environment**: `Docker`
+   - **Dockerfile Path**: `./Dockerfile`
    - **Plan**: Free
 
 4. **Variables de Entorno** (click "Advanced" → "Add Environment Variable"):

@@ -1,0 +1,10 @@
+target/
+!target/App-0.0.1-SNAPSHOT.jar
+.mvn/wrapper/maven-wrapper.jar
+*.log
+.git
+.gitignore
+.idea
+.vscode
+*.md
+.DS_Store
