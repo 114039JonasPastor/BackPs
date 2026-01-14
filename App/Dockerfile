@@ -3,22 +3,17 @@ FROM maven:3.9-eclipse-temurin-17 AS build
 
 WORKDIR /app
 
-# Copiar archivos de Maven
+# Copiar archivos de configuración
 COPY pom.xml .
-COPY .mvn .mvn
-COPY mvnw .
 
-# Dar permisos de ejecución al wrapper de Maven
-RUN chmod +x mvnw
-
-# Descargar dependencias
-RUN ./mvnw dependency:go-offline -B
+# Descargar dependencias (usar mvn directamente en lugar de mvnw)
+RUN mvn dependency:go-offline -B
 
 # Copiar código fuente
 COPY src ./src
 
 # Compilar la aplicación
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 # Etapa 2: Runtime
 FROM eclipse-temurin:17-jre-alpine
