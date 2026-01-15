@@ -76,7 +76,8 @@ public class SecurityConfig {
                 "http://192.168.*",
                 "https://*.ngrok-free.dev",
                 "https://*.ngrok-free.app",
-                "https://*.ngrok.io"
+                "https://*.ngrok.io",
+                "https://*.onrender.com"
         );
         configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
