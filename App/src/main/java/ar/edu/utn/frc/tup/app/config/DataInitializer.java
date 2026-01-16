@@ -4,6 +4,7 @@ import ar.edu.utn.frc.tup.app.entities.TiposDocumento;
 import ar.edu.utn.frc.tup.app.repositories.TipoDocumentoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.flywaydb.core.Flyway;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 public class DataInitializer implements CommandLineRunner {
 
     private final TipoDocumentoRepository tipoDocumentoRepository;
+    private final Flyway flyway; // Ensure Flyway runs first
 
     @Override
     public void run(String... args) throws Exception {
