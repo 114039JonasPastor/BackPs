@@ -25,6 +25,26 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.startsWith("/api/v1/auth/") ||
+               path.startsWith("/api/v1/registro/") ||
+               path.startsWith("/api/v1/password/") ||
+               path.startsWith("/api/v1/domicilios/") ||
+               path.equals("/api/v1/usuario/tipos-documento") ||
+               path.startsWith("/api/v1/resenias/") ||
+               path.startsWith("/api/v1/pagos/") ||
+               path.equals("/api/v1/oficios/all") ||
+               path.startsWith("/api/v1/perfil/profesional/oficio/") ||
+               path.startsWith("/api/v1/perfil/profesionales/") ||
+               path.startsWith("/api/v1/solicitudes/profesionales/mas-solicitados") ||
+               (path.startsWith("/api/v1/galeria/profesional/") && request.getMethod().equals("GET")) ||
+               path.startsWith("/v3/api-docs/") ||
+               path.startsWith("/swagger-ui/") ||
+               path.equals("/swagger-ui.html");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
