@@ -1,6 +1,7 @@
 package ar.edu.utn.frc.tup.app.config;
 
 import ar.edu.utn.frc.tup.app.config.jwt.JwtAuthorizationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +34,9 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authRequest ->
                         authRequest
+                                // Allow OPTIONS for CORS preflight
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                // Public endpoints - explicitly permit all
                                 .requestMatchers(
                                         "/api/v1/auth/**",
                                         "/v3/api-docs/**",
@@ -44,11 +47,11 @@ public class SecurityConfig {
                                         "/api/v1/password/**",
                                         "/api/v1/resenias/**",
                                         "/api/v1/domicilios/**",
-                                        "/api/v1/usuario/tipos-documento",
-                                        "/api/v1/oficios/all",
+                                        "/api/v1/usuario/**",  // Changed from specific endpoint to wildcard
+                                        "/api/v1/oficios/**",  // Changed from /all to wildcard
                                         "/api/v1/perfil/profesional/oficio/**",
                                         "/api/v1/perfil/profesionales/**",
-                                        "/api/v1/solicitudes/profesionales/mas-solicitados"
+                                        "/api/v1/solicitudes/profesionales/**"  // Changed to include all sub-paths
                                 ).permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/galeria/profesional/*").permitAll()
                                 .anyRequest().authenticated()
@@ -57,6 +60,18 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider)
                 .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"" + authException.getMessage() + "\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Forbidden\", \"message\": \"" + accessDeniedException.getMessage() + "\", \"path\": \"" + request.getRequestURI() + "\"}");
+                        })
+                )
                 .build();
     }
 
