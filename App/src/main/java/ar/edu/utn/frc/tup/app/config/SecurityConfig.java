@@ -36,22 +36,22 @@ public class SecurityConfig {
                         authRequest
                                 // Allow OPTIONS for CORS preflight
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                // Public endpoints - explicitly permit all
+                                // Public endpoints - Registration and auth flows
                                 .requestMatchers(
                                         "/api/v1/auth/**",
-                                        "/v3/api-docs/**",
-                                        "/swagger-ui/**",
-                                        "/swagger-ui.html",
                                         "/api/v1/registro/**",
-                                        "/api/v1/pagos/**", // Temporalmente público para debugging
                                         "/api/v1/password/**",
-                                        "/api/v1/resenias/**",
+                                        "/api/v1/usuario/tipos-documento",
                                         "/api/v1/domicilios/**",
-                                        "/api/v1/usuario/**",  // Changed from specific endpoint to wildcard
-                                        "/api/v1/oficios/**",  // Changed from /all to wildcard
+                                        "/api/v1/oficios/**",
                                         "/api/v1/perfil/profesional/oficio/**",
                                         "/api/v1/perfil/profesionales/**",
-                                        "/api/v1/solicitudes/profesionales/**"  // Changed to include all sub-paths
+                                        "/api/v1/solicitudes/profesionales/**",
+                                        "/api/v1/resenias/**",
+                                        "/api/v1/pagos/**",
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html"
                                 ).permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/galeria/profesional/*").permitAll()
                                 .anyRequest().authenticated()
