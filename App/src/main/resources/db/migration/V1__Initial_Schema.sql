@@ -502,5 +502,3 @@ CREATE TABLE IF NOT EXISTS reportes (
 CREATE INDEX idx_reportes_profesional ON reportes(idprofesional);
 CREATE INDEX idx_reportes_atendido ON reportes(atendido);
 CREATE INDEX idx_reportes_fecha ON reportes(fecha_reporte);
-
-ALTER TABLE foto_galeria RENAME COLUMN id_profesional TO idprofesional;
