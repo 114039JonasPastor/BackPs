@@ -1,6 +1,6 @@
 -- Tabla de reportes de profesionales
 CREATE TABLE IF NOT EXISTS reportes (
-    idreporte INT AUTO_INCREMENT PRIMARY KEY,
+    idreporte SERIAL PRIMARY KEY,
     idprofesional INT NOT NULL,
     reportado_por INT,
     razon VARCHAR(500) NOT NULL,
@@ -9,8 +9,9 @@ CREATE TABLE IF NOT EXISTS reportes (
     fecha_atencion TIMESTAMP NULL,
     resolucion VARCHAR(1000),
     FOREIGN KEY (idprofesional) REFERENCES profesionales(idprofesional) ON DELETE CASCADE,
-    FOREIGN KEY (reportado_por) REFERENCES usuarios(idusuario) ON DELETE SET NULL,
-    INDEX idx_profesional (idprofesional),
-    INDEX idx_atendido (atendido),
-    INDEX idx_fecha_reporte (fecha_reporte)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    FOREIGN KEY (reportado_por) REFERENCES usuarios(idusuario) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_profesional ON reportes(idprofesional);
+CREATE INDEX idx_atendido ON reportes(atendido);
+CREATE INDEX idx_fecha_reporte ON reportes(fecha_reporte);
