@@ -1,0 +1,536 @@
+CREATE TABLE Roles (
+                       idRol SERIAL PRIMARY KEY,
+                       descripcion VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Auth (
+                          idAuth SERIAL PRIMARY KEY,
+                          password VARCHAR(255) NOT NULL,
+                          name VARCHAR(255) NOT NULL,
+                          lastName VARCHAR(255) NOT NULL,
+                          mail VARCHAR(150) NOT NULL UNIQUE,
+			              active BOOLEAN NOT NULL
+);
+
+CREATE TABLE Tipos_Documento (
+                          idTipoDoc SERIAL PRIMARY KEY,
+                          tipo VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Departamentos (
+                             idDepartamento SERIAL PRIMARY KEY,
+                             departamento VARCHAR(255)
+);
+
+CREATE TABLE Ciudades (
+                          idCiudad SERIAL PRIMARY KEY,
+                          ciudad VARCHAR(100) NOT null,
+                          idDepartamento INT not null references Departamentos(idDepartamento)
+);
+
+CREATE TABLE Barrios (
+                         idBarrio SERIAL PRIMARY KEY,
+                         barrio VARCHAR(100) NOT NULL,
+                         idCiudad INT NOT NULL REFERENCES Ciudades(idCiudad)
+);
+
+CREATE TABLE Direcciones (
+                             idDireccion SERIAL PRIMARY KEY,
+                             idBarrio INT NOT NULL REFERENCES Barrios(idBarrio),
+                             calle VARCHAR(100) NOT NULL,
+                             numero VARCHAR(10) NOT NULL,
+                             piso VARCHAR(10),
+                             depto VARCHAR(10),
+                             observaciones VARCHAR(200)
+);
+
+create table Usuarios (
+				idUsuario SERIAL primary key,			    
+			    documento VARCHAR(20),
+                telefono VARCHAR(20),
+			    nacimiento date NOT NULL,
+			    
+                idDireccion INT NOT NULL REFERENCES Direcciones(idDireccion),  
+                idTipoDoc INT NOT NULL REFERENCES Tipos_Documento(idTipoDoc),
+				idAuth INT NOT NULL REFERENCES Auth(idAuth)
+);
+
+
+
+CREATE TABLE RolXUsuario(
+                            idRolXUsuario SERIAL PRIMARY KEY,
+                            idRol INT NOT NULL REFERENCES Roles(idRol),
+                            idAuth INT NOT NULL REFERENCES Auth(idAuth)  -- Cambiar Usuarios(idUsuario) → Auth(idAuth)
+);
+
+
+CREATE TABLE Oficios (
+                         idOficio SERIAL PRIMARY KEY,
+                         oficio VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Profesionales (
+                        idProfesional SERIAL PRIMARY KEY,                      
+                        fechaDesde date NOT NULL,
+                        fechaHasta date,
+                        idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),
+                        idOficio INT NOT NULL REFERENCES Oficios(idOficio)
+);
+
+CREATE TABLE Disponibilidad (
+                                idDisponibilidad SERIAL PRIMARY KEY,
+                                idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
+                                diaSemana VARCHAR(20) NOT NULL,
+                                horaInicio TIME NOT NULL,
+                                horaFin TIME NOT NULL
+);
+
+CREATE TABLE Solicitudes (
+                             idSolicitud SERIAL PRIMARY KEY,
+                             idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),  -- Cambiar Usuario → Usuarios
+                             idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
+                             idOficio INT NOT NULL REFERENCES Oficios(idOficio), -- No se usa
+                             fechaSolicitud TIMESTAMP NOT NULL DEFAULT NOW(),
+                             fechaServicio TIMESTAMP NOT NULL,
+                             estado VARCHAR(20) NOT NULL,
+                             observacion VARCHAR(500)
+);
+
+CREATE TABLE Resenias (
+                          idResenia SERIAL PRIMARY KEY,
+                          idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),  -- Cambiar Usuario → Usuarios
+                          idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
+                          puntuacion INT CHECK (puntuacion BETWEEN 1 AND 5),
+                          comentario VARCHAR(500),
+                          fecha TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE Mensajes (
+                          idMensaje SERIAL PRIMARY KEY,
+                          idSolicitud INT NOT NULL REFERENCES Solicitudes(idSolicitud),
+                          idRemitente INT NOT NULL REFERENCES Usuarios(idUsuario),
+                          idDestinatario INT NOT NULL REFERENCES Usuarios(idUsuario),
+                          mensaje VARCHAR(500) NOT NULL,
+                          fechaHora TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE Montos (
+                        idMonto SERIAL PRIMARY KEY,
+                        idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
+                        idOficio INT NOT NULL REFERENCES Oficios(idOficio),
+                        precioMin NUMERIC(10,2) NOT NULL,
+                        precioMax NUMERIC(10,2) NOT NULL
+);
+
+
+
+CREATE TABLE MediosDePago (
+                              idMedioPago SERIAL PRIMARY KEY,
+                              descripcion VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Facturas (
+                          NroFactura SERIAL PRIMARY KEY,
+                          idUsuario INT NOT NULL REFERENCES Usuarios(idUsuario),  -- Cambiar Usuario → Usuarios
+                          idProfesional INT NOT NULL REFERENCES Profesionales(idProfesional),
+                          idMedioPago INT NOT NULL REFERENCES MediosDePago(idMedioPago),
+                          fecha TIMESTAMP DEFAULT NOW(),
+                          estadoPago VARCHAR(20) NOT NULL,
+                          importe NUMERIC(10,2) NOT NULL
+);
+
+CREATE TABLE password_reset_tokens (
+    id SERIAL PRIMARY KEY,
+    token VARCHAR(10) NOT NULL, -- Para el código de 6 dígitos
+    email VARCHAR(150) NOT NULL,
+    expiry_date TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    id_auth INT REFERENCES Usuarios(idUsuario) -- Opcional pero útil
+);
+
+-- INSERTS
+INSERT INTO Departamentos (departamento) VALUES 
+('CAPITAL'),
+('CALAMUCHITA'),
+('COLON'),
+('CRUZ DEL EJE'),
+('GENERAL ROCA'),
+('GENERAL SAN MARTIN'),
+('ISCHILIN'),
+('JUAREZ CELMAN'),
+('MARCOS JUAREZ'),
+('MINAS'),
+('POCHO'),
+('PTE. ROQUE SAENZ PEÑA'),
+('PUNILLA'),
+('RIO CUARTO'),
+('RIO PRIMERO'),
+('RIO SECO'),
+('RIO SEGUNDO'),
+('SAN ALBERTO'),
+('SAN JAVIER'),
+('SAN JUSTO'),
+('SANTA MARIA'),
+('SOBREMONTE'),
+('TERCERO ARRIBA'),
+('TOTORAL'),
+('TULUMBA'),
+('UNION');
+
+alter table oficios
+    add column descripcion varchar(255);
+
+INSERT INTO Oficios (oficio, descripcion) VALUES
+('GASISTA', 'Reparación e instalación de artefactos, instalaciones de natural y/o envasado'),
+('ELECTRICISTA', 'Instalaciones eléctricas, reparaciones y mantenimiento'),
+('PLOMERO', 'Reparación de cañerías, instalaciones sanitarias y destapaciones'),
+('CARPINTERO', 'Muebles a medida, reparaciones y restauración'),
+('PINTOR', 'Pintura interior y exterior, empapelado y decoración'),
+('EMPLEADA DOMESTICA', 'Limpieza doméstica profunda y mantenimiento'),
+('INSTALADOR DE AIRES ACONDICIONADOS', 'Service Matriculado, instalación, mantenimiento y desinstalación de aire acondicionado');
+
+
+INSERT INTO Ciudades (ciudad, idDepartamento) VALUES
+('Córdoba', 1),          -- CAPITAL
+('Villa María', 6),      -- GENERAL SAN MARTIN
+('Villa Carlos Paz', 13),-- PUNILLA
+('San Francisco', 20),   -- SAN JUSTO
+('Alta Gracia', 21),     -- SANTA MARIA
+('Río Tercero', 23),     -- TERCERO ARRIBA
+('Río Cuarto', 14),      -- RIO CUARTO
+('La Calera', 3),        -- COLON
+('Villa Allende', 3),    -- COLON
+('Jesús María', 3),      -- COLON
+('Bell Ville', 26),      -- UNION
+('Cruz del Eje', 4),     -- CRUZ DEL EJE
+('Villa Dolores', 19);   -- SAN JAVIER
+
+INSERT INTO Barrios (barrio, idCiudad) VALUES
+                                           ('Nueva Córdoba', 1),
+                                           ('Alta Córdoba', 1),
+                                           ('General Paz', 1),
+                                           ('Cerro de las Rosas', 1),
+                                           ('Alberdi', 1),
+                                           ('San Vicente', 1),
+                                           ('Villa El Libertador', 1),
+                                           ('Jardín', 1),
+                                           ('Centro', 2),
+                                           ('San Martín', 2),
+                                           ('Malvinas Argentinas', 2),
+                                           ('Bello Horizonte', 2),
+                                           ('Las Acacias', 2),
+                                           ('Centro', 3),
+                                           ('La Cuesta', 3),
+                                           ('Santa Rita', 3),
+                                           ('Villa del Lago', 3),
+                                           ('José Muñoz', 3),
+                                           ('Centro', 4),
+                                           ('Parque', 4),
+                                           ('La Florida', 4),
+                                           ('San Cayetano', 4),
+                                           ('Hospital', 4),
+                                           ('Centro', 5),
+                                           ('Residencial El Golf', 5),
+                                           ('Paravachasca', 5),
+                                           ('Sabattini', 5),
+                                           ('Pellegrini', 5),
+                                           ('Centro', 6),
+                                           ('Cabero', 6),
+                                           ('Monte Grande', 6),
+                                           ('Magnasco', 6),
+                                           ('Media Luna', 6),
+                                           ('Centro', 7),
+                                           ('Banda Norte', 7),
+                                           ('Alberdi', 7),
+                                           ('Fénix', 7),
+                                           ('Las Ferias', 7),
+                                           ('Centro', 8),
+                                           ('Stoecklin', 8),
+                                           ('Industrial', 8),
+                                           ('Dumandzic', 8),
+                                           ('La Campana', 8),
+                                           ('Centro', 9),
+                                           ('Chacras de la Villa', 9),
+                                           ('Las Polonias', 9),
+                                           ('Cerro', 9),
+                                           ('El Golf', 9),
+                                           ('Centro', 10),
+                                           ('Malabrigo', 10),
+                                           ('Barrio Norte', 10),
+                                           ('La Florida', 10),
+                                           ('Sierras y Parques', 10),
+                                           ('Centro', 11),
+                                           ('Los Lirios', 11),
+                                           ('Progreso', 11),
+                                           ('Martín Fierro', 11),
+                                           ('Tiro Federal', 11),
+                                           ('Centro', 12),
+                                           ('San Martín', 12),
+                                           ('Las Playas', 12),
+                                           ('Los Altos', 12),
+                                           ('Villa Elaine', 12),
+                                           ('Centro', 13),
+                                           ('Aeroclub', 13),
+                                           ('Parque', 13),
+                                           ('San Pablo', 13),
+                                           ('Los Olivos', 13);
+
+insert into tipos_documento (tipo) values
+                                       ('DNI'),
+                                       ('CUIL'),
+                                       ('PASAPORTE');
+
+-- Índices para performance
+CREATE INDEX idx_reset_token_email ON password_reset_tokens(email);
+CREATE INDEX idx_reset_token_expiry ON password_reset_tokens(expiry_date);
+
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS avatar VARCHAR(255);
+
+CREATE TABLE confirmation_token (
+                                    id BIGSERIAL PRIMARY KEY,
+                                    token VARCHAR(255) NOT NULL UNIQUE,
+                                    created_at TIMESTAMP NOT NULL,
+                                    expires_at TIMESTAMP NOT NULL,
+                                    confirmed_at TIMESTAMP,
+                                    idAuth BIGINT,
+                                    CONSTRAINT fk_confirmation_token_auth FOREIGN KEY (idAuth) REFERENCES auth(idAuth)
+);
+
+ALTER TABLE confirmation_token DROP CONSTRAINT IF EXISTS fk_confirmation_token_auth;
+
+ALTER TABLE confirmation_token ALTER COLUMN idauth TYPE integer USING idauth::integer;
+
+ALTER TABLE confirmation_token ADD CONSTRAINT fk_confirmation_token_auth FOREIGN KEY (idauth) REFERENCES auth(idauth);
+
+ALTER TABLE password_reset_tokens DROP CONSTRAINT IF EXISTS password_reset_tokens_id_auth_fkey;
+ALTER TABLE password_reset_tokens ALTER COLUMN id_auth TYPE integer USING id_auth::integer;
+ALTER TABLE password_reset_tokens ADD CONSTRAINT fk_password_reset_tokens_auth FOREIGN KEY (id_auth) REFERENCES auth(idauth);
+
+INSERT INTO MediosDePago (descripcion) VALUES
+                                           ('MercadoPago'),
+                                           ('Efectivo'),
+                                           ('Transferencia');
+-- Modificaciones para especialidades y rangos de precios
+ALTER TABLE profesionales
+ADD COLUMN precio_min int,
+ADD COLUMN precio_max int;
+
+-- Crear tabla Especialidades
+create table Especialidades (
+            idEspecialidad SERIAL PRIMARY KEY,
+            especialidad VARCHAR(100) NOT NULL,
+            idprofesional INT REFERENCES profesionales (idprofesional);
+);
+
+ALTER TABLE Solicitudes
+    ADD COLUMN IF NOT EXISTS idDireccion INT;
+
+ALTER TABLE Solicitudes
+    ADD CONSTRAINT fk_solicitudes_direcciones FOREIGN KEY (idDireccion) REFERENCES Direcciones(idDireccion);
+
+ALTER TABLE solicitudes
+    ALTER COLUMN iddireccion SET NOT NULL;
+
+-- Insertar roles
+insert into roles (descripcion)
+values ('ADMINISTRADOR'),
+       ('PROFESIONAL'),
+       ('CLIENTE');
+       
+ALTER TABLE Solicitudes
+    ADD COLUMN es_turno BOOLEAN DEFAULT FALSE,
+    ADD COLUMN duracion_estimada INT;
+
+CREATE INDEX idx_solicitudes_turno_fecha
+    ON Solicitudes(idProfesional, es_turno, fechaServicio)
+    WHERE es_turno = TRUE;
+
+-- Lunes de 9:00 a 13:00
+INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
+VALUES (1, 'LUNES', '09:00:00', '13:00:00');
+
+-- Lunes de 15:00 a 19:00 (turno tarde)
+INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
+VALUES (1, 'LUNES', '15:00:00', '19:00:00');
+
+-- Martes de 9:00 a 13:00
+INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
+VALUES (1, 'MARTES', '09:00:00', '13:00:00');
+
+-- Miércoles de 10:00 a 14:00
+INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
+VALUES (1, 'MIÉRCOLES', '10:00:00', '14:00:00');
+
+-- Jueves de 9:00 a 17:00 (jornada completa)
+INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
+VALUES (1, 'JUEVES', '09:00:00', '17:00:00');
+
+-- Viernes de 8:00 a 12:00
+INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
+VALUES (1, 'VIERNES', '08:00:00', '12:00:00');
+
+-- Sábado de 9:00 a 13:00
+INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
+VALUES (1, 'SÁBADO', '09:00:00', '13:00:00');
+
+
+
+-- Se agrega una tabla de trabajo que antes no teniamos
+
+CREATE TABLE Trabajos (
+                          idTrabajo SERIAL PRIMARY KEY,
+                          idSolicitud INT NOT NULL UNIQUE REFERENCES Solicitudes(idSolicitud),
+                          idFactura INT UNIQUE REFERENCES Facturas(NroFactura),
+
+                          estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
+
+                          fechaInicio TIMESTAMP,
+                          fechaFinalizacion TIMESTAMP,
+                          fechaCancelacion TIMESTAMP,
+
+                          duracionReal INT,
+                          observacionesTrabajo VARCHAR(500),
+                          observacionesCancelacion VARCHAR(500),
+
+                          montoFinal NUMERIC(10,2),
+                          montoAdicional NUMERIC(10,2),
+                          descripcionAdicional VARCHAR(300),
+
+                          fotoTrabajo VARCHAR(255),
+
+                          creadoEn TIMESTAMP DEFAULT NOW(),
+                          actualizadoEn TIMESTAMP DEFAULT NOW(),
+
+                          CONSTRAINT chk_estado_trabajo CHECK (
+                              estado IN ('PENDIENTE', 'EN_CURSO', 'PAUSADO', 'FINALIZADO', 'CANCELADO')
+                              ),
+                          CONSTRAINT chk_fechas_trabajo CHECK (
+                              (fechaFinalizacion IS NULL OR fechaInicio IS NULL OR fechaFinalizacion >= fechaInicio)
+                              ),
+                    -- Solo los trabajos finalizados tiene facturas
+                          CONSTRAINT chk_factura_solo_finalizado CHECK (
+                              (idFactura IS NULL) OR
+                              (idFactura IS NOT NULL AND estado = 'FINALIZADO')
+                              )
+);
+
+--Indices
+CREATE INDEX idx_trabajos_estado ON Trabajos(estado);
+CREATE INDEX idx_trabajos_solicitud ON Trabajos(idSolicitud);
+CREATE INDEX idx_trabajos_fecha_inicio ON Trabajos(fechaInicio);
+CREATE INDEX idx_trabajos_fecha_finalizacion ON Trabajos(fechaFinalizacion);
+CREATE INDEX idx_trabajos_factura ON Trabajos(idFactura);
+
+--Relacion bidireccional
+ALTER TABLE Facturas
+    ADD COLUMN idTrabajo INT UNIQUE REFERENCES Trabajos(idTrabajo);
+
+CREATE INDEX idx_facturas_trabajo ON Facturas(idTrabajo);
+
+--Trigger para timestap automatico
+CREATE OR REPLACE FUNCTION actualizar_fecha_trabajo()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.actualizadoEn = NOW();
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_actualizar_trabajo
+    BEFORE UPDATE ON Trabajos
+    FOR EACH ROW
+    EXECUTE FUNCTION actualizar_fecha_trabajo();
+
+
+-- Agregar columna strike (puede ser NULL)
+ALTER TABLE usuarios
+    ADD COLUMN strike INT;
+
+-- Opcional: Agregar un constraint para limitar valores (por ejemplo, entre 0 y 3)
+ALTER TABLE usuarios
+    ADD CONSTRAINT chk_strike_range CHECK (strike IS NULL OR (strike >= 0 AND strike <= 3));
+
+-- Opcional: Agregar un comentario explicativo
+COMMENT ON COLUMN usuarios.strike IS 'Contador de infracciones del usuario (NULL = sin strikes)';
+
+-- Opcional: Crear índice si vas a filtrar por strike frecuentemente
+CREATE INDEX idx_usuarios_strike ON usuarios(strike);
+
+
+-- Agregar columna activo (por defecto TRUE)
+ALTER TABLE oficios
+    ADD COLUMN activo BOOLEAN DEFAULT TRUE NOT NULL;
+
+-- Opcional: Agregar comentario explicativo
+COMMENT ON COLUMN oficios.activo IS 'Indica si el oficio está activo/disponible en el sistema';
+
+-- Opcional: Crear índice para filtrar oficios activos
+CREATE INDEX idx_oficios_activo ON oficios(activo);
+
+-- Opcional: Actualizar oficios existentes para que estén activos
+UPDATE oficios SET activo = TRUE WHERE activo IS NULL;
+
+-- Se agrega columna id pago a la tabla trabajos
+alter table trabajos
+add column idpago varchar(255);
+
+-- Elimina la restricción actual (ajusta el nombre si es diferente)
+ALTER TABLE rolxusuario DROP CONSTRAINT rolxusuario_idauth_fkey;
+
+-- Crea la restricción correcta apuntando a auth
+ALTER TABLE rolxusuario
+    ADD CONSTRAINT fk_rolxusuario_idauth FOREIGN KEY (idauth) REFERENCES auth(idauth);
+
+-- Agregar la columna idtrabajo como nullable
+ALTER TABLE resenias
+    ADD COLUMN idtrabajo INTEGER;
+
+-- Agregar la foreign key constraint
+ALTER TABLE resenias
+    ADD CONSTRAINT fk_resenias_trabajo
+        FOREIGN KEY (idtrabajo)
+            REFERENCES trabajos(idtrabajo);
+
+-- Crear índice para mejorar el rendimiento de las consultas
+CREATE INDEX idx_resenias_idtrabajo ON resenias(idtrabajo);
+
+-- Comentario en la columna
+COMMENT ON COLUMN resenias.idtrabajo IS 'ID del trabajo asociado a la reseña';
+
+update oficios set oficio = 'SERVICIO DE LIMPIEZA' where idOficio = 6;
+
+-- Tabla para almacenar las fotos de galería de cada profesional
+CREATE TABLE foto_galeria (
+                              id SERIAL PRIMARY KEY,
+                              idprofesional INT NOT NULL,
+                              url_foto VARCHAR(500) NOT NULL,
+                              descripcion VARCHAR(255),
+                              fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                              orden INT DEFAULT 0,
+                              CONSTRAINT fk_foto_profesional FOREIGN KEY (idprofesional) REFERENCES profesionales(idprofesional) ON DELETE CASCADE
+);
+
+-- Índice para mejorar búsquedas por profesional
+CREATE INDEX idx_foto_galeria_profesional ON foto_galeria(idprofesional);
+
+CREATE TABLE IF NOT EXISTS reportes (
+                                        idreporte SERIAL PRIMARY KEY,
+                                        idprofesional INT NOT NULL,
+                                        reportado_por INT NULL,
+                                        razon VARCHAR(500) NOT NULL,
+    fecha_reporte TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atendido BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha_atencion TIMESTAMP NULL,
+    resolucion VARCHAR(1000) NULL,
+    CONSTRAINT fk_reporte_profesional FOREIGN KEY (idprofesional)
+    REFERENCES profesionales(idprofesional) ON DELETE CASCADE,
+    CONSTRAINT fk_reporte_usuario FOREIGN KEY (reportado_por)
+    REFERENCES usuarios(idusuario) ON DELETE SET NULL
+    );
+
+CREATE INDEX idx_reportes_profesional ON reportes(idprofesional);
+CREATE INDEX idx_reportes_atendido ON reportes(atendido);
+CREATE INDEX idx_reportes_fecha ON reportes(fecha_reporte);
+
+ALTER TABLE foto_galeria RENAME COLUMN id_profesional TO idprofesional;

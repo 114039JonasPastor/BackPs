@@ -9,11 +9,17 @@ COPY pom.xml .
 # Descargar dependencias (usar mvn directamente en lugar de mvnw)
 RUN mvn dependency:go-offline -B
 
-# Copiar código fuente
+# Copiar código fuente y recursos
 COPY src ./src
+
+# Verificar que los archivos de migración existen
+RUN ls -la src/main/resources/db/migration/ || echo "No migration files found"
 
 # Compilar la aplicación
 RUN mvn clean package -DskipTests
+
+# Verificar que el JAR incluye las migraciones
+RUN jar -tf target/App-0.0.1-SNAPSHOT.jar | grep "db/migration" || echo "Migrations not in JAR"
 
 # Etapa 2: Runtime
 FROM eclipse-temurin:17-jre-alpine
