@@ -346,36 +346,6 @@ CREATE INDEX idx_solicitudes_turno_fecha
     ON Solicitudes(idProfesional, es_turno, fechaServicio)
     WHERE es_turno = TRUE;
 
--- Lunes de 9:00 a 13:00
-INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
-VALUES (1, 'LUNES', '09:00:00', '13:00:00');
-
--- Lunes de 15:00 a 19:00 (turno tarde)
-INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
-VALUES (1, 'LUNES', '15:00:00', '19:00:00');
-
--- Martes de 9:00 a 13:00
-INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
-VALUES (1, 'MARTES', '09:00:00', '13:00:00');
-
--- Miércoles de 10:00 a 14:00
-INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
-VALUES (1, 'MIÉRCOLES', '10:00:00', '14:00:00');
-
--- Jueves de 9:00 a 17:00 (jornada completa)
-INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
-VALUES (1, 'JUEVES', '09:00:00', '17:00:00');
-
--- Viernes de 8:00 a 12:00
-INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
-VALUES (1, 'VIERNES', '08:00:00', '12:00:00');
-
--- Sábado de 9:00 a 13:00
-INSERT INTO disponibilidad (idprofesional, diasemana, horainicio, horafin)
-VALUES (1, 'SÁBADO', '09:00:00', '13:00:00');
-
-
-
 -- Se agrega una tabla de trabajo que antes no teniamos
 
 CREATE TABLE Trabajos (
