@@ -73,11 +73,10 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Token expirado\", \"message\": \"" + e.getMessage() + "\"}");
         } catch (Exception e) {
-            // Log the exception but don't block the request
-            // This prevents 403 errors on public endpoints
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\": \"Error de autenticación\", \"message\": \"" + e.getMessage() + "\"}");
+            // Log the exception but continue with the filter chain
+            // This allows public endpoints to work without authentication
+            logger.warn("Error processing JWT token: " + e.getMessage());
+            filterChain.doFilter(request, response);
         }
     }
 
