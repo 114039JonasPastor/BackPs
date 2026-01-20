@@ -320,7 +320,7 @@ ADD COLUMN precio_max int;
 create table Especialidades (
             idEspecialidad SERIAL PRIMARY KEY,
             especialidad VARCHAR(100) NOT NULL,
-            idprofesional INT REFERENCES profesionales (idprofesional);
+            idprofesional INT REFERENCES profesionales (idprofesional)
 );
 
 ALTER TABLE Solicitudes
