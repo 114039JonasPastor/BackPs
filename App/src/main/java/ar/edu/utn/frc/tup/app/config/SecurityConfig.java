@@ -29,20 +29,23 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+        http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authRequest ->
                         authRequest
-                                // Allow OPTIONS for CORS preflight
+                                // Allow OPTIONS for CORS preflight - FIRST PRIORITY
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                // Public endpoints - Registration and auth flows (MUST be first)
-                                .requestMatchers(HttpMethod.POST, "/api/v1/registro/**").permitAll()
+                                // Public registration endpoints - SECOND PRIORITY (explicit methods)
+                                .requestMatchers(HttpMethod.POST, "/api/v1/registro/usuario").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/registro/profesional").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/registro/administrador").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/registro/confirm").permitAll()
+                                // Auth endpoints
                                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/registro/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/auth/**").permitAll()
+                                // Other public endpoints
                                 .requestMatchers(
-                                        "/api/v1/auth/**",
-                                        "/api/v1/registro/**",
                                         "/api/v1/password/**",
                                         "/api/v1/usuario/tipos-documento",
                                         "/api/v1/domicilios/**",
@@ -57,25 +60,33 @@ public class SecurityConfig {
                                         "/swagger-ui.html"
                                 ).permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/galeria/profesional/*").permitAll()
+                                // All other requests require authentication
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionManager -> sessionManager
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authProvider)
-                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exceptions -> exceptions
+                .authenticationProvider(authProvider);
+        
+        // Add JWT filter AFTER permitAll configuration
+        http.addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+        
+        http.exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
+                            String requestUri = request.getRequestURI();
+                            System.out.println("⚠️ Authentication failed for: " + request.getMethod() + " " + requestUri);
+                            System.out.println("⚠️ Auth exception: " + authException.getMessage());
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
-                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"" + authException.getMessage() + "\"}");
+                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"" + authException.getMessage() + "\", \"path\": \"" + requestUri + "\"}");
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json");
                             response.getWriter().write("{\"error\": \"Forbidden\", \"message\": \"" + accessDeniedException.getMessage() + "\", \"path\": \"" + request.getRequestURI() + "\"}");
                         })
-                )
-                .build();
+                );
+        
+        return http.build();
     }
 
     @Bean
