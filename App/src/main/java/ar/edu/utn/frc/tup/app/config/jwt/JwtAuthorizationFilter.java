@@ -30,7 +30,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         
         // Log for debugging
-        logger.info("Checking filter for path: {} method: {}", path, method);
+        logger.info("Checking filter for path: " + path + " method: " + method);
         
         boolean skip = path.startsWith("/api/v1/auth/") ||
                path.startsWith("/api/v1/registro/") ||
@@ -50,7 +50,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                method.equals("OPTIONS"); // Always skip OPTIONS requests
         
         if (skip) {
-            logger.info("Skipping JWT filter for: {} {}", method, path);
+            logger.info("Skipping JWT filter for: " + method + " " + path);
         }
         
         return skip;
