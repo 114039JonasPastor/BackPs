@@ -27,21 +27,33 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        return path.startsWith("/api/v1/auth/") ||
+        String method = request.getMethod();
+        
+        // Log for debugging
+        logger.info("Checking filter for path: {} method: {}", path, method);
+        
+        boolean skip = path.startsWith("/api/v1/auth/") ||
                path.startsWith("/api/v1/registro/") ||
                path.startsWith("/api/v1/password/") ||
                path.startsWith("/api/v1/domicilios/") ||
-               path.startsWith("/api/v1/usuario/") ||  // Changed to match all usuario endpoints
+               path.startsWith("/api/v1/usuario/") ||
                path.startsWith("/api/v1/resenias/") ||
                path.startsWith("/api/v1/pagos/") ||
-               path.startsWith("/api/v1/oficios/") ||  // Changed to match all oficios endpoints
+               path.startsWith("/api/v1/oficios/") ||
                path.startsWith("/api/v1/perfil/profesional/oficio/") ||
                path.startsWith("/api/v1/perfil/profesionales/") ||
-               path.startsWith("/api/v1/solicitudes/profesionales/") ||  // Changed to match all
-               (path.startsWith("/api/v1/galeria/profesional/") && request.getMethod().equals("GET")) ||
+               path.startsWith("/api/v1/solicitudes/profesionales/") ||
+               (path.startsWith("/api/v1/galeria/profesional/") && method.equals("GET")) ||
                path.startsWith("/v3/api-docs/") ||
                path.startsWith("/swagger-ui/") ||
-               path.equals("/swagger-ui.html");
+               path.equals("/swagger-ui.html") ||
+               method.equals("OPTIONS"); // Always skip OPTIONS requests
+        
+        if (skip) {
+            logger.info("Skipping JWT filter for: {} {}", method, path);
+        }
+        
+        return skip;
     }
 
     @Override
