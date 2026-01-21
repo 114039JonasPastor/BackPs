@@ -36,7 +36,10 @@ public class SecurityConfig {
                         authRequest
                                 // Allow OPTIONS for CORS preflight
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                // Public endpoints - Registration and auth flows
+                                // Public endpoints - Registration and auth flows (MUST be first)
+                                .requestMatchers(HttpMethod.POST, "/api/v1/registro/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/registro/**").permitAll()
                                 .requestMatchers(
                                         "/api/v1/auth/**",
                                         "/api/v1/registro/**",
