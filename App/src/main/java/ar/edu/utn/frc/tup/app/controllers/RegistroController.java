@@ -26,8 +26,18 @@ public class RegistroController {
     private final ConfirmationTokenService confirmationTokenService;
 
     @PostMapping("/usuario")
-    public ResponseEntity<AuthResponse> registrarUsuario(@RequestBody UsuarioRequest usuario) {
-        return ResponseEntity.ok(registroService.registrarUsuario(usuario));
+    public ResponseEntity<?> registrarUsuario(@RequestBody UsuarioRequest usuario) {
+        try {
+            return ResponseEntity.ok(registroService.registrarUsuario(usuario));
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .error("Internal Server Error")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 
     @PostMapping("/profesional")

@@ -45,11 +45,15 @@ public class RegistroServiceImpl implements RegistroService {
     @Transactional
     public AuthResponse registrarUsuario(UsuarioRequest usuario) {
         try {
+            log.info("🔵 Iniciando registro de usuario: {}", usuario.getMail());
             log.info("ID Tipo Documento recibido: {}", usuario.getIdTipoDoc());
             TiposDocumento tipo = tipoDocumentoRepository.findById(usuario.getIdTipoDoc())
                 .orElseThrow(() -> new RuntimeException("Tipo de documento no encontrado"));
+            log.info("✅ Tipo documento encontrado");
+            
             Barrio barrio = barrioRepository.findById(usuario.getIdBarrio())
                 .orElseThrow(() -> new RuntimeException("Barrio no encontrado"));
+            log.info("✅ Barrio encontrado");
 
             Auth auth = Auth.builder()
                     .password(passwordEncoder.encode(usuario.getPassword()))
@@ -59,6 +63,7 @@ public class RegistroServiceImpl implements RegistroService {
                     .active(false)
                     .build();
             authRepository.save(auth);
+            log.info("✅ Auth guardado con ID: {}", auth.getId());
 
             Direccione direccion = new Direccione();
             direccion.setIdbarrio(barrio);
@@ -69,6 +74,7 @@ public class RegistroServiceImpl implements RegistroService {
             direccion.setObservaciones(usuario.getObservaciones() != null && usuario.getObservaciones().isPresent() ? usuario.getObservaciones().get() : null);
 
             Direccione direccionSaved = direccioneRepository.save(direccion);
+            log.info("✅ Dirección guardada con ID: {}", direccionSaved.getId());
 
             Usuario nuevo = new Usuario();
             nuevo.setIdauth(auth);
@@ -79,6 +85,7 @@ public class RegistroServiceImpl implements RegistroService {
             nuevo.setTelefono(usuario.getTelefono());
 
             usuarioRepository.save(nuevo);
+            log.info("✅ Usuario guardado con ID: {}", nuevo.getId());
 
             Role rolCliente = roleRepository.findByDescripcion("CLIENTE")
                     .orElseThrow(() -> new RuntimeException("Rol CLIENTE no encontrado"));
@@ -88,6 +95,7 @@ public class RegistroServiceImpl implements RegistroService {
                 rolxusuario.setIdauth(auth);
                 rolxusuario.setIdrol(rolCliente);
                 rolxusuarioRepository.save(rolxusuario);
+                log.info("✅ Rol CLIENTE asignado");
             }
 
             try {
@@ -104,11 +112,19 @@ public class RegistroServiceImpl implements RegistroService {
             String token = confirmationTokenService.createTokenForAuth(auth.getId());
             String baseUrl = System.getenv().getOrDefault("BACKEND_URL", "http://localhost:8081");
             String confirmationLink = baseUrl + "/api/v1/registro/confirm?token=" + token;
+            log.info("✅ Token de confirmación creado. Link: {}", confirmationLink);
 
-            String htmlBody = loadAndProcessEmailTemplate(auth.getName(), auth.getLastname(), confirmationLink);
-            emailService.sendHtml(auth.getMail(), "Confirma tu cuenta - Tu Oficio", htmlBody);
+            try {
+                String htmlBody = loadAndProcessEmailTemplate(auth.getName(), auth.getLastname(), confirmationLink);
+                log.info("📧 Enviando email de confirmación a: {}", auth.getMail());
+                emailService.sendHtml(auth.getMail(), "Confirma tu cuenta - Tu Oficio", htmlBody);
+                log.info("✅ Email enviado exitosamente");
+            } catch (Exception emailError) {
+                log.error("⚠️ Error al enviar email (continuando con el registro): {}", emailError.getMessage());
+                // Continue with registration even if email fails
+            }
 
-            return AuthResponse.builder()
+            AuthResponse response = AuthResponse.builder()
                     .token(null)
                     .nombre(auth.getName())
                     .apellido(auth.getLastname())
@@ -119,8 +135,12 @@ public class RegistroServiceImpl implements RegistroService {
                     .nacimiento(nuevo != null && nuevo.getNacimiento() != null ? nuevo.getNacimiento().toString() : null)
                     .idDireccion(nuevo != null ? nuevo.getIddireccion().getId() : null)
                     .build();
+            
+            log.info("✅ Registro completado exitosamente para usuario: {}", auth.getMail());
+            return response;
 
         } catch (Exception e) {
+            log.error("❌ Error durante el registro del usuario: {}", e.getMessage(), e);
             throw new RuntimeException("Error durante el registro del usuario: " + e.getMessage(), e);
         }
     }
