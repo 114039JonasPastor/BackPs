@@ -36,14 +36,12 @@ public class SecurityConfig {
                         authRequest
                                 // Allow OPTIONS for CORS preflight - FIRST PRIORITY
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                // Error endpoints
+                                .requestMatchers("/error").permitAll()
                                 // Public registration endpoints - SECOND PRIORITY (explicit methods)
-                                .requestMatchers(HttpMethod.POST, "/api/v1/registro/usuario").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/registro/profesional").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/registro/administrador").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/registro/confirm").permitAll()
+                                .requestMatchers("/api/v1/registro/**").permitAll()
                                 // Auth endpoints
-                                .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/auth/**").permitAll()
+                                .requestMatchers("/api/v1/auth/**").permitAll()
                                 // Other public endpoints
                                 .requestMatchers(
                                         "/api/v1/password/**",
@@ -65,10 +63,8 @@ public class SecurityConfig {
                 )
                 .sessionManagement(sessionManager -> sessionManager
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authProvider);
-        
-        // Add JWT filter AFTER permitAll configuration
-        http.addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+                .authenticationProvider(authProvider)
+                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
         
         http.exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {

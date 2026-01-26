@@ -102,7 +102,8 @@ public class RegistroServiceImpl implements RegistroService {
             }
 
             String token = confirmationTokenService.createTokenForAuth(auth.getId());
-            String confirmationLink = "http://localhost:8081/api/v1/registro/confirm?token=" + token;
+            String baseUrl = System.getenv().getOrDefault("BACKEND_URL", "http://localhost:8081");
+            String confirmationLink = baseUrl + "/api/v1/registro/confirm?token=" + token;
 
             String htmlBody = loadAndProcessEmailTemplate(auth.getName(), auth.getLastname(), confirmationLink);
             emailService.sendHtml(auth.getMail(), "Confirma tu cuenta - Tu Oficio", htmlBody);

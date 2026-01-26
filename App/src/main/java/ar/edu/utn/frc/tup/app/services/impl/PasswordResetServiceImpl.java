@@ -60,7 +60,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             PasswordResetToken savedToken = tokenRepository.save(token);
             log.info("Token guardado con ID: {}", savedToken.getId());
 
-            String resetLink = "http://localhost:8081/auth/reset-password?token=" + codigo + "&email=" + email;
+            String frontendUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:3000");
+            String resetLink = frontendUrl + "/auth/reset-password?token=" + codigo + "&email=" + email;
 
             String htmlBody = loadPasswordResetEmailTemplate(codigo, resetLink);
             emailService.sendHtml(email, "Recuperación de Contraseña - Tu Oficio", htmlBody);
