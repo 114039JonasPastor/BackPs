@@ -55,16 +55,20 @@ public class EmailServiceImpl implements EmailService {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
+            helper.setFrom("tuoficiopracticasupervisada@gmail.com");
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlBody, true); // true indica que es HTML
 
             logger.info("Enviando email HTML...");
             mailSender.send(mimeMessage);
-            logger.info("Email HTML enviado exitosamente");
+            logger.info("✅ Email HTML enviado exitosamente a: {}", to);
 
         } catch (MessagingException e) {
-            logger.error("Error enviando email HTML: ", e);
+            logger.error("❌ Error de MessagingException enviando email HTML a {}: {}", to, e.getMessage(), e);
+            throw new RuntimeException("Error enviando email HTML: " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("❌ Error general enviando email HTML a {}: {}", to, e.getMessage(), e);
             throw new RuntimeException("Error enviando email HTML: " + e.getMessage(), e);
         }
     }
