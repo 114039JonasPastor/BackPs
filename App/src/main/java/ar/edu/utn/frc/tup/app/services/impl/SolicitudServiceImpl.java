@@ -32,6 +32,7 @@ public class SolicitudServiceImpl implements SolicitudService {
     private final SolicitudeRepository solicitudRepository;
     private final UsuarioRepository usuarioRepository;
     private final ProfesionalRepository profesionalRepository;
+    private final DisponibilidadRepository disponibilidadRepository;
     private final OpenStreetMapService openStreetMapService;
     private final PerfilService perfilService;
     private final ar.edu.utn.frc.tup.app.repositories.OficioRepository oficioRepository;
@@ -148,20 +149,38 @@ public class SolicitudServiceImpl implements SolicitudService {
         Profesionale profesional = profesionalRepository.findById(idProfesional)
                 .orElseThrow(() -> new RuntimeException("Profesional no encontrado"));
 
+        // Obtener la disponibilidad configurada del profesional
+        List<Disponibilidad> disponibilidadProfesional = disponibilidadRepository
+                .findByIdprofesional_Id(idProfesional);
+
+        // Si el profesional no tiene disponibilidad configurada, retornar lista vacía
+        if (disponibilidadProfesional.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Crear un mapa de día de semana a disponibilidades
+        Map<DayOfWeek, List<Disponibilidad>> disponibilidadPorDia = new HashMap<>();
+        for (Disponibilidad disp : disponibilidadProfesional) {
+            DayOfWeek dia = convertirDiaSemana(disp.getDiasemana());
+            if (dia != null) {
+                disponibilidadPorDia.computeIfAbsent(dia, k -> new ArrayList<>()).add(disp);
+            }
+        }
+
         List<TurnoDisponibleDTO> turnosDisponibles = new ArrayList<>();
         LocalDate fechaFin = fechaInicio.plusDays(7);
 
-        LocalTime horaInicioLaboral = LocalTime.of(8, 0);
-        LocalTime horaFinLaboral = LocalTime.of(18, 0);
-
         for (LocalDate fecha = fechaInicio; fecha.isBefore(fechaFin); fecha = fecha.plusDays(1)) {
 
-            java.time.DayOfWeek diaSemana = fecha.getDayOfWeek();
-            if (diaSemana == java.time.DayOfWeek.SATURDAY ||
-                    diaSemana == java.time.DayOfWeek.SUNDAY) {
+            DayOfWeek diaSemana = fecha.getDayOfWeek();
+            
+            // Verificar si el profesional trabaja este día
+            List<Disponibilidad> disponibilidadesDelDia = disponibilidadPorDia.get(diaSemana);
+            if (disponibilidadesDelDia == null || disponibilidadesDelDia.isEmpty()) {
                 continue;
             }
 
+            // Obtener turnos ya ocupados para esta fecha
             List<Solicitude> turnosOcupados = solicitudRepository
                     .findSolicitudesAceptadasByProfesionalAndFecha(idProfesional, fecha);
 
@@ -184,26 +203,50 @@ public class SolicitudServiceImpl implements SolicitudService {
                 }
             }
 
-            LocalTime horaActual = horaInicioLaboral;
-            LocalDate finalFecha = fecha;
+            // Para cada bloque de disponibilidad del profesional en este día
+            for (Disponibilidad disponibilidad : disponibilidadesDelDia) {
+                LocalTime horaInicio = disponibilidad.getHorainicio();
+                LocalTime horaFin = disponibilidad.getHorafin();
 
-            while (horaActual.plusMinutes(duracionEstimada).isBefore(horaFinLaboral) ||
-                    horaActual.plusMinutes(duracionEstimada).equals(horaFinLaboral)) {
+                LocalTime horaActual = horaInicio;
+                LocalDate finalFecha = fecha;
 
-                if (!horasOcupadas.contains(horaActual)) {
-                    turnosDisponibles.add(TurnoDisponibleDTO.builder()
-                            .fecha(finalFecha)
-                            .horaInicio(horaActual)
-                            .horaFin(horaActual.plusMinutes(duracionEstimada))
-                            .duracionEstimada(duracionEstimada)
-                            .build());
+                while (horaActual.plusMinutes(duracionEstimada).isBefore(horaFin) ||
+                        horaActual.plusMinutes(duracionEstimada).equals(horaFin)) {
+
+                    if (!horasOcupadas.contains(horaActual)) {
+                        turnosDisponibles.add(TurnoDisponibleDTO.builder()
+                                .fecha(finalFecha)
+                                .horaInicio(horaActual)
+                                .horaFin(horaActual.plusMinutes(duracionEstimada))
+                                .duracionEstimada(duracionEstimada)
+                                .build());
+                    }
+
+                    horaActual = horaActual.plusMinutes(duracionEstimada);
                 }
-
-                horaActual = horaActual.plusMinutes(duracionEstimada);
             }
         }
 
         return turnosDisponibles;
+    }
+
+    /**
+     * Convierte el nombre del día de la semana en español a DayOfWeek
+     */
+    private DayOfWeek convertirDiaSemana(String diaSemana) {
+        if (diaSemana == null) return null;
+        
+        return switch (diaSemana.toUpperCase()) {
+            case "LUNES" -> DayOfWeek.MONDAY;
+            case "MARTES" -> DayOfWeek.TUESDAY;
+            case "MIERCOLES", "MIÉRCOLES" -> DayOfWeek.WEDNESDAY;
+            case "JUEVES" -> DayOfWeek.THURSDAY;
+            case "VIERNES" -> DayOfWeek.FRIDAY;
+            case "SABADO", "SÁBADO" -> DayOfWeek.SATURDAY;
+            case "DOMINGO" -> DayOfWeek.SUNDAY;
+            default -> null;
+        };
     }
 
     @Override
