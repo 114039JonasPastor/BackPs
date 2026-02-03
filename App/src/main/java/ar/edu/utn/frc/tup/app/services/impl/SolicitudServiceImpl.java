@@ -252,7 +252,6 @@ public class SolicitudServiceImpl implements SolicitudService {
         
         System.out.println("     ✓ Turnos agregados en bloque " + nombreBloque + ": " + turnosAgregados);
     }
-    }
 
     /**
      * Convierte el nombre del día de la semana en español a DayOfWeek
