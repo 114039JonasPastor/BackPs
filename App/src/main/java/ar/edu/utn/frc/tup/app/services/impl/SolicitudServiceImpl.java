@@ -154,33 +154,8 @@ public class SolicitudServiceImpl implements SolicitudService {
         Profesionale profesional = profesionalRepository.findById(idProfesional)
                 .orElseThrow(() -> new RuntimeException("Profesional no encontrado"));
 
-        // Obtener la disponibilidad configurada del profesional
-        List<Disponibilidad> disponibilidadProfesional = disponibilidadRepository
-                .findByIdprofesional_Id(idProfesional);
-
-        System.out.println("Cantidad de disponibilidades encontradas: " + disponibilidadProfesional.size());
-        for (Disponibilidad disp : disponibilidadProfesional) {
-            System.out.println("  - Día: " + disp.getDiasemana() + " | Inicio: " + disp.getHorainicio() + " | Fin: " + disp.getHorafin());
-        }
-
-        // Si el profesional no tiene disponibilidad configurada, retornar lista vacía
-        if (disponibilidadProfesional.isEmpty()) {
-            System.out.println("⚠️ No hay disponibilidad configurada para este profesional");
-            return new ArrayList<>();
-        }
-
-        // Crear un mapa de día de semana a disponibilidades
-        Map<DayOfWeek, List<Disponibilidad>> disponibilidadPorDia = new HashMap<>();
-        for (Disponibilidad disp : disponibilidadProfesional) {
-            DayOfWeek dia = convertirDiaSemana(disp.getDiasemana());
-            System.out.println("Convirtiendo: " + disp.getDiasemana() + " -> " + dia);
-            if (dia != null) {
-                disponibilidadPorDia.computeIfAbsent(dia, k -> new ArrayList<>()).add(disp);
-            }
-        }
-
-        System.out.println("Días con disponibilidad: " + disponibilidadPorDia.keySet());
-
+        // HORARIO FIJO POR DEFECTO: Lunes a Viernes, 8:00-12:00 y 14:00-18:00
+        // No depende de la tabla disponibilidad
         List<TurnoDisponibleDTO> turnosDisponibles = new ArrayList<>();
         LocalDate fechaFin = fechaInicio.plusDays(7);
 
@@ -189,16 +164,15 @@ public class SolicitudServiceImpl implements SolicitudService {
             DayOfWeek diaSemana = fecha.getDayOfWeek();
             System.out.println("\n📅 Procesando fecha: " + fecha + " (" + diaSemana + ")");
             
-            // Verificar si el profesional trabaja este día
-            List<Disponibilidad> disponibilidadesDelDia = disponibilidadPorDia.get(diaSemana);
-            if (disponibilidadesDelDia == null || disponibilidadesDelDia.isEmpty()) {
-                System.out.println("  ⚠️ No hay disponibilidad para este día");
+            // Solo trabajar de Lunes a Viernes
+            if (diaSemana == DayOfWeek.SATURDAY || diaSemana == DayOfWeek.SUNDAY) {
+                System.out.println("  ⚠️ Fin de semana - Omitido");
                 continue;
             }
 
-            System.out.println("  ✓ Disponibilidades encontradas: " + disponibilidadesDelDia.size());
+            System.out.println("  ✓ Día laboral - Generando turnos");
 
-            // Obtener turnos ya ocupados para esta fecha
+            // Obtener turnos ya ocupados para esta fecha (solicitudes PENDIENTES o ACEPTADAS)
             List<Solicitude> turnosOcupados = solicitudRepository
                     .findSolicitudesAceptadasByProfesionalAndFecha(idProfesional, fecha);
 
@@ -217,6 +191,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 LocalTime horaActualTurno = horaInicio;
                 LocalTime horaFinTurno = horaInicio.plusMinutes(duracion);
 
+                // Marcar todas las horas que ocupa este turno
                 while (horaActualTurno.isBefore(horaFinTurno)) {
                     horasOcupadas.add(horaActualTurno);
                     horaActualTurno = horaActualTurno.plusMinutes(duracionEstimada);
@@ -225,41 +200,58 @@ public class SolicitudServiceImpl implements SolicitudService {
 
             System.out.println("  Horas ocupadas: " + horasOcupadas);
 
-            // Para cada bloque de disponibilidad del profesional en este día
-            for (Disponibilidad disponibilidad : disponibilidadesDelDia) {
-                LocalTime horaInicio = disponibilidad.getHorainicio();
-                LocalTime horaFin = disponibilidad.getHorafin();
+            // BLOQUE MAÑANA: 8:00 - 12:00
+            LocalTime horaInicioManana = LocalTime.of(8, 0);
+            LocalTime horaFinManana = LocalTime.of(12, 0);
+            generarTurnosParaBloque(turnosDisponibles, fecha, horaInicioManana, horaFinManana, 
+                                   duracionEstimada, horasOcupadas, "Mañana");
 
-                System.out.println("  📋 Procesando bloque: " + horaInicio + " - " + horaFin);
-
-                LocalTime horaActual = horaInicio;
-                LocalDate finalFecha = fecha;
-                int turnosAgregados = 0;
-
-                while (horaActual.plusMinutes(duracionEstimada).isBefore(horaFin) ||
-                        horaActual.plusMinutes(duracionEstimada).equals(horaFin)) {
-
-                    if (!horasOcupadas.contains(horaActual)) {
-                        turnosDisponibles.add(TurnoDisponibleDTO.builder()
-                                .fecha(finalFecha)
-                                .horaInicio(horaActual)
-                                .horaFin(horaActual.plusMinutes(duracionEstimada))
-                                .duracionEstimada(duracionEstimada)
-                                .build());
-                        turnosAgregados++;
-                    }
-
-                    horaActual = horaActual.plusMinutes(duracionEstimada);
-                }
-                
-                System.out.println("     ✓ Turnos agregados en este bloque: " + turnosAgregados);
-            }
+            // BLOQUE TARDE: 14:00 - 18:00
+            LocalTime horaInicioTarde = LocalTime.of(14, 0);
+            LocalTime horaFinTarde = LocalTime.of(18, 0);
+            generarTurnosParaBloque(turnosDisponibles, fecha, horaInicioTarde, horaFinTarde, 
+                                   duracionEstimada, horasOcupadas, "Tarde");
         }
 
         System.out.println("\n🎯 Total de turnos disponibles generados: " + turnosDisponibles.size());
         System.out.println("=== FIN obtenerTurnosDisponiblesSemana ===\n");
 
         return turnosDisponibles;
+    }
+
+    /**
+     * Genera turnos para un bloque horario específico
+     */
+    private void generarTurnosParaBloque(List<TurnoDisponibleDTO> turnosDisponibles, 
+                                        LocalDate fecha, 
+                                        LocalTime horaInicio, 
+                                        LocalTime horaFin,
+                                        Integer duracionEstimada, 
+                                        Set<LocalTime> horasOcupadas,
+                                        String nombreBloque) {
+        System.out.println("  📋 Procesando bloque " + nombreBloque + ": " + horaInicio + " - " + horaFin);
+        
+        LocalTime horaActual = horaInicio;
+        int turnosAgregados = 0;
+
+        while (horaActual.plusMinutes(duracionEstimada).isBefore(horaFin) ||
+                horaActual.plusMinutes(duracionEstimada).equals(horaFin)) {
+
+            if (!horasOcupadas.contains(horaActual)) {
+                turnosDisponibles.add(TurnoDisponibleDTO.builder()
+                        .fecha(fecha)
+                        .horaInicio(horaActual)
+                        .horaFin(horaActual.plusMinutes(duracionEstimada))
+                        .duracionEstimada(duracionEstimada)
+                        .build());
+                turnosAgregados++;
+            }
+
+            horaActual = horaActual.plusMinutes(duracionEstimada);
+        }
+        
+        System.out.println("     ✓ Turnos agregados en bloque " + nombreBloque + ": " + turnosAgregados);
+    }
     }
 
     /**
