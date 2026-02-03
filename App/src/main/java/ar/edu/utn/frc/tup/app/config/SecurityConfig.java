@@ -51,6 +51,7 @@ public class SecurityConfig {
                                         "/api/v1/perfil/profesional/oficio/**",
                                         "/api/v1/perfil/profesionales/**",
                                         "/api/v1/solicitudes/profesionales/**",
+                                        "/api/v1/solicitudes/turnos/disponibles/**",
                                         "/api/v1/resenias/**",
                                         "/api/v1/pagos/**",
                                         "/v3/api-docs/**",
