@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -223,6 +224,59 @@ public class ChatController {
                 "channelType", "messaging",
                 "members", members,
                 "status", "success"
+        ));
+    }
+
+    @GetMapping("/channels/all")
+    @Operation(summary = "Obtener todos los canales (para administración)")
+    public ResponseEntity<List<Map<String, Object>>> getAllChannels() {
+        log.info("Obteniendo todos los canales");
+        List<Map<String, Object>> channels = streamChatService.getAllChannels();
+        return ResponseEntity.ok(channels);
+    }
+
+    @DeleteMapping("/channels/{channelType}/{channelId}")
+    @Operation(summary = "Eliminar un canal específico")
+    public ResponseEntity<Map<String, String>> deleteChannel(
+            @PathVariable String channelType,
+            @PathVariable String channelId) {
+        
+        log.info("Eliminando canal: {}/{}", channelType, channelId);
+        streamChatService.deleteChannel(channelType, channelId);
+        
+        return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Canal eliminado correctamente",
+                "channelId", channelId
+        ));
+    }
+
+    @DeleteMapping("/channels/cleanup")
+    @Operation(summary = "Eliminar todos los canales de prueba (Jonas Pastor)")
+    public ResponseEntity<Map<String, Object>> cleanupTestChannels() {
+        log.info("Iniciando limpieza de canales de prueba");
+        
+        List<Map<String, Object>> allChannels = streamChatService.getAllChannels();
+        List<String> deletedChannels = new ArrayList<>();
+        
+        for (Map<String, Object> channel : allChannels) {
+            String channelId = (String) channel.get("channelId");
+            String channelType = (String) channel.get("channelType");
+            
+            try {
+                streamChatService.deleteChannel(channelType, channelId);
+                deletedChannels.add(channelId);
+                log.info("Canal eliminado: {}", channelId);
+            } catch (Exception e) {
+                log.error("Error al eliminar canal {}: {}", channelId, e.getMessage());
+            }
+        }
+        
+        return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Limpieza completada",
+                "totalDeleted", deletedChannels.size(),
+                "deletedChannels", deletedChannels
         ));
     }
 

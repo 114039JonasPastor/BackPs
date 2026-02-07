@@ -13,4 +13,6 @@ public interface StreamChatService {
     List<Map<String, Object>> getUserChannels(String userId);
     String getApiKey();
     String getUserFullName(String userId);
+    void deleteChannel(String channelType, String channelId);
+    List<Map<String, Object>> getAllChannels();
 }

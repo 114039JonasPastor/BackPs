@@ -293,6 +293,69 @@ public class StreamChatServiceImpl implements StreamChatService {
         return "";
     }
 
+    @Override
+    public void deleteChannel(String channelType, String channelId) {
+        try {
+            log.info("Eliminando canal: {}/{}", channelType, channelId);
+
+            String url = String.format("https://chat.stream-io-api.com/channels/%s/%s?api_key=%s",
+                    channelType, channelId, apiKey);
+
+            HttpHeaders headers = createServerAuthHeaders();
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+
+            restTemplate.exchange(url, HttpMethod.DELETE, request, String.class);
+
+            log.info("Canal eliminado exitosamente: {}", channelId);
+
+        } catch (Exception e) {
+            log.error("Error al eliminar canal: {}", channelId, e);
+            throw new RuntimeException("Error al eliminar canal: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllChannels() {
+        try {
+            log.info("Obteniendo todos los canales");
+
+            String url = String.format("https://chat.stream-io-api.com/channels?api_key=%s", apiKey);
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("filter_conditions", Map.of());
+            requestBody.put("sort", List.of(Map.of("created_at", -1)));
+            requestBody.put("limit", 100);
+
+            HttpHeaders headers = createServerAuthHeaders();
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+            if (response.getBody() != null && response.getBody().containsKey("channels")) {
+                List<Map<String, Object>> channels = (List<Map<String, Object>>) response.getBody().get("channels");
+                log.info("Total de canales obtenidos: {}", channels.size());
+
+                return channels.stream()
+                        .map(channel -> {
+                            Map<String, Object> channelInfo = new HashMap<>();
+                            channelInfo.put("channelId", channel.get("id"));
+                            channelInfo.put("channelType", channel.get("type"));
+                            channelInfo.put("cid", channel.get("cid"));
+                            channelInfo.put("createdBy", ((Map) channel.get("created_by")).get("id"));
+                            channelInfo.put("createdAt", channel.get("created_at"));
+                            return channelInfo;
+                        })
+                        .toList();
+            }
+
+            return new ArrayList<>();
+
+        } catch (Exception e) {
+            log.error("Error al obtener todos los canales", e);
+            throw new RuntimeException("Error al obtener canales: " + e.getMessage(), e);
+        }
+    }
+
     private HttpHeaders createServerAuthHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

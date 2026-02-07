@@ -54,6 +54,7 @@ public class SecurityConfig {
                                         "/api/v1/solicitudes/turnos/disponibles/**",
                                         "/api/v1/resenias/**",
                                         "/api/v1/pagos/**",
+                                        "/api/v1/chat/channels/**",
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html"
