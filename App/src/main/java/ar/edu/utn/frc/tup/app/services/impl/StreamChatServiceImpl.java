@@ -341,7 +341,15 @@ public class StreamChatServiceImpl implements StreamChatService {
                             channelInfo.put("channelId", channel.get("id"));
                             channelInfo.put("channelType", channel.get("type"));
                             channelInfo.put("cid", channel.get("cid"));
-                            channelInfo.put("createdBy", ((Map) channel.get("created_by")).get("id"));
+                            
+                            // Manejar created_by que puede ser null
+                            Object createdBy = channel.get("created_by");
+                            if (createdBy instanceof Map) {
+                                channelInfo.put("createdBy", ((Map) createdBy).get("id"));
+                            } else {
+                                channelInfo.put("createdBy", "unknown");
+                            }
+                            
                             channelInfo.put("createdAt", channel.get("created_at"));
                             return channelInfo;
                         })
