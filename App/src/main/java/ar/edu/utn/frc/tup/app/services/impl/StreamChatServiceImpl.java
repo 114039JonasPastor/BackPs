@@ -338,19 +338,29 @@ public class StreamChatServiceImpl implements StreamChatService {
                 return channels.stream()
                         .map(channel -> {
                             Map<String, Object> channelInfo = new HashMap<>();
-                            channelInfo.put("channelId", channel.get("id"));
-                            channelInfo.put("channelType", channel.get("type"));
-                            channelInfo.put("cid", channel.get("cid"));
+                            
+                            // La estructura de Stream Chat tiene el canal en "channel"
+                            Map<String, Object> channelData = (Map<String, Object>) channel.get("channel");
+                            if (channelData == null) {
+                                channelData = channel;
+                            }
+                            
+                            channelInfo.put("channelId", channelData.get("id"));
+                            channelInfo.put("channelType", channelData.get("type"));
+                            channelInfo.put("cid", channelData.get("cid"));
                             
                             // Manejar created_by que puede ser null
-                            Object createdBy = channel.get("created_by");
+                            Object createdBy = channelData.get("created_by");
                             if (createdBy instanceof Map) {
                                 channelInfo.put("createdBy", ((Map) createdBy).get("id"));
                             } else {
                                 channelInfo.put("createdBy", "unknown");
                             }
                             
-                            channelInfo.put("createdAt", channel.get("created_at"));
+                            channelInfo.put("createdAt", channelData.get("created_at"));
+                            
+                            log.info("Canal mapeado: {}/{}", channelInfo.get("channelType"), channelInfo.get("channelId"));
+                            
                             return channelInfo;
                         })
                         .toList();
