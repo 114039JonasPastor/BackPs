@@ -44,5 +44,5 @@ services:
       - key: BACKEND_URL
         value: https://tuoficio-backend.onrender.com
       - key: FRONTEND_URL
-        sync: false
+        value: https://tuoficio-frontend.onrender.com
     healthCheckPath: /actuator/health

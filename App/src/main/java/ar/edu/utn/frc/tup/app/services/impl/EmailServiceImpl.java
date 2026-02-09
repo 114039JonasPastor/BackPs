@@ -50,25 +50,39 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendHtml(String to, String subject, String htmlBody) {
         try {
-            logger.info("Preparando email HTML para: {}", to);
+            logger.info("📧 Preparando email HTML para: {}", to);
+            logger.info("📧 Asunto: {}", subject);
 
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-            helper.setFrom("tuoficiopracticasupervisada@gmail.com");
+            String fromEmail = "tuoficiopracticasupervisada@gmail.com";
+            helper.setFrom(fromEmail);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlBody, true); // true indica que es HTML
 
-            logger.info("Enviando email HTML...");
+            logger.info("📧 Configuración SMTP:");
+            logger.info("  - From: {}", fromEmail);
+            logger.info("  - To: {}", to);
+            logger.info("  - Mail Host: {}", System.getProperty("spring.mail.host", "smtp.gmail.com"));
+            logger.info("  - Mail Port: {}", System.getProperty("spring.mail.port", "587"));
+            
+            logger.info("📤 Enviando email HTML...");
             mailSender.send(mimeMessage);
-            logger.info("✅ Email HTML enviado exitosamente a: {}", to);
+            logger.info("✅ ¡Email HTML enviado exitosamente a: {}!", to);
 
         } catch (MessagingException e) {
-            logger.error("❌ Error de MessagingException enviando email HTML a {}: {}", to, e.getMessage(), e);
+            logger.error("❌ ERROR MessagingException enviando email HTML a {}", to);
+            logger.error("❌ Mensaje: {}", e.getMessage());
+            logger.error("❌ Causa: {}", e.getCause() != null ? e.getCause().getMessage() : "Sin causa especificada");
+            logger.error("❌ Stack trace completo:", e);
             throw new RuntimeException("Error enviando email HTML: " + e.getMessage(), e);
         } catch (Exception e) {
-            logger.error("❌ Error general enviando email HTML a {}: {}", to, e.getMessage(), e);
+            logger.error("❌ ERROR general enviando email HTML a {}", to);
+            logger.error("❌ Tipo de error: {}", e.getClass().getName());
+            logger.error("❌ Mensaje: {}", e.getMessage());
+            logger.error("❌ Stack trace completo:", e);
             throw new RuntimeException("Error enviando email HTML: " + e.getMessage(), e);
         }
     }

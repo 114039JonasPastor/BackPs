@@ -36,6 +36,12 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         Auth auth = authRepository.findByMail(request.getEmail()).orElseThrow();
+        
+        // Verificar que la cuenta esté activa (email confirmado)
+        if (!auth.getActive()) {
+            throw new RuntimeException("Cuenta no verificada. Por favor, revisa tu correo electrónico para confirmar tu cuenta.");
+        }
+        
         Usuario usuario = usuarioRepository.findByIdauth(auth).orElse(null);
 
         Integer idProfesional = null;

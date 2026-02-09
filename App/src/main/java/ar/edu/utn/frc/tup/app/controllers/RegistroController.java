@@ -79,13 +79,30 @@ public class RegistroController {
         }
     }
 
+    @PostMapping("/resend-confirmation")
+    public ResponseEntity<?> reenviarConfirmacion(@RequestParam("email") String email) {
+        try {
+            registroService.reenviarEmailConfirmacion(email);
+            return ResponseEntity.ok().body("Email de confirmación reenviado exitosamente. Revisa tu bandeja de entrada.");
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
     private String loadConfirmationSuccessPage() {
         try {
             ClassPathResource resource = new ClassPathResource("templates/email-confirmed.html");
             String htmlTemplate = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 
-            String loginUrl = "http://localhost:4200/login";
-            String homeUrl = "http://localhost:4200/";
+            String baseUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:4200");
+            String loginUrl = baseUrl + "/auth/login";
+            String homeUrl = baseUrl + "/";
 
             return htmlTemplate
                     .replace("{{loginUrl}}", loginUrl)
@@ -97,6 +114,9 @@ public class RegistroController {
     }
 
     private String createFallbackSuccessPage() {
+        String baseUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:4200");
+        String loginUrl = baseUrl + "/auth/login";
+        
         return """
                 <html>
                 <head>
@@ -112,14 +132,14 @@ public class RegistroController {
                     <div class="container">
                         <div class="success">✅ ¡Cuenta Confirmada Exitosamente!</div>
                         <p>Tu email ha sido verificado correctamente.</p>
-                        <a href="http://localhost:4200/login" class="btn">Iniciar Sesión</a>
+                        <a href="%s" class="btn">Iniciar Sesión</a>
                     </div>
                 </body>
                 </html>
-                """;
-    }
-
-    private String createErrorPage(String errorMessage) {
+                """.formatted(loginUrl);
+    }String baseUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:4200");
+        String homeUrl = baseUrl + "/";
+        
         return """
                 <html>
                 <head>
@@ -135,7 +155,11 @@ public class RegistroController {
                     <div class="container">
                         <div class="error">❌ Error de Confirmación</div>
                         <p>%s</p>
-                        <a href="http://localhost:4200/" class="btn">Volver al Inicio</a>
+                        <a href="%s" class="btn">Volver al Inicio</a>
+                    </div>
+                </body>
+                </html>
+                """.formatted(errorMessage, homeUrlcalhost:4200/" class="btn">Volver al Inicio</a>
                     </div>
                 </body>
                 </html>

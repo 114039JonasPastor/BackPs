@@ -114,14 +114,29 @@ public class RegistroServiceImpl implements RegistroService {
             String confirmationLink = baseUrl + "/api/v1/registro/confirm?token=" + token;
             log.info("✅ Token de confirmación creado. Link: {}", confirmationLink);
 
+            boolean emailSent = false;
             try {
                 String htmlBody = loadAndProcessEmailTemplate(auth.getName(), auth.getLastname(), confirmationLink);
                 log.info("📧 Enviando email de confirmación a: {}", auth.getMail());
+                log.info("📧 Link de confirmación: {}", confirmationLink);
                 emailService.sendHtml(auth.getMail(), "Confirma tu cuenta - Tu Oficio", htmlBody);
                 log.info("✅ Email enviado exitosamente");
+                emailSent = true;
             } catch (Exception emailError) {
-                log.error("⚠️ Error al enviar email (continuando con el registro): {}", emailError.getMessage());
+                log.error("⚠️⚠️⚠️ ERROR CRÍTICO: No se pudo enviar el email de confirmación ⚠️⚠️⚠️");
+                log.error("Usuario: {}", auth.getMail());
+                log.error("Tipo de error: {}", emailError.getClass().getName());
+                log.error("Mensaje de error: {}", emailError.getMessage());
+                log.error("Stack trace:", emailError);
+                log.error("⚠️ ACCIÓN REQUERIDA: Revisar configuración de EMAIL_USERNAME y EMAIL_PASSWORD en Render");
+                log.error("⚠️ Link de confirmación para uso manual: {}", confirmationLink);
                 // Continue with registration even if email fails
+            }
+            
+            if (!emailSent) {
+                log.warn("⚠️ ADVERTENCIA: Usuario registrado pero SIN recibir email de confirmación");
+                log.warn("⚠️ Email: {}", auth.getMail());
+                log.warn("⚠️ La cuenta está INACTIVA y no podrá iniciar sesión hasta confirmar");
             }
 
             AuthResponse response = AuthResponse.builder()
@@ -284,5 +299,35 @@ public class RegistroServiceImpl implements RegistroService {
                 apellido != null ? apellido : "",
                 confirmationLink
         );
+    }
+
+    @Override
+    @Transactional
+    public void reenviarEmailConfirmacion(String email) {
+        try {
+            log.info("🔄 Solicitud de reenvío de email de confirmación para: {}", email);
+            
+            Auth auth = authRepository.findByMail(email)
+                    .orElseThrow(() -> new RuntimeException("No se encontró ninguna cuenta con ese correo electrónico"));
+            
+            if (auth.getActive()) {
+                throw new RuntimeException("Esta cuenta ya está verificada. Puedes iniciar sesión.");
+            }
+            
+            String token = confirmationTokenService.createTokenForAuth(auth.getId());
+            String baseUrl = System.getenv().getOrDefault("BACKEND_URL", "http://localhost:8081");
+            String confirmationLink = baseUrl + "/api/v1/registro/confirm?token=" + token;
+            
+            String htmlBody = loadAndProcessEmailTemplate(auth.getName(), auth.getLastname(), confirmationLink);
+            log.info("📧 Reenviando email de confirmación a: {}", auth.getMail());
+            emailService.sendHtml(auth.getMail(), "Confirma tu cuenta - Tu Oficio", htmlBody);
+            log.info("✅ Email reenviado exitosamente");
+            
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("❌ Error reenviando email de confirmación: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al reenviar el email de confirmación: " + e.getMessage(), e);
+        }
     }
 }
