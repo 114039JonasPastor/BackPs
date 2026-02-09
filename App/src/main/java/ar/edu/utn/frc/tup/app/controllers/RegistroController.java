@@ -137,7 +137,10 @@ public class RegistroController {
                 </body>
                 </html>
                 """.formatted(loginUrl);
-    }String baseUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:4200");
+    }
+
+    private String createErrorPage(String errorMessage) {
+        String baseUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:4200");
         String homeUrl = baseUrl + "/";
         
         return """
@@ -159,10 +162,6 @@ public class RegistroController {
                     </div>
                 </body>
                 </html>
-                """.formatted(errorMessage, homeUrlcalhost:4200/" class="btn">Volver al Inicio</a>
-                    </div>
-                </body>
-                </html>
-                """.formatted(errorMessage);
+                """.formatted(errorMessage, homeUrl);
     }
 }
