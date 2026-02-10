@@ -46,6 +46,13 @@ public class RegistroServiceImpl implements RegistroService {
     public AuthResponse registrarUsuario(UsuarioRequest usuario) {
         try {
             log.info("🔵 Iniciando registro de usuario: {}", usuario.getMail());
+            
+            // Check if email already exists
+            if (authRepository.findByMail(usuario.getMail()).isPresent()) {
+                log.warn("⚠️ Email ya registrado: {}", usuario.getMail());
+                throw new IllegalArgumentException("El email ya está registrado");
+            }
+            
             log.info("ID Tipo Documento recibido: {}", usuario.getIdTipoDoc());
             TiposDocumento tipo = tipoDocumentoRepository.findById(usuario.getIdTipoDoc())
                 .orElseThrow(() -> new RuntimeException("Tipo de documento no encontrado"));

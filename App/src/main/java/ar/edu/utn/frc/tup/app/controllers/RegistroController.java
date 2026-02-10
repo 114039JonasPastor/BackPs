@@ -29,7 +29,17 @@ public class RegistroController {
     public ResponseEntity<?> registrarUsuario(@RequestBody UsuarioRequest usuario) {
         try {
             return ResponseEntity.ok(registroService.registrarUsuario(usuario));
+        } catch (IllegalArgumentException e) {
+            // User input errors (e.g., duplicate email)
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         } catch (RuntimeException e) {
+            // Server errors
             ErrorApi error = ErrorApi.builder()
                     .timestamp(java.time.Instant.now().toString())
                     .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
