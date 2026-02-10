@@ -40,13 +40,13 @@ services:
       - key: SPRING_MAIL_HOST
         value: smtp.gmail.com
       - key: SPRING_MAIL_PORT
-        value: 465
+        value: 587
       - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH
         value: true
       - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_ENABLE
-        value: true
-      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
         value: false
+      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
+        value: true
       - key: STREAM_CHAT_API_KEY
         sync: false
       - key: STREAM_CHAT_API_SECRET
