@@ -90,7 +90,6 @@ public class EmailServiceImpl implements EmailService {
 
         } catch (ResendException e) {
             log.error("❌ ERROR de Resend enviando email HTML a {}", to);
-            log.error("❌ Código de error: {}", e.statusCode());
             log.error("❌ Mensaje: {}", e.getMessage());
             log.error("❌ Stack trace:", e);
             throw new RuntimeException("Error enviando email HTML: " + e.getMessage(), e);
