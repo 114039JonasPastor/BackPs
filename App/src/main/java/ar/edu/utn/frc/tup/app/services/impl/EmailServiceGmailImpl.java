@@ -12,9 +12,10 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("emailServiceGmail")
 @Slf4j
-@Primary  // Esta implementación tendrá prioridad sobre EmailServiceImpl
+// @Primary deshabilitado - Render bloquea puertos SMTP (587, 465, 25)
+// Usar EmailServiceImpl con Resend API en su lugar
 public class EmailServiceGmailImpl implements EmailService {
 
     @Autowired
