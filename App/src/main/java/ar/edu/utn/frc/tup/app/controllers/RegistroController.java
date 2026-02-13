@@ -66,9 +66,26 @@ public class RegistroController {
     }
 
     @PostMapping("/administrador")
-    public ResponseEntity<AuthResponse> registrarAdministrador(@RequestBody UsuarioRequest administrador) {
-        return ResponseEntity.ok(registroService.registrarAdministrador(administrador));
-
+    public ResponseEntity<?> registrarAdministrador(@RequestBody UsuarioRequest administrador) {
+        try {
+            return ResponseEntity.ok(registroService.registrarAdministrador(administrador));
+        } catch (IllegalArgumentException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        } catch (RuntimeException e) {
+            ErrorApi error = ErrorApi.builder()
+                    .timestamp(java.time.Instant.now().toString())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .error("Internal Server Error")
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 
     @GetMapping("/confirm")

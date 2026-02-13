@@ -1,0 +1,41 @@
+# ⚠️ IMPORTANTE: Reemplaza "tuoficio-backend.onrender.com" con tu URL real de Render
+# Para obtenerla: https://dashboard.render.com → Tu servicio → Settings
+
+### Registrar Administrador (Local)
+POST http://localhost:8081/api/v1/registro/administrador
+Content-Type: application/json
+
+{
+  "name": "Admin",
+  "lastName": "Sistema",
+  "mail": "admin@tuoficio.com",
+  "password": "Admin123!",
+  "idTipoDoc": 1,
+  "documento": "12345678",
+  "telefono": "3512345678",
+  "nacimiento": "1990-01-01",
+  "idBarrio": 1,
+  "calle": "Av. Colón",
+  "numero": "100",
+  "piso": null,
+  "depto": null,
+  "observaciones": null
+}
+
+### Registrar Administrador (Producción Render)
+POST https://tuoficio-backend.onrender.com/api/v1/registro/administrador
+Content-Type: application/json
+
+{
+  "name": "Admin",
+  "lastName": "Sistema",
+  "mail": "admin@tuoficio.com",
+  "password": "Admin123!",
+  "idTipoDoc": 1,
+  "documento": "12345678",
+  "telefono": "3512345678",
+  "nacimiento": "1990-01-01",
+  "idBarrio": 1,
+  "calle": "Av. Colón",
+  "numero": "100"
+}
